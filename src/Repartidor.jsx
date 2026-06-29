@@ -13,26 +13,36 @@ export default function Repartidor() {
 
     socketRef.current.on("connect", () => {
       console.log("🟢 Repartidor conectado:", socketRef.current.id);
+
+      // 🛵 REGISTRARSE COMO REPARTIDOR (IMPORTANTE)
+      socketRef.current.emit("repartidor-conectar");
     });
 
-    // 📦 historial inicial
+    // 📦 historial inicial (si backend lo manda global)
     socketRef.current.on("pedidos-iniciales", (data) => {
       setPedidos(data);
     });
 
-    // 🔄 actualización GLOBAL (IMPORTANTE)
-    socketRef.current.on("pedido-actualizado", (pedidoActualizado) => {
+    // 📦 nuevos pedidos SOLO para repartidor
+    socketRef.current.on("nuevo-pedido-repartidor", (pedido) => {
       setPedidos((prev) => {
-        const existe = prev.find((p) => p.id === pedidoActualizado.id);
-
-        if (existe) {
-          return prev.map((p) =>
-            p.id === pedidoActualizado.id ? pedidoActualizado : p
-          );
-        }
-
-        return [...prev, pedidoActualizado];
+        const existe = prev.find((p) => p.id === pedido.id);
+        if (existe) return prev;
+        return [pedido, ...prev];
       });
+
+      console.log("📦 nuevo pedido:", pedido);
+    });
+
+    // 🔄 actualización de pedidos
+    socketRef.current.on("pedido-actualizado", (pedidoActualizado) => {
+      setPedidos((prev) =>
+        prev.map((p) =>
+          p.id === pedidoActualizado.id ? pedidoActualizado : p
+        )
+      );
+
+      console.log("🔄 actualización:", pedidoActualizado);
     });
 
     return () => {
@@ -101,7 +111,7 @@ export default function Repartidor() {
             padding: 10,
             marginBottom: 10,
             borderRadius: 10,
-            opacity: p.estado === "cancelado" ? 0.5 : 1
+            opacity: p.estado === "cancelado" ? 0.5 : 1,
           }}
         >
           <p><b>👤 Cliente:</b> {p.nombre}</p>
@@ -109,7 +119,6 @@ export default function Repartidor() {
           <p><b>📍 Zona:</b> {p.zona}</p>
           <p><b>📦 Estado:</b> {p.estado}</p>
 
-          {/* ❌ si está cancelado no permitir acciones */}
           {p.estado !== "cancelado" && (
             <>
               <button onClick={() => cambiarEstado(p, "aceptado")}>
