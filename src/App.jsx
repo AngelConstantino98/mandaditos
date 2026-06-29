@@ -21,6 +21,16 @@ export default function App() {
 
   const [showCancel, setShowCancel] = useState(null);
 
+  // 🔐 CLIENTE ID FIJO Y SEGURO
+  const [clienteId] = useState(() => {
+    let id = localStorage.getItem("clienteId");
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem("clienteId", id);
+    }
+    return id;
+  });
+
   const zonas = {
     "Tuxtla Chico": { min: 20, max: 20 },
     "Margaritas": { min: 25, max: 50 },
@@ -41,9 +51,13 @@ export default function App() {
 
   // SOCKET
   useEffect(() => {
-    socketRef.current = io("https://mandaditos-backend.onrender.com");
+    socketRef.current = io("https://mandaditos-backend.onrender.com", {
+      query: { clienteId }
+    });
 
     socketRef.current.on("pedido-actualizado", (data) => {
+      if (data.clienteId !== clienteId) return;
+
       setPedidoActual(data);
 
       setPedidos((prev) => {
@@ -57,23 +71,21 @@ export default function App() {
           updated = [data, ...prev];
         }
 
-        // 🔥 SOLO 10 PEDIDOS EN PANTALLA
         return updated.slice(0, 10);
       });
 
       localStorage.setItem("pedidoActual", JSON.stringify(data));
     });
 
-    socketRef.current.on("repartidor-movimiento", (data) => {
-      setRepartidor(data);
-    });
+    socketRef.current.on("repartidor-movimiento", setRepartidor);
 
     socketRef.current.on("pedidos-iniciales", (data) => {
-      setPedidos(data.slice(0, 10));
+      const filtrados = data.filter((p) => p.clienteId === clienteId);
+      setPedidos(filtrados.slice(0, 10));
     });
 
     return () => socketRef.current?.disconnect();
-  }, []);
+  }, [clienteId]);
 
   // RECUPERAR PEDIDO
   useEffect(() => {
@@ -111,6 +123,7 @@ export default function App() {
 
     const pedidoData = {
       id: Date.now(),
+      clienteId,
       nombre,
       pedido,
       ubicacion,
@@ -167,7 +180,6 @@ export default function App() {
     setShowCancel(null);
   };
 
-  // UI
   return (
     <div className="app">
 
@@ -187,7 +199,6 @@ export default function App() {
           <img src={logo} style={{ width: "90px" }} />
           <h1>🏍️ Mandaditos</h1>
 
-          {/* 🔥 MAPA FIJO */}
           <div style={{ height: 250, overflow: "hidden", borderRadius: 10 }}>
             <Mapa setCoords={setCoords} repartidor={repartidor} />
           </div>
@@ -200,7 +211,6 @@ export default function App() {
             </div>
           )}
 
-          {/* 🔥 LISTA CONTROLADA */}
           <div style={{ maxHeight: 220, overflowY: "auto", marginTop: 10 }}>
             {pedidos.map((p) => (
               <div key={p.id} style={{ marginBottom: 10 }}>
