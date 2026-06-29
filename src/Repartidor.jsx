@@ -14,27 +14,35 @@ export default function Repartidor() {
     socketRef.current.on("connect", () => {
       console.log("🟢 Repartidor conectado:", socketRef.current.id);
 
-      // 🛵 REGISTRARSE COMO REPARTIDOR (IMPORTANTE)
       socketRef.current.emit("repartidor-conectar");
     });
 
-    // 📦 historial inicial (si backend lo manda global)
+    // 📦 HISTORIAL INICIAL (CORREGIDO)
     socketRef.current.on("pedidos-iniciales", (data) => {
-      setPedidos(data);
+      console.log("📦 historial repartidor:", data);
+
+      // 🔥 evita duplicados al reconectar
+      setPedidos(() => [...data]);
     });
 
-    // 📦 nuevos pedidos SOLO para repartidor
-    socketRef.current.on("nuevo-pedido-repartidor", (pedido) => {
+    // 📦 NUEVOS PEDIDOS (SIN DUPLICAR)
+    socketRef.current.on("nuevo-pedido-repartidor", (nuevoPedido) => {
       setPedidos((prev) => {
-        const existe = prev.find((p) => p.id === pedido.id);
-        if (existe) return prev;
-        return [pedido, ...prev];
+        const existe = prev.find((p) => p.id === nuevoPedido.id);
+
+        if (existe) {
+          return prev.map((p) =>
+            p.id === nuevoPedido.id ? nuevoPedido : p
+          );
+        }
+
+        return [nuevoPedido, ...prev];
       });
 
-      console.log("📦 nuevo pedido:", pedido);
+      console.log("📦 nuevo pedido:", nuevoPedido);
     });
 
-    // 🔄 actualización de pedidos
+    // 🔄 ACTUALIZACIÓN DE PEDIDOS
     socketRef.current.on("pedido-actualizado", (pedidoActualizado) => {
       setPedidos((prev) =>
         prev.map((p) =>
