@@ -199,9 +199,10 @@ export default function App() {
           <img src={logo} style={{ width: "90px" }} />
           <h1>🏍️ Mandaditos</h1>
 
-          <div style={{ height: 250, overflow: "hidden", borderRadius: 10 }}>
-            <Mapa setCoords={setCoords} repartidor={repartidor} />
-          </div>
+          <Mapa
+          setCoords={setCoords}
+          repartidor={repartidor}
+          />
 
           {pedidoActual && (
             <div style={{ marginTop: 10, padding: 10, background: "#eee" }}>
