@@ -94,6 +94,14 @@ export default function Repartidor() {
       estado,
     });
   };
+  const abrirMapa = (p) => {
+  if (p.ubicacionGPS) {
+    const { lat, lng } = p.ubicacionGPS;
+    window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
+  } else {
+    alert("Este pedido no tiene ubicación GPS");
+  }
+};
 
   return (
   <div className="app-driver">
@@ -126,6 +134,9 @@ export default function Repartidor() {
           <p><b>🛒 Pedido:</b> {p.pedido}</p>
           <p><b>📍 Zona:</b> {p.zona}</p>
           <p><b>📦 Estado:</b> {p.estado}</p>
+          <button onClick={() => abrirMapa(p)}>
+  📍 Ver ubicación
+</button>
 
           {p.estado !== "cancelado" && (
             <>

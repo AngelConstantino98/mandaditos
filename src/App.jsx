@@ -117,10 +117,12 @@ export default function App() {
       info.min === info.max
         ? `$${info.min}`
         : `$${info.min} - $${info.max}`;
-
-    const ubicacionGPS = coords
-      ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
-      : "No compartida";
+        const ubicacionGPS = coords
+  ? {
+      lat: coords.lat,
+      lng: coords.lng,
+    }
+  : null;
 
     const pedidoData = {
       id: Date.now(),
@@ -149,7 +151,11 @@ export default function App() {
 📍 ${ubicacion}
 📌 Zona: ${zona}
 💰 Costo envío: ${costo}
-📍 GPS: ${ubicacionGPS}`;
+📍 GPS: ${
+  coords
+    ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+    : "No compartida"
+}`;
 
     setTimeout(() => {
       window.open(
@@ -199,7 +205,9 @@ export default function App() {
 
           <div className="header">
   <img src={logo} />
-  <h1>🏍️ Mandaditos</h1>
+  <h1>🏍️ Mandaditos Ángel</h1>
+  <h1>✨ Pide lo que quieras. Nosotros lo llevamos hasta la puerta de tu hogar. 🏠</h1>
+  <h1>🍔 Comida • 💊 Farmacia • 🛒 Compras • 📦 Envíos y Mas.</h1>
 </div>
 
           <Mapa
