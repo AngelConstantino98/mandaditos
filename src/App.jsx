@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import logo from "./assets/logo.png";
 import Mapa from "./Mapa";
+import "./App.css";
 
 export default function App() {
   const socketRef = useRef(null);
@@ -196,8 +197,10 @@ export default function App() {
       {screen === "home" && (
         <div className="card">
 
-          <img src={logo} style={{ width: "90px" }} />
-          <h1>🏍️ Mandaditos</h1>
+          <div className="header">
+  <img src={logo} />
+  <h1>🏍️ Mandaditos</h1>
+</div>
 
           <Mapa
           setCoords={setCoords}
@@ -212,7 +215,7 @@ export default function App() {
             </div>
           )}
 
-          <div style={{ maxHeight: 220, overflowY: "auto", marginTop: 10 }}>
+          <div className="pedidos-container">
             {pedidos.map((p) => (
               <div key={p.id} style={{ marginBottom: 10 }}>
                 <p>👤 {p.nombre}</p>
