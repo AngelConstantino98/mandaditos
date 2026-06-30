@@ -207,7 +207,6 @@ export default function App() {
   <img src={logo} />
   <h1>🏍️ Mandaditos Ángel</h1>
   <h1>✨ Pide lo que quieras. Nosotros lo llevamos hasta la puerta de tu hogar. 🏠</h1>
-  <h1>🍔 Comida • 💊 Farmacia • 🛒 Compras • 📦 Envíos y Mas.</h1>
 </div>
 
           <Mapa
