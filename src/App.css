@@ -9,11 +9,10 @@ html, body {
   height: 100%;
   width: 100%;
   font-family: Arial, sans-serif;
-  body {
   background: linear-gradient(135deg, #0f172a, #1e293b);
+  overflow-y: auto;
 }
-  overflow: hidden;
-}
+
 
 /* APP */
 .app {
