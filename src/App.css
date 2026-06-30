@@ -9,7 +9,6 @@ html, body {
   height: 100%;
   width: 100%;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #0f172a, #1e293b);
   overflow-y: auto;
 }
 
@@ -131,4 +130,23 @@ html, body {
 p {
   margin: 2px 0;
   font-size: 14px;
+}
+.app-user {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.app-driver {
+  min-height: 100vh;
+  background: #f4f4f4;
+}
+.app-driver {
+  min-height: 100vh;
+  background: #f4f4f4;
+  padding: 10px;
+}
+
+.app-driver div {
+  background: white;
+  border-radius: 10px;
 }

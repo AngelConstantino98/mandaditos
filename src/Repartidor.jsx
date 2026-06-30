@@ -96,7 +96,7 @@ export default function Repartidor() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+  <div className="app-driver">
       <h1>🏍️ Panel Repartidor</h1>
 
       {!activo ? (
