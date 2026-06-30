@@ -123,6 +123,8 @@ export default function App() {
       lng: coords.lng,
     }
   : null;
+  console.log("COORDS:", coords);
+console.log("UBICACION GPS:", ubicacionGPS);
 
     const pedidoData = {
       id: Date.now(),

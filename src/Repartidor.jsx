@@ -95,8 +95,10 @@ export default function Repartidor() {
     });
   };
   const abrirMapa = (p) => {
-  if (p.ubicacionGPS) {
-    const { lat, lng } = p.ubicacionGPS;
+  const gps = p.ubicacionGPS || p.gps;
+
+  if (gps) {
+    const { lat, lng } = gps;
     window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
   } else {
     alert("Este pedido no tiene ubicación GPS");
