@@ -136,6 +136,7 @@ export default function Repartidor() {
           <p><b>🛒 Pedido:</b> {p.pedido}</p>
           <p><b>📍 Zona:</b> {p.zona}</p>
           <p><b>📦 Estado:</b> {p.estado}</p>
+          <p><b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}</p>
           <button onClick={() => abrirMapa(p)}>
   📍 Ver ubicación
 </button>
