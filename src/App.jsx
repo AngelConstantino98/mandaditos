@@ -33,15 +33,15 @@ export default function App() {
   });
 
   const zonas = {
-    "Tuxtla Chico": { min: 20, max: 20 },
-    "Margaritas": { min: 25, max: 50 },
-    "La Toma": { min: 25, max: 50 },
-    "Guillén": { min: 25, max: 50 },
-    "Camino de la Tierra": { min: 25, max: 50 },
-    "Monte Grande": { min: 25, max: 50 },
-    "Sección El 12": { min: 25, max: 50 },
-    "El Aguacate": { min: 25, max: 50 },
-    "Calle Calance": { min: 25, max: 50 }
+    "Tuxtla Chico": { min: 20, max: 60 },
+    "Margaritas": { min: 25, max: 60 },
+    "La Toma": { min: 25, max: 60 },
+    "Guillén": { min: 25, max: 60 },
+    "Camino de la Tierra": { min: 25, max: 60 },
+    "Monte Grande": { min: 25, max: 60 },
+    "Sección El 12": { min: 25, max: 60 },
+    "El Aguacate": { min: 25, max: 60 },
+    "Otro": { min: 25, max: 0 }
   };
 
   // SPLASH
@@ -268,6 +268,10 @@ console.log("UBICACION GPS:", ubicacionGPS);
           <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" />
           <input value={pedido} onChange={(e) => setPedido(e.target.value)} placeholder="Pedido" />
           <input value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} placeholder="Ubicación" />
+          <p style={{ fontSize: "13px", color: "#666", marginBottom: "5px" }}>
+  📌 Los precios se calculan por zonas y pueden variar según la distancia y el tipo de mandado.  
+  💰 El costo es un aproximado entre $20 y $60 en areas cercanas.
+</p>
 
           <select value={zona} onChange={(e) => setZona(e.target.value)}>
             <option value="">Selecciona zona</option>
