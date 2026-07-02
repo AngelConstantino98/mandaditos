@@ -47,6 +47,15 @@ export default function App() {
   // 🍀 Estados de promoción
   const [sorteando, setSorteando] = useState(false);
   const [resultadoPromo, setResultadoPromo] = useState(null);
+  const [ocultarPromoInicio, setOcultarPromoInicio] = useState(false);
+
+  // ⭐ Estado de recompensas
+  const [recompensa, setRecompensa] = useState({
+    pedidosCompletados: 0,
+    meta: 10,
+    recompensaDisponible: false,
+    faltan: 10
+  });
 
   // 🔐 CLIENTE ID FIJO Y SEGURO
   const [clienteId] = useState(() => {
@@ -84,6 +93,12 @@ export default function App() {
 
     socketRef.current.on("connect", () => {
       console.log("🟢 Cliente conectado:", socketRef.current.id);
+
+      socketRef.current.emit("obtener-recompensa", (data) => {
+        if (data) {
+          setRecompensa(data);
+        }
+      });
     });
 
     socketRef.current.on("connect_error", (err) => {
@@ -114,6 +129,7 @@ export default function App() {
 
     socketRef.current.on("resultado-promocion", (resultado) => {
       setSorteando(false);
+      setOcultarPromoInicio(false);
 
       if (!resultado.ok) {
         setResultadoPromo({
@@ -133,6 +149,12 @@ export default function App() {
           tipo: "perdedor",
           mensaje: MENSAJE_PERDEDOR
         });
+      }
+    });
+
+    socketRef.current.on("recompensa-actualizada", (data) => {
+      if (data) {
+        setRecompensa(data);
       }
     });
 
@@ -210,6 +232,7 @@ ${notaPedido.trim()}`
 
     setResultadoPromo(null);
     setSorteando(false);
+    setOcultarPromoInicio(false);
 
     const numero = "529621816603";
 
@@ -280,11 +303,13 @@ ${notaPedido.trim()}`
 
     setSorteando(true);
     setResultadoPromo(null);
+    setOcultarPromoInicio(false);
 
     socketRef.current
       .timeout(7000)
       .emit("probar-suerte", { pedidoId: pedidoActual.id }, (err, resultado) => {
         setSorteando(false);
+        setOcultarPromoInicio(false);
 
         if (err) {
           setResultadoPromo({
@@ -437,6 +462,40 @@ ${notaPedido.trim()}`
         }
       : null);
 
+  // 🍀 Oculta el mensaje de la promoción en inicio después de 1 minuto.
+  // El resultado sigue quedando visible en el historial del pedido.
+  useEffect(() => {
+    if (!promoParaMostrar) {
+      setOcultarPromoInicio(false);
+      return;
+    }
+
+    setOcultarPromoInicio(false);
+
+    const timer = setTimeout(() => {
+      setOcultarPromoInicio(true);
+    }, 60000);
+
+    return () => clearTimeout(timer);
+  }, [pedidoActual?.id, promoParaMostrar?.tipo, promoParaMostrar?.mensaje]);
+
+  // 📦 Oculta el pedido actual del inicio 1 minuto después de ser entregado.
+  // El pedido sigue disponible en la pantalla de historial.
+  useEffect(() => {
+    if (pedidoActual?.estado !== "entregado") {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setPedidoActual(null);
+      setResultadoPromo(null);
+      localStorage.removeItem("pedidoActual");
+    }, 60000);
+
+    return () => clearTimeout(timer);
+  }, [pedidoActual?.id, pedidoActual?.estado]);
+
+
   return (
     <div className="app">
 
@@ -475,6 +534,72 @@ ${notaPedido.trim()}`
             🍽️ Negocios locales{totalProductosCarrito > 0 ? ` (${totalProductosCarrito})` : ""}
           </button>
 
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: recompensa.recompensaDisponible ? "#fef3c7" : "#f8fafc",
+              borderRadius: 12,
+              border: recompensa.recompensaDisponible
+                ? "1px solid #f59e0b"
+                : "1px solid #e5e7eb"
+            }}
+          >
+            <h2 style={{ fontSize: 18, marginBottom: 6 }}>
+              ⭐ Recompensas
+            </h2>
+
+            {recompensa.recompensaDisponible ? (
+              <>
+                <p
+                  style={{
+                    fontWeight: "bold",
+                    color: "#92400e",
+                    marginBottom: 8
+                  }}
+                >
+                  🎁 ¡Tienes un envío gratis disponible!
+                </p>
+
+                <p style={{ fontSize: 13, color: "#78350f" }}>
+                  Podrás usarlo en tu próximo pedido. Después de usarlo, tu progreso volverá a 0/10.
+                </p>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 14, marginBottom: 8 }}>
+                  Pedidos completados: <strong>{recompensa.pedidosCompletados}/{recompensa.meta}</strong>
+                </p>
+
+                <div
+                  style={{
+                    width: "100%",
+                    height: 10,
+                    background: "#e5e7eb",
+                    borderRadius: 999,
+                    overflow: "hidden",
+                    marginBottom: 8
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        (recompensa.pedidosCompletados / recompensa.meta) * 100
+                      )}%`,
+                      height: "100%",
+                      background: "#22c55e"
+                    }}
+                  />
+                </div>
+
+                <p style={{ fontSize: 13, color: "#555" }}>
+                  Te faltan <strong>{recompensa.faltan}</strong> pedidos entregados para ganar un envío gratis.
+                </p>
+              </>
+            )}
+          </div>
+
           {pedidoActual && (
             <div style={{ marginTop: 10, padding: 10, background: "#eee", borderRadius: 10 }}>
               <p>👤 {pedidoActual.nombre}</p>
@@ -494,7 +619,7 @@ ${notaPedido.trim()}`
                   </button>
                 )}
 
-              {promoParaMostrar && (
+              {promoParaMostrar && !ocultarPromoInicio && (
                 <div
                   style={{
                     marginTop: 10,
@@ -515,28 +640,168 @@ ${notaPedido.trim()}`
             </div>
           )}
 
-          <div className="pedidos-container">
-            {pedidos.map((p) => (
-              <div key={p.id} style={{ marginBottom: 10 }}>
-                <p>👤 {p.nombre}</p>
-                <p>🛒 {p.pedido}</p>
-                <p>📦 {p.estado}</p>
+          <button
+            className="btn"
+            onClick={() => setScreen("historial")}
+            style={{ marginTop: 10, background: "#334155" }}
+          >
+            📜 Historial de pedidos{pedidos.length > 0 ? ` (${pedidos.length})` : ""}
+          </button>
 
-                {p.estado !== "cancelado" && (
-                  <button onClick={() => setShowCancel(p.id)}>
-                    Cancelar
+          <button className="btn" onClick={() => setScreen("form")}>
+            Hacer pedido
+          </button>
+        </div>
+      )}
+
+      {screen === "historial" && (
+        <div className="card">
+
+          <button
+            onClick={() => {
+              setShowCancel(null);
+              setScreen("home");
+            }}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer"
+            }}
+          >
+            ← Volver
+          </button>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h1 style={{ fontSize: 22, marginBottom: 6 }}>
+              📜 Historial de pedidos
+            </h1>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              Aquí puedes revisar tus últimos pedidos y cancelar los que sigan activos.
+            </p>
+
+            {pedidos.length === 0 && (
+              <p style={{ fontSize: 14, color: "#666" }}>
+                Aún no hay pedidos en tu historial.
+              </p>
+            )}
+
+            {pedidos.map((p) => (
+              <div
+                key={p.id}
+                style={{
+                  marginBottom: 10,
+                  padding: 10,
+                  background: "#f8fafc",
+                  borderRadius: 10,
+                  border: "1px solid #e5e7eb"
+                }}
+              >
+                <p><strong>👤 Cliente:</strong> {p.nombre}</p>
+                <p style={{ whiteSpace: "pre-line" }}>
+                  <strong>🛒 Pedido:</strong> {p.pedido}
+                </p>
+                <p><strong>📦 Estado:</strong> {p.estado}</p>
+                <p><strong>📍 Zona:</strong> {p.zona || "No especificada"}</p>
+
+                {p.promocion?.participo && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      padding: 12,
+                      borderRadius: 12,
+                      background: p.promocion.ganador ? "#dcfce7" : "#fef3c7",
+                      border: p.promocion.ganador
+                        ? "1px solid #22c55e"
+                        : "1px solid #f59e0b",
+                      color: p.promocion.ganador ? "#14532d" : "#78350f",
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      whiteSpace: "pre-line",
+                      lineHeight: "1.4"
+                    }}
+                  >
+                    {p.promocion.ganador ? MENSAJE_GANADOR : MENSAJE_PERDEDOR}
+                  </div>
+                )}
+
+                {p.estado !== "cancelado" && p.estado !== "entregado" && (
+                  <button
+                    onClick={() => setShowCancel(p.id)}
+                    style={{
+                      marginTop: 8,
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "#ef4444",
+                      color: "white",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Cancelar pedido
                   </button>
                 )}
 
+                {p.estado === "entregado" && (
+                  <p style={{ color: "green", fontWeight: "bold", marginTop: 8 }}>
+                    ✅ Pedido entregado
+                  </p>
+                )}
+
+                {p.estado === "cancelado" && (
+                  <p style={{ color: "red", fontWeight: "bold", marginTop: 8 }}>
+                    ❌ Pedido cancelado
+                  </p>
+                )}
+
                 {showCancel === p.id && (
-                  <div style={{ background: "#fff", padding: 10 }}>
+                  <div
+                    style={{
+                      marginTop: 10,
+                      background: "#fff",
+                      padding: 10,
+                      borderRadius: 10,
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
                     <p>¿Cancelar pedido?</p>
 
-                    <button onClick={() => cancelarPedido(p.id)}>
+                    <button
+                      onClick={() => cancelarPedido(p.id)}
+                      style={{
+                        marginRight: 8,
+                        padding: "6px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "#ef4444",
+                        color: "white",
+                        cursor: "pointer"
+                      }}
+                    >
                       Sí
                     </button>
 
-                    <button onClick={() => setShowCancel(null)}>
+                    <button
+                      onClick={() => setShowCancel(null)}
+                      style={{
+                        padding: "6px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "#e5e7eb",
+                        cursor: "pointer"
+                      }}
+                    >
                       No
                     </button>
                   </div>
@@ -545,9 +810,6 @@ ${notaPedido.trim()}`
             ))}
           </div>
 
-          <button className="btn" onClick={() => setScreen("form")}>
-            Hacer pedido
-          </button>
         </div>
       )}
 

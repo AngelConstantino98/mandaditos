@@ -13,9 +13,22 @@ function CambiarVista({ position }) {
   return null;
 }
 
+function SeguirRepartidor({ repartidor, activo }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (activo && repartidor?.lat && repartidor?.lng) {
+      map.setView([repartidor.lat, repartidor.lng], 17);
+    }
+  }, [activo, repartidor?.lat, repartidor?.lng, map]);
+
+  return null;
+}
+
 export default function Mapa({ setCoords, repartidor }) {
   const [position, setPosition] = useState([16.75, -93.12]);
   const [marker, setMarker] = useState(null);
+  const [seguirRepartidor, setSeguirRepartidor] = useState(false);
 
   const obtenerUbicacion = () => {
     if (!navigator.geolocation) {
@@ -46,6 +59,15 @@ export default function Mapa({ setCoords, repartidor }) {
     );
   };
 
+  const activarSeguimientoRepartidor = () => {
+    if (!repartidor?.lat || !repartidor?.lng) {
+      alert("Aún no hay ubicación del repartidor.");
+      return;
+    }
+
+    setSeguirRepartidor((prev) => !prev);
+  };
+
   return (
     <div style={{ marginBottom: "10px" }}>
 
@@ -66,6 +88,36 @@ export default function Mapa({ setCoords, repartidor }) {
         📍 Usar mi ubicación
       </button>
 
+      <button
+        onClick={activarSeguimientoRepartidor}
+        style={{
+          marginBottom: "8px",
+          padding: "10px",
+          background: seguirRepartidor ? "#ef4444" : "#2563eb",
+          color: "white",
+          borderRadius: "8px",
+          border: "none",
+          cursor: "pointer",
+          width: "100%",
+          fontWeight: "bold"
+        }}
+      >
+        {seguirRepartidor ? "🛑 Dejar de seguir repartidor" : "🛵 Seguir repartidor"}
+      </button>
+
+      {!repartidor && (
+        <p
+          style={{
+            fontSize: "12px",
+            color: "#666",
+            textAlign: "center",
+            marginBottom: "8px"
+          }}
+        >
+          La ubicación del repartidor aparecerá cuando inicie su GPS.
+        </p>
+      )}
+
       <div style={{ height: "250px", width: "100%" }}>
         <MapContainer
           center={position}
@@ -76,6 +128,12 @@ export default function Mapa({ setCoords, repartidor }) {
 
           {/* 👁️ CONTROL DE VISTA */}
           <CambiarVista position={position} />
+
+          {/* 🛵 SEGUIR REPARTIDOR EN TIEMPO REAL */}
+          <SeguirRepartidor
+            repartidor={repartidor}
+            activo={seguirRepartidor}
+          />
 
           {/* 📍 TU UBICACIÓN */}
           {marker && (

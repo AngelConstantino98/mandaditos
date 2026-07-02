@@ -5,12 +5,64 @@ const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 // Para producción después usaremos:
 // const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
+const GPS_STORAGE_KEY = "gpsRepartidorActivo";
+
 export default function Repartidor() {
   const socketRef = useRef(null);
   const watchId = useRef(null);
 
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
+
+  // 🟢 GPS
+  const iniciarGPS = () => {
+    if (!navigator.geolocation) {
+      alert("Tu dispositivo no soporta GPS");
+      return;
+    }
+
+    // Evita iniciar varios GPS al mismo tiempo
+    if (watchId.current !== null) {
+      setActivo(true);
+      localStorage.setItem(GPS_STORAGE_KEY, "true");
+      return;
+    }
+
+    setActivo(true);
+    localStorage.setItem(GPS_STORAGE_KEY, "true");
+
+    watchId.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const data = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+
+        if (socketRef.current) {
+          socketRef.current.emit("repartidor-ubicacion", data);
+        }
+      },
+      (error) => {
+        console.log("Error GPS repartidor:", error);
+        alert("No se pudo obtener la ubicación del repartidor.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const detenerGPS = () => {
+    if (watchId.current !== null) {
+      navigator.geolocation.clearWatch(watchId.current);
+      watchId.current = null;
+    }
+
+    setActivo(false);
+    localStorage.setItem(GPS_STORAGE_KEY, "false");
+  };
 
   useEffect(() => {
     socketRef.current = io(SOCKET_URL);
@@ -19,6 +71,13 @@ export default function Repartidor() {
       console.log("🟢 Repartidor conectado:", socketRef.current.id);
 
       socketRef.current.emit("repartidor-conectar");
+
+      // ✅ Si el GPS estaba activo antes de recargar, se vuelve a iniciar solo
+      const gpsGuardado = localStorage.getItem(GPS_STORAGE_KEY);
+
+      if (gpsGuardado === "true") {
+        iniciarGPS();
+      }
     });
 
     // 📦 HISTORIAL INICIAL
@@ -65,38 +124,12 @@ export default function Repartidor() {
     return () => {
       if (watchId.current !== null) {
         navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
       }
 
-      socketRef.current.disconnect();
+      socketRef.current?.disconnect();
     };
   }, []);
-
-  // 🟢 GPS
-  const iniciarGPS = () => {
-    if (!navigator.geolocation) {
-      alert("Tu dispositivo no soporta GPS");
-      return;
-    }
-
-    setActivo(true);
-
-    watchId.current = navigator.geolocation.watchPosition((pos) => {
-      const data = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-      };
-
-      socketRef.current.emit("repartidor-ubicacion", data);
-    });
-  };
-
-  const detenerGPS = () => {
-    if (watchId.current !== null) {
-      navigator.geolocation.clearWatch(watchId.current);
-    }
-
-    setActivo(false);
-  };
 
   // 📦 cambiar estado
   const cambiarEstado = (pedido, estado) => {
@@ -125,6 +158,12 @@ export default function Repartidor() {
         <button onClick={iniciarGPS}>▶️ Iniciar GPS</button>
       ) : (
         <button onClick={detenerGPS}>⏹️ Detener GPS</button>
+      )}
+
+      {activo && (
+        <p style={{ color: "green", fontWeight: "bold" }}>
+          🛰️ GPS activo. Tu ubicación se está compartiendo.
+        </p>
       )}
 
       <hr />
