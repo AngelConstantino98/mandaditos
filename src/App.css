@@ -148,3 +148,54 @@ p {
   background: white;
   border-radius: 10px;
 }
+/* 📱 Ajustes para celular */
+@media (max-width: 600px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+  }
+
+  .app {
+    min-height: 100dvh;
+    height: auto;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .card {
+    height: auto;
+    min-height: 95dvh;
+    max-height: none;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+
+  .header img {
+    width: 80px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .mapa,
+  .leaflet-container {
+    height: 300px !important;
+    min-height: 300px !important;
+  }
+
+  .pedidos-container {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-bottom: 10px;
+  }
+
+  .btn {
+    margin-top: 10px;
+    flex-shrink: 0;
+  }
+}
