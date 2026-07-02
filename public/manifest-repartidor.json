@@ -1,14 +1,14 @@
 {
-  "id": "/cliente",
+  "id": "/repartidor",
   "version": "1.0.1",
-  "name": "Mandaditos",
-  "short_name": "Mandaditos",
-  "start_url": "./",
+  "name": "Repartidor Mandaditos",
+  "short_name": "Repartidor",
+  "start_url": "/repartidor",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#25D366",
-  "description": "Servicio de mandaditos rápido y confiable",
+  "theme_color": "#0f172a",
+  "description": "Panel para repartidores de Mandaditos Ángel",
   "icons": [
     {
       "src": "/icon-192.png",

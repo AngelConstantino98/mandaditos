@@ -2,17 +2,36 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    
+
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <title>Mandaditos Tuxtla Chico</title>
-    
-    <link rel="manifest" href="/manifest.json" />
-    
-    <meta name="theme-color" content="#25D366" />
+
+    <meta name="theme-color" content="#25D366" id="theme-color" />
+
+    <script>
+      const esRepartidor = window.location.pathname.startsWith("/repartidor");
+
+      const manifest = document.createElement("link");
+      manifest.rel = "manifest";
+      manifest.href = esRepartidor
+        ? "/manifest-repartidor.json"
+        : "/manifest.json";
+
+      document.head.appendChild(manifest);
+
+      if (esRepartidor) {
+        document.title = "Repartidor Mandaditos";
+
+        const themeColor = document.getElementById("theme-color");
+        if (themeColor) {
+          themeColor.setAttribute("content", "#0f172a");
+        }
+      }
+    </script>
   </head>
 
   <body>
