@@ -4,6 +4,20 @@ import logo from "./assets/logo.png";
 import Mapa from "./Mapa";
 import "./App.css";
 
+const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+// Para producción después usaremos:
+// const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+
+const MENSAJE_GANADOR = `🎉 ¡Felicidades!
+
+Tu pedido será totalmente GRATIS.
+El repartidor ya fue notificado.`;
+
+const MENSAJE_PERDEDOR = `😔 Esta vez no ganaste
+
+Gracias por participar.
+¡Te deseamos suerte en tu próximo pedido!`;
+
 export default function App() {
   const socketRef = useRef(null);
 
@@ -21,6 +35,10 @@ export default function App() {
   const [pedidos, setPedidos] = useState([]);
 
   const [showCancel, setShowCancel] = useState(null);
+
+  // 🍀 Estados de promoción
+  const [sorteando, setSorteando] = useState(false);
+  const [resultadoPromo, setResultadoPromo] = useState(null);
 
   // 🔐 CLIENTE ID FIJO Y SEGURO
   const [clienteId] = useState(() => {
@@ -52,8 +70,16 @@ export default function App() {
 
   // SOCKET
   useEffect(() => {
-    socketRef.current = io("https://mandaditos-backend.onrender.com", {
+    socketRef.current = io(SOCKET_URL, {
       query: { clienteId }
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("🟢 Cliente conectado:", socketRef.current.id);
+    });
+
+    socketRef.current.on("connect_error", (err) => {
+      console.log("🔴 Error de conexión:", err.message);
     });
 
     socketRef.current.on("pedido-actualizado", (data) => {
@@ -76,6 +102,30 @@ export default function App() {
       });
 
       localStorage.setItem("pedidoActual", JSON.stringify(data));
+    });
+
+    socketRef.current.on("resultado-promocion", (resultado) => {
+      setSorteando(false);
+
+      if (!resultado.ok) {
+        setResultadoPromo({
+          tipo: "error",
+          mensaje: resultado.mensaje || "No se pudo participar en la promoción."
+        });
+        return;
+      }
+
+      if (resultado.ganador) {
+        setResultadoPromo({
+          tipo: "ganador",
+          mensaje: MENSAJE_GANADOR
+        });
+      } else {
+        setResultadoPromo({
+          tipo: "perdedor",
+          mensaje: MENSAJE_PERDEDOR
+        });
+      }
     });
 
     socketRef.current.on("repartidor-movimiento", setRepartidor);
@@ -117,14 +167,13 @@ export default function App() {
       info.min === info.max
         ? `$${info.min}`
         : `$${info.min} - $${info.max}`;
-        const ubicacionGPS = coords
-  ? {
-      lat: coords.lat,
-      lng: coords.lng,
-    }
-  : null;
-  console.log("COORDS:", coords);
-console.log("UBICACION GPS:", ubicacionGPS);
+
+    const ubicacionGPS = coords
+      ? {
+          lat: coords.lat,
+          lng: coords.lng,
+        }
+      : null;
 
     const pedidoData = {
       id: Date.now(),
@@ -143,6 +192,9 @@ console.log("UBICACION GPS:", ubicacionGPS);
 
     setPedidoActual(pedidoData);
     localStorage.setItem("pedidoActual", JSON.stringify(pedidoData));
+
+    setResultadoPromo(null);
+    setSorteando(false);
 
     const numero = "529621816603";
 
@@ -175,6 +227,77 @@ console.log("UBICACION GPS:", ubicacionGPS);
     setScreen("home");
   };
 
+  // 🍀 PROBAR SUERTE
+  const probarSuerte = () => {
+    if (!pedidoActual?.id) {
+      alert("Primero realiza un pedido.");
+      return;
+    }
+
+    if (pedidoActual.estado === "cancelado") {
+      setResultadoPromo({
+        tipo: "error",
+        mensaje: "Los pedidos cancelados no pueden participar."
+      });
+      return;
+    }
+
+    if (pedidoActual.estado === "entregado") {
+      setResultadoPromo({
+        tipo: "error",
+        mensaje: "Esta promoción solo está disponible antes de entregar el pedido."
+      });
+      return;
+    }
+
+    if (pedidoActual.promocion?.participo) {
+      setResultadoPromo({
+        tipo: pedidoActual.promocion.ganador ? "ganador" : "perdedor",
+        mensaje: pedidoActual.promocion.ganador
+          ? MENSAJE_GANADOR
+          : MENSAJE_PERDEDOR
+      });
+      return;
+    }
+
+    setSorteando(true);
+    setResultadoPromo(null);
+
+    socketRef.current
+      .timeout(7000)
+      .emit("probar-suerte", { pedidoId: pedidoActual.id }, (err, resultado) => {
+        setSorteando(false);
+
+        if (err) {
+          setResultadoPromo({
+            tipo: "error",
+            mensaje: "No se recibió respuesta del servidor. Verifica que el backend local esté encendido."
+          });
+          return;
+        }
+
+        if (!resultado?.ok) {
+          setResultadoPromo({
+            tipo: "error",
+            mensaje: resultado?.mensaje || "No se pudo participar en la promoción."
+          });
+          return;
+        }
+
+        if (resultado.ganador) {
+          setResultadoPromo({
+            tipo: "ganador",
+            mensaje: MENSAJE_GANADOR
+          });
+        } else {
+          setResultadoPromo({
+            tipo: "perdedor",
+            mensaje: MENSAJE_PERDEDOR
+          });
+        }
+      });
+  };
+
   // CANCELAR
   const cancelarPedido = (id) => {
     const nuevos = pedidos.map((p) =>
@@ -188,6 +311,17 @@ console.log("UBICACION GPS:", ubicacionGPS);
 
     setShowCancel(null);
   };
+
+  const promoParaMostrar =
+    resultadoPromo ||
+    (pedidoActual?.promocion?.participo
+      ? {
+          tipo: pedidoActual.promocion.ganador ? "ganador" : "perdedor",
+          mensaje: pedidoActual.promocion.ganador
+            ? MENSAJE_GANADOR
+            : MENSAJE_PERDEDOR
+        }
+      : null);
 
   return (
     <div className="app">
@@ -206,21 +340,53 @@ console.log("UBICACION GPS:", ubicacionGPS);
         <div className="card">
 
           <div className="header">
-  <img src={logo} />
-  <h1>🏍️ Mandaditos Ángel</h1>
-  <h1>✨ Pide lo que quieras. Nosotros lo llevamos hasta la puerta de tu hogar. 🏠</h1>
-</div>
+            <img src={logo} />
+            <h1>🏍️ Mandaditos Ángel</h1>
+            <h1>✨ Pide lo que quieras. Nosotros lo llevamos hasta la puerta de tu hogar. 🏠</h1>
+          </div>
 
           <Mapa
-          setCoords={setCoords}
-          repartidor={repartidor}
+            setCoords={setCoords}
+            repartidor={repartidor}
           />
 
           {pedidoActual && (
-            <div style={{ marginTop: 10, padding: 10, background: "#eee" }}>
+            <div style={{ marginTop: 10, padding: 10, background: "#eee", borderRadius: 10 }}>
               <p>👤 {pedidoActual.nombre}</p>
               <p>🛒 {pedidoActual.pedido}</p>
               <p>📦 {pedidoActual.estado}</p>
+
+              {!pedidoActual.promocion?.participo &&
+                pedidoActual.estado !== "cancelado" &&
+                pedidoActual.estado !== "entregado" && (
+                  <button
+                    className="btn"
+                    onClick={probarSuerte}
+                    disabled={sorteando}
+                    style={{ marginTop: 10 }}
+                  >
+                    {sorteando ? "🎁 Revisando tu suerte..." : "🍀 Probar mi suerte"}
+                  </button>
+                )}
+
+              {promoParaMostrar && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    padding: 14,
+                    borderRadius: 12,
+                    background: "#fef3c7",
+                    border: "1px solid #f59e0b",
+                    color: "#78350f",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    whiteSpace: "pre-line",
+                    lineHeight: "1.4"
+                  }}
+                >
+                  {promoParaMostrar.mensaje}
+                </div>
+              )}
             </div>
           )}
 
@@ -265,13 +431,28 @@ console.log("UBICACION GPS:", ubicacionGPS);
 
           <h1>📦 Nuevo pedido</h1>
 
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" />
-          <input value={pedido} onChange={(e) => setPedido(e.target.value)} placeholder="Pedido" />
-          <input value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} placeholder="Ubicación" />
+          <input
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Nombre"
+          />
+
+          <input
+            value={pedido}
+            onChange={(e) => setPedido(e.target.value)}
+            placeholder="Pedido"
+          />
+
+          <input
+            value={ubicacion}
+            onChange={(e) => setUbicacion(e.target.value)}
+            placeholder="Ubicación"
+          />
+
           <p style={{ fontSize: "13px", color: "#666", marginBottom: "5px" }}>
-  📌 Los precios se calculan por zonas y pueden variar según la distancia y el tipo de mandado.  
-  💰 El costo es un aproximado entre $20 y $60 en areas cercanas.
-</p>
+            📌 Los precios se calculan por zonas y pueden variar según la distancia y el tipo de mandado.
+            💰 El costo es un aproximado entre $20 y $60 en areas cercanas.
+          </p>
 
           <select value={zona} onChange={(e) => setZona(e.target.value)}>
             <option value="">Selecciona zona</option>

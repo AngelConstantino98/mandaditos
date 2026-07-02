@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
+const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+// Para producción después usaremos:
+// const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+
 export default function Repartidor() {
   const socketRef = useRef(null);
   const watchId = useRef(null);
@@ -9,7 +13,7 @@ export default function Repartidor() {
   const [pedidos, setPedidos] = useState([]);
 
   useEffect(() => {
-    socketRef.current = io("https://mandaditos-backend.onrender.com");
+    socketRef.current = io(SOCKET_URL);
 
     socketRef.current.on("connect", () => {
       console.log("🟢 Repartidor conectado:", socketRef.current.id);
@@ -17,15 +21,14 @@ export default function Repartidor() {
       socketRef.current.emit("repartidor-conectar");
     });
 
-    // 📦 HISTORIAL INICIAL (CORREGIDO)
+    // 📦 HISTORIAL INICIAL
     socketRef.current.on("pedidos-iniciales", (data) => {
       console.log("📦 historial repartidor:", data);
 
-      // 🔥 evita duplicados al reconectar
       setPedidos(() => [...data]);
     });
 
-    // 📦 NUEVOS PEDIDOS (SIN DUPLICAR)
+    // 📦 NUEVOS PEDIDOS
     socketRef.current.on("nuevo-pedido-repartidor", (nuevoPedido) => {
       setPedidos((prev) => {
         const existe = prev.find((p) => p.id === nuevoPedido.id);
@@ -44,11 +47,17 @@ export default function Repartidor() {
 
     // 🔄 ACTUALIZACIÓN DE PEDIDOS
     socketRef.current.on("pedido-actualizado", (pedidoActualizado) => {
-      setPedidos((prev) =>
-        prev.map((p) =>
-          p.id === pedidoActualizado.id ? pedidoActualizado : p
-        )
-      );
+      setPedidos((prev) => {
+        const existe = prev.find((p) => p.id === pedidoActualizado.id);
+
+        if (existe) {
+          return prev.map((p) =>
+            p.id === pedidoActualizado.id ? pedidoActualizado : p
+          );
+        }
+
+        return [pedidoActualizado, ...prev];
+      });
 
       console.log("🔄 actualización:", pedidoActualizado);
     });
@@ -57,6 +66,7 @@ export default function Repartidor() {
       if (watchId.current !== null) {
         navigator.geolocation.clearWatch(watchId.current);
       }
+
       socketRef.current.disconnect();
     };
   }, []);
@@ -84,6 +94,7 @@ export default function Repartidor() {
     if (watchId.current !== null) {
       navigator.geolocation.clearWatch(watchId.current);
     }
+
     setActivo(false);
   };
 
@@ -94,19 +105,20 @@ export default function Repartidor() {
       estado,
     });
   };
-  const abrirMapa = (p) => {
-  const gps = p.ubicacionGPS || p.gps;
 
-  if (gps) {
-    const { lat, lng } = gps;
-    window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
-  } else {
-    alert("Este pedido no tiene ubicación GPS");
-  }
-};
+  const abrirMapa = (p) => {
+    const gps = p.ubicacionGPS || p.gps;
+
+    if (gps) {
+      const { lat, lng } = gps;
+      window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
+    } else {
+      alert("Este pedido no tiene ubicación GPS");
+    }
+  };
 
   return (
-  <div className="app-driver">
+    <div className="app-driver">
       <h1>🏍️ Panel Repartidor</h1>
 
       {!activo ? (
@@ -125,21 +137,62 @@ export default function Repartidor() {
         <div
           key={p.id}
           style={{
-            border: "1px solid #ccc",
+            border: p.promocion?.ganador
+              ? "3px solid #10b981"
+              : "1px solid #ccc",
             padding: 10,
             marginBottom: 10,
             borderRadius: 10,
             opacity: p.estado === "cancelado" ? 0.5 : 1,
+            background: p.promocion?.ganador ? "#ecfdf5" : "#fff",
           }}
         >
+          {p.promocion?.ganador && (
+            <div
+              style={{
+                background: "#10b981",
+                color: "white",
+                padding: "12px",
+                borderRadius: "10px",
+                textAlign: "center",
+                fontWeight: "bold",
+                fontSize: "18px",
+                marginBottom: "10px",
+              }}
+            >
+              🎁 PEDIDO GRATIS
+              <br />
+              🚫 NO COBRAR AL CLIENTE
+            </div>
+          )}
+
           <p><b>👤 Cliente:</b> {p.nombre}</p>
           <p><b>🛒 Pedido:</b> {p.pedido}</p>
           <p><b>📍 Zona:</b> {p.zona}</p>
+
+          <p>
+            <b>💰 Costo:</b>{" "}
+            {p.promocion?.ganador ? (
+              <span style={{ color: "green", fontWeight: "bold" }}>
+                GRATIS POR PROMOCIÓN
+              </span>
+            ) : (
+              p.costo || "No especificado"
+            )}
+          </p>
+
           <p><b>📦 Estado:</b> {p.estado}</p>
           <p><b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}</p>
+
+          {p.promocion?.participo && !p.promocion?.ganador && (
+            <p style={{ color: "#92400e", fontWeight: "bold" }}>
+              🍀 Participó en la promoción, pero no ganó.
+            </p>
+          )}
+
           <button onClick={() => abrirMapa(p)}>
-  📍 Ver ubicación
-</button>
+            📍 Ver ubicación
+          </button>
 
           {p.estado !== "cancelado" && (
             <>
