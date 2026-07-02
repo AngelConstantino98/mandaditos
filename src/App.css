@@ -182,11 +182,12 @@ p {
     line-height: 1.2;
   }
 
-  .mapa,
-  .leaflet-container {
-    height: 300px !important;
-    min-height: 300px !important;
-  }
+ .mapa,
+.leaflet-container {
+  height: 260px !important;
+  min-height: 260px !important;
+  margin-bottom: 16px;
+}
 
   .pedidos-container {
     max-height: 220px;
@@ -197,5 +198,36 @@ p {
   .btn {
     margin-top: 10px;
     flex-shrink: 0;
+  }
+}
+/* 🔧 Evita que el mapa tape el pedido */
+.mapa,
+.leaflet-container {
+  position: relative;
+  z-index: 1;
+}
+
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
+}
+
+/* 📦 El pedido queda por encima y separado del mapa */
+.pedidos-container,
+.card > div {
+  position: relative;
+  z-index: 2;
+}
+
+/* 📱 Ajuste especial para celular */
+@media (max-width: 600px) {
+  .mapa,
+  .leaflet-container {
+    height: 260px !important;
+    min-height: 260px !important;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    overflow: hidden;
   }
 }
