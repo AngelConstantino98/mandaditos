@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import logo from "./assets/logo.png";
 import Mapa from "./Mapa";
+import negocios from "./negocios";
 import "./App.css";
 
 const SOCKET_URL = "https://mandaditos-backend.onrender.com";
@@ -25,6 +26,7 @@ export default function App() {
 
   const [nombre, setNombre] = useState("");
   const [pedido, setPedido] = useState("");
+  const [notaPedido, setNotaPedido] = useState("");
   const [ubicacion, setUbicacion] = useState("");
   const [zona, setZona] = useState("");
 
@@ -35,6 +37,12 @@ export default function App() {
   const [pedidos, setPedidos] = useState([]);
 
   const [showCancel, setShowCancel] = useState(null);
+
+  // 🍽️ Negocios locales
+  const [negocioSeleccionado, setNegocioSeleccionado] = useState(null);
+
+  // 🛒 Carrito visual de negocios locales
+  const [carrito, setCarrito] = useState([]);
 
   // 🍀 Estados de promoción
   const [sorteando, setSorteando] = useState(false);
@@ -161,6 +169,13 @@ export default function App() {
       return;
     }
 
+    const pedidoFinal = notaPedido.trim()
+      ? `${pedido}
+
+Notas del pedido:
+${notaPedido.trim()}`
+      : pedido;
+
     const info = zonas[zona];
 
     const costo =
@@ -179,7 +194,7 @@ export default function App() {
       id: Date.now(),
       clienteId,
       nombre,
-      pedido,
+      pedido: pedidoFinal,
       ubicacion,
       zona,
       costo,
@@ -201,7 +216,7 @@ export default function App() {
     const mensaje = `🏍️ NUEVO PEDIDO
 
 👤 ${nombre}
-🛒 ${pedido}
+🛒 ${pedidoFinal}
 📍 ${ubicacion}
 📌 Zona: ${zona}
 💰 Costo envío: ${costo}
@@ -220,9 +235,12 @@ export default function App() {
 
     setNombre("");
     setPedido("");
+    setNotaPedido("");
     setUbicacion("");
     setZona("");
     setCoords(null);
+    setCarrito([]);
+    setNegocioSeleccionado(null);
 
     setScreen("home");
   };
@@ -312,6 +330,102 @@ export default function App() {
     setShowCancel(null);
   };
 
+  // 🛒 AGREGAR PRODUCTOS AL CARRITO VISUAL
+  const agregarProductoAlCarrito = (producto) => {
+    if (!negocioSeleccionado) return;
+
+    setCarrito((prev) => {
+      const existe = prev.find(
+        (item) =>
+          item.id === producto.id &&
+          item.negocioId === negocioSeleccionado.id
+      );
+
+      if (existe) {
+        return prev.map((item) =>
+          item.id === producto.id && item.negocioId === negocioSeleccionado.id
+            ? { ...item, cantidad: item.cantidad + 1 }
+            : item
+        );
+      }
+
+      return [
+        ...prev,
+        {
+          ...producto,
+          cantidad: 1,
+          negocioId: negocioSeleccionado.id,
+          negocioNombre: negocioSeleccionado.nombre
+        }
+      ];
+    });
+  };
+
+  // 🛒 QUITAR PRODUCTOS DEL CARRITO VISUAL
+  const quitarProductoDelCarrito = (productoId, negocioId) => {
+    setCarrito((prev) =>
+      prev
+        .map((item) =>
+          item.id === productoId && item.negocioId === negocioId
+            ? { ...item, cantidad: item.cantidad - 1 }
+            : item
+        )
+        .filter((item) => item.cantidad > 0)
+    );
+  };
+
+  const obtenerCantidadProducto = (productoId, negocioId) => {
+    const item = carrito.find(
+      (p) => p.id === productoId && p.negocioId === negocioId
+    );
+
+    return item ? item.cantidad : 0;
+  };
+
+  const totalProductosCarrito = carrito.reduce(
+    (total, item) => total + item.cantidad,
+    0
+  );
+
+  const totalCarrito = carrito.reduce(
+    (total, item) => total + item.precio * item.cantidad,
+    0
+  );
+
+  const limpiarCarrito = () => {
+    setCarrito([]);
+  };
+
+  // 🛒 CONFIRMAR CARRITO Y PASARLO AL FORMULARIO
+  const confirmarCarrito = () => {
+    if (carrito.length === 0) {
+      alert("Agrega al menos un producto al carrito.");
+      return;
+    }
+
+    const negociosEnCarrito = [
+      ...new Set(carrito.map((item) => item.negocioNombre))
+    ];
+
+    const textoNegocios =
+      negociosEnCarrito.length === 1
+        ? `Negocio: ${negociosEnCarrito[0]}`
+        : `Negocios:\n${negociosEnCarrito.map((n) => `- ${n}`).join("\n")}`;
+
+    const detalleProductos = carrito
+      .map(
+        (item) =>
+          `- ${item.cantidad} x ${item.nombre} — $${item.precio * item.cantidad}`
+      )
+      .join("\n");
+
+    const pedidoArmado = `${textoNegocios}\n\nPedido:\n${detalleProductos}\n\nTotal productos: $${totalCarrito}`;
+
+    setPedido(pedidoArmado);
+    setNotaPedido("");
+    setScreen("form");
+  };
+
   const promoParaMostrar =
     resultadoPromo ||
     (pedidoActual?.promocion?.participo
@@ -349,6 +463,17 @@ export default function App() {
             setCoords={setCoords}
             repartidor={repartidor}
           />
+
+          <button
+            className="btn"
+            onClick={() => {
+              setNegocioSeleccionado(null);
+              setScreen("negocios-locales");
+            }}
+            style={{ marginTop: 10 }}
+          >
+            🍽️ Negocios locales{totalProductosCarrito > 0 ? ` (${totalProductosCarrito})` : ""}
+          </button>
 
           {pedidoActual && (
             <div style={{ marginTop: 10, padding: 10, background: "#eee", borderRadius: 10 }}>
@@ -426,6 +551,330 @@ export default function App() {
         </div>
       )}
 
+      {screen === "negocios-locales" && (
+        <div className="card">
+
+          <button
+            onClick={() => {
+              setNegocioSeleccionado(null);
+              setScreen("home");
+            }}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer"
+            }}
+          >
+            ← Volver
+          </button>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h1 style={{ fontSize: 22, marginBottom: 6 }}>
+              🍽️ Negocios locales
+            </h1>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              Elige un negocio para ver su menú.
+            </p>
+
+            {negocios.map((negocio) => (
+              <button
+                key={negocio.id}
+                onClick={() => {
+                  setNegocioSeleccionado(negocio);
+                  setScreen("menu-negocio");
+                }}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  marginBottom: 10,
+                  borderRadius: 12,
+                  border: "1px solid #ddd",
+                  background: "#f9fafb",
+                  textAlign: "left",
+                  cursor: "pointer"
+                }}
+              >
+                <strong>
+                  {negocio.emoji} {negocio.nombre}
+                </strong>
+
+                <br />
+
+                <span style={{ fontSize: 13, color: "#666" }}>
+                  {negocio.descripcion}
+                </span>
+              </button>
+            ))}
+          </div>
+
+        </div>
+      )}
+
+      {screen === "menu-negocio" && negocioSeleccionado && (
+        <div className="card">
+
+          <button
+            onClick={() => {
+              setScreen("negocios-locales");
+            }}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer"
+            }}
+          >
+            ← Volver
+          </button>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h1 style={{ fontSize: 22 }}>
+              {negocioSeleccionado.emoji} {negocioSeleccionado.nombre}
+            </h1>
+
+            <p style={{ fontSize: 14, color: "#666", marginTop: 5 }}>
+              {negocioSeleccionado.descripcion}
+            </p>
+          </div>
+
+          {carrito.length > 0 && (
+            <div
+              style={{
+                marginTop: 10,
+                padding: 12,
+                background: "#ecfdf5",
+                borderRadius: 12,
+                border: "1px solid #22c55e"
+              }}
+            >
+              <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+                🛒 Carrito
+              </h2>
+
+              {carrito.map((item) => (
+                <div
+                  key={`${item.negocioId}-${item.id}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    marginBottom: 6,
+                    fontSize: 14
+                  }}
+                >
+                  <span>
+                    {item.cantidad} x {item.nombre}
+                  </span>
+
+                  <strong>${item.precio * item.cantidad}</strong>
+                </div>
+              ))}
+
+              <hr style={{ margin: "8px 0" }} />
+
+              <p style={{ fontWeight: "bold", marginBottom: 8 }}>
+                Total productos: ${totalCarrito}
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap"
+                }}
+              >
+                <button
+                  onClick={confirmarCarrito}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#22c55e",
+                    color: "white",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  ✅ Confirmar carrito
+                </button>
+
+                <button
+                  onClick={limpiarCarrito}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#ef4444",
+                    color: "white",
+                    cursor: "pointer"
+                  }}
+                >
+                  Vaciar carrito
+                </button>
+              </div>
+
+              <p style={{ fontSize: 12, color: "#166534", marginTop: 8 }}>
+                Al confirmar, este carrito se pasará al formulario del pedido.
+              </p>
+            </div>
+          )}
+
+          <div style={{ marginTop: 10 }}>
+            {negocioSeleccionado.productos.map((producto) => {
+              const cantidad = obtenerCantidadProducto(
+                producto.id,
+                negocioSeleccionado.id
+              );
+
+              return (
+                <div
+                  key={producto.id}
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    padding: 10,
+                    marginBottom: 10,
+                    background: "#ffffff",
+                    borderRadius: 12,
+                    border: "1px solid #e5e7eb"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 12,
+                      background: "#f3f4f6",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 30,
+                      flexShrink: 0,
+                      overflow: "hidden"
+                    }}
+                  >
+                    {producto.imagen ? (
+                      <img
+                        src={producto.imagen}
+                        alt={producto.nombre}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover"
+                        }}
+                      />
+                    ) : (
+                      "🍽️"
+                    )}
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: 16, marginBottom: 4 }}>
+                      {producto.nombre}
+                    </h3>
+
+                    <p style={{ fontSize: 13, color: "#666", marginBottom: 6 }}>
+                      {producto.descripcion}
+                    </p>
+
+                    <strong>${producto.precio}</strong>
+
+                    {cantidad === 0 ? (
+                      <button
+                        onClick={() => agregarProductoAlCarrito(producto)}
+                        style={{
+                          width: "100%",
+                          marginTop: 8,
+                          padding: "8px 10px",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "#22c55e",
+                          color: "white",
+                          fontWeight: "bold",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Agregar al pedido
+                      </button>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginTop: 8
+                        }}
+                      >
+                        <button
+                          onClick={() =>
+                            quitarProductoDelCarrito(
+                              producto.id,
+                              negocioSeleccionado.id
+                            )
+                          }
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 10,
+                            border: "none",
+                            background: "#e5e7eb",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          -
+                        </button>
+
+                        <strong>{cantidad}</strong>
+
+                        <button
+                          onClick={() => agregarProductoAlCarrito(producto)}
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 10,
+                            border: "none",
+                            background: "#22c55e",
+                            color: "white",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      )}
+
       {screen === "form" && (
         <div className="card">
 
@@ -437,10 +886,36 @@ export default function App() {
             placeholder="Nombre"
           />
 
-          <input
+          <textarea
             value={pedido}
             onChange={(e) => setPedido(e.target.value)}
             placeholder="Pedido"
+            rows={6}
+            style={{
+              width: "100%",
+              resize: "vertical",
+              minHeight: 110,
+              padding: 10,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+              fontFamily: "Arial, sans-serif"
+            }}
+          />
+
+          <textarea
+            value={notaPedido}
+            onChange={(e) => setNotaPedido(e.target.value)}
+            placeholder="Notas opcionales: sin cebolla, con salsa aparte, bien dorada, etc."
+            rows={3}
+            style={{
+              width: "100%",
+              resize: "vertical",
+              minHeight: 70,
+              padding: 10,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+              fontFamily: "Arial, sans-serif"
+            }}
           />
 
           <input
