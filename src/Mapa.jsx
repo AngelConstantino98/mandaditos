@@ -3,17 +3,52 @@ import { useState, useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+// ✅ Marcador personalizado para cliente, sin usar imágenes de Leaflet
+const clienteIcon = L.divIcon({
+  className: "custom-marker-cliente",
+  html: `
+    <div style="
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #22c55e;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    ">
+      📍
+    </div>
+  `,
+  iconSize: [34, 34],
+  iconAnchor: [17, 34],
+  popupAnchor: [0, -34],
+});
 
-// ✅ Corrige marcador roto de Leaflet en Vite/React
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
+// ✅ Marcador personalizado para repartidor, sin usar imágenes de Leaflet
+const repartidorIcon = L.divIcon({
+  className: "custom-marker-repartidor",
+  html: `
+    <div style="
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    ">
+      🛵
+    </div>
+  `,
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+  popupAnchor: [0, -38],
 });
 
 function CambiarVista({ position }) {
@@ -142,25 +177,24 @@ export default function Mapa({ setCoords, repartidor }) {
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* 👁️ CONTROL DE VISTA */}
           <CambiarVista position={position} />
 
-          {/* 🛵 SEGUIR REPARTIDOR EN TIEMPO REAL */}
           <SeguirRepartidor
             repartidor={repartidor}
             activo={seguirRepartidor}
           />
 
-          {/* 📍 TU UBICACIÓN */}
           {marker && (
-            <Marker position={marker}>
+            <Marker position={marker} icon={clienteIcon}>
               <Popup>📍 Tu ubicación actual</Popup>
             </Marker>
           )}
 
-          {/* 🛵 REPARTIDOR EN VIVO */}
           {repartidor && (
-            <Marker position={[repartidor.lat, repartidor.lng]}>
+            <Marker
+              position={[repartidor.lat, repartidor.lng]}
+              icon={repartidorIcon}
+            >
               <Popup>🛵 Repartidor en camino</Popup>
             </Marker>
           )}
