@@ -49,6 +49,11 @@ export default function App() {
   const [guisosSeleccionados, setGuisosSeleccionados] = useState([]);
   const [cantidadProductoGuisos, setCantidadProductoGuisos] = useState(1);
 
+  // 🧀 Selector de extras
+  const [productoParaExtras, setProductoParaExtras] = useState(null);
+  const [extrasSeleccionados, setExtrasSeleccionados] = useState([]);
+  const [cantidadProductoExtras, setCantidadProductoExtras] = useState(1);
+
   // 🍀 Estados de promoción
   const [sorteando, setSorteando] = useState(false);
   const [resultadoPromo, setResultadoPromo] = useState(null);
@@ -501,67 +506,62 @@ ${notaPedido.trim()}`
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-");
 
-  // 💰 Calcula precio del producto según guisos.
-  // Por ahora usa precio: 1. Después podemos manejar precios reales por guisos.
-  const calcularPrecioProducto = (producto, guisos = []) => {
-  if (producto.preciosPorGuisos) {
-    // Quesillo NO cuenta como carne
-    const cantidadCarnes = guisos.filter(
-      (guiso) => limpiarTextoId(guiso) !== "quesillo"
-    ).length;
+  // 💰 Calcula precio del producto según guisos y extras.
+  const calcularPrecioProducto = (producto, guisos = [], extras = []) => {
+    let precioBase = Number(producto.precio || 0);
 
-    // 3 carnes o más = $75
-    if (cantidadCarnes >= 3) {
-      return (
-        producto.preciosPorGuisos.tresOMasCarnes ??
-        producto.preciosPorGuisos.tresOMas ??
-        producto.precio
-      );
+    if (producto.preciosPorGuisos) {
+      // Quesillo NO cuenta como carne
+      const cantidadCarnes = guisos.filter(
+        (guiso) => limpiarTextoId(guiso) !== "quesillo"
+      ).length;
+
+      // 3 carnes o más = $75
+      if (cantidadCarnes >= 3) {
+        precioBase =
+          producto.preciosPorGuisos.tresOMasCarnes ??
+          producto.preciosPorGuisos.tresOMas ??
+          producto.precio;
+      } else if (cantidadCarnes === 2) {
+        // 2 carnes = $65
+        precioBase =
+          producto.preciosPorGuisos.dosCarnes ??
+          producto.preciosPorGuisos.dos ??
+          producto.precio;
+      } else if (cantidadCarnes === 1) {
+        // 1 carne = $60
+        precioBase =
+          producto.preciosPorGuisos.unaCarne ??
+          producto.preciosPorGuisos.uno ??
+          producto.precio;
+      } else if (
+        cantidadCarnes === 0 &&
+        guisos.some((guiso) => limpiarTextoId(guiso) === "quesillo")
+      ) {
+        // Solo quesillo = $60
+        precioBase =
+          producto.preciosPorGuisos.unaCarne ??
+          producto.preciosPorGuisos.uno ??
+          producto.precio;
+      }
     }
 
-    // 2 carnes = $65
-    if (cantidadCarnes === 2) {
-      return (
-        producto.preciosPorGuisos.dosCarnes ??
-        producto.preciosPorGuisos.dos ??
-        producto.precio
-      );
+    if (producto.preciosPorSeleccion) {
+      if (guisos.length >= 3 && producto.preciosPorSeleccion.tresOMas) {
+        precioBase = producto.preciosPorSeleccion.tresOMas;
+      } else if (guisos.length === 1 && producto.preciosPorSeleccion.uno) {
+        precioBase = producto.preciosPorSeleccion.uno;
+      }
     }
 
-    // 1 carne = $60
-    if (cantidadCarnes === 1) {
-      return (
-        producto.preciosPorGuisos.unaCarne ??
-        producto.preciosPorGuisos.uno ??
-        producto.precio
-      );
-    }
+    const totalExtras = extras.reduce(
+      (total, extra) => total + Number(extra.precio || 0),
+      0
+    );
 
-    // Solo quesillo = $60
-    if (
-      cantidadCarnes === 0 &&
-      guisos.some((guiso) => limpiarTextoId(guiso) === "quesillo")
-    ) {
-      return (
-        producto.preciosPorGuisos.unaCarne ??
-        producto.preciosPorGuisos.uno ??
-        producto.precio
-      );
-    }
-  }
+    return Number(precioBase || 0) + totalExtras;
+  };
 
-  if (producto.preciosPorSeleccion) {
-    if (guisos.length >= 3 && producto.preciosPorSeleccion.tresOMas) {
-      return producto.preciosPorSeleccion.tresOMas;
-    }
-
-    if (guisos.length === 1 && producto.preciosPorSeleccion.uno) {
-      return producto.preciosPorSeleccion.uno;
-    }
-  }
-
-  return Number(producto.precio || 0);
-};
   // 🛒 AGREGAR PRODUCTOS AL CARRITO VISUAL
   const agregarProductoAlCarrito = (producto) => {
     if (!negocioSeleccionado) return;
@@ -574,27 +574,61 @@ ${notaPedido.trim()}`
       return;
     }
 
-    // Si no tiene guisos, se agrega normal.
-    agregarProductoConfiguradoAlCarrito(producto, [], 1);
+    // Si tiene extras, abrimos ventana para elegir extra(s) y cantidad.
+    if (Array.isArray(producto.extras) && producto.extras.length > 0) {
+      setProductoParaExtras(producto);
+      setExtrasSeleccionados([]);
+      setCantidadProductoExtras(1);
+      return;
+    }
+
+    // Si no tiene guisos ni extras, se agrega normal.
+    agregarProductoConfiguradoAlCarrito(producto, [], 1, []);
   };
 
-  // ✅ Agrega producto ya configurado con guisos y cantidad al carrito
-  const agregarProductoConfiguradoAlCarrito = (producto, guisos = [], cantidad = 1) => {
+  // ✅ Agrega producto ya configurado con guisos, extras y cantidad al carrito
+  const agregarProductoConfiguradoAlCarrito = (
+    producto,
+    guisos = [],
+    cantidad = 1,
+    extras = []
+  ) => {
     if (!negocioSeleccionado) return;
 
     const cantidadFinal = Math.max(Number(cantidad) || 1, 1);
     const guisosLimpios = guisos.filter(Boolean);
-    const guisosBase = Array.isArray(producto.guisosBase) ? producto.guisosBase : [];
+    const extrasLimpios = extras.filter(Boolean);
+
+    const guisosBase = Array.isArray(producto.guisosBase)
+      ? producto.guisosBase
+      : [];
+
     const guisosParaNombre = [...guisosBase, ...guisosLimpios];
+
+    const opcionesParaNombre = [
+      ...guisosParaNombre,
+      ...extrasLimpios.map((extra) => extra.nombre)
+    ];
+
     const guisosId = guisosLimpios.map(limpiarTextoId).join("-");
-    const carritoId = guisosId ? `${producto.id}-${guisosId}` : producto.id;
+    const extrasId = extrasLimpios
+      .map((extra) => limpiarTextoId(extra.id || extra.nombre))
+      .join("-");
+
+    const carritoId = [producto.id, guisosId, extrasId]
+      .filter(Boolean)
+      .join("-");
 
     const nombreFinal =
-      guisosParaNombre.length > 0
-        ? `${producto.nombre} (${guisosParaNombre.join(", ")})`
+      opcionesParaNombre.length > 0
+        ? `${producto.nombre} (${opcionesParaNombre.join(", ")})`
         : producto.nombre;
 
-    const precioFinal = calcularPrecioProducto(producto, guisosLimpios);
+    const precioFinal = calcularPrecioProducto(
+      producto,
+      guisosLimpios,
+      extrasLimpios
+    );
 
     setCarrito((prev) => {
       const existe = prev.find(
@@ -620,6 +654,7 @@ ${notaPedido.trim()}`
           nombre: nombreFinal,
           precio: precioFinal,
           guisos: guisosLimpios,
+          extras: extrasLimpios,
           cantidad: cantidadFinal,
           negocioId: negocioSeleccionado.id,
           negocioNombre: negocioSeleccionado.nombre
@@ -667,12 +702,42 @@ ${notaPedido.trim()}`
     agregarProductoConfiguradoAlCarrito(
       productoParaGuisos,
       guisosSeleccionados,
-      cantidadProductoGuisos
+      cantidadProductoGuisos,
+      []
     );
 
     setProductoParaGuisos(null);
     setGuisosSeleccionados([]);
     setCantidadProductoGuisos(1);
+  };
+
+  // 🧀 Marcar/desmarcar extras
+  const alternarExtra = (extra) => {
+    setExtrasSeleccionados((prev) => {
+      const existe = prev.some((item) => item.id === extra.id);
+
+      if (existe) {
+        return prev.filter((item) => item.id !== extra.id);
+      }
+
+      return [...prev, extra];
+    });
+  };
+
+  // ✅ Confirmar producto con extras
+  const confirmarProductoConExtras = () => {
+    if (!productoParaExtras) return;
+
+    agregarProductoConfiguradoAlCarrito(
+      productoParaExtras,
+      [],
+      cantidadProductoExtras,
+      extrasSeleccionados
+    );
+
+    setProductoParaExtras(null);
+    setExtrasSeleccionados([]);
+    setCantidadProductoExtras(1);
   };
 
   // 🛒 QUITAR PRODUCTOS DEL CARRITO VISUAL
@@ -1791,6 +1856,176 @@ ${notaPedido.trim()}`
                   setProductoParaGuisos(null);
                   setGuisosSeleccionados([]);
                   setCantidadProductoGuisos(1);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#e5e7eb",
+                  cursor: "pointer"
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {productoParaExtras && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            zIndex: 9999
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 380,
+              background: "white",
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+            }}
+          >
+            <h2 style={{ fontSize: 20, marginBottom: 6 }}>
+              {productoParaExtras.nombre}
+            </h2>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              Puedes agregar extras si lo deseas:
+            </p>
+
+            <div style={{ display: "grid", gap: 8 }}>
+              {productoParaExtras.extras.map((extra) => {
+                const seleccionado = extrasSeleccionados.some(
+                  (item) => item.id === extra.id
+                );
+
+                return (
+                  <label
+                    key={extra.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: 10,
+                      background: seleccionado ? "#dcfce7" : "#f8fafc",
+                      border: seleccionado
+                        ? "1px solid #22c55e"
+                        : "1px solid #e5e7eb",
+                      borderRadius: 10,
+                      cursor: "pointer"
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={seleccionado}
+                      onChange={() => alternarExtra(extra)}
+                    />
+
+                    <span style={{ flex: 1 }}>
+                      {extra.nombre}
+                    </span>
+
+                    <strong>+${extra.precio}</strong>
+                  </label>
+                );
+              })}
+            </div>
+
+            <p style={{ marginTop: 12, fontWeight: "bold" }}>
+              Precio unitario: ${calcularPrecioProducto(productoParaExtras, [], extrasSeleccionados)}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                marginTop: 12,
+                padding: 10,
+                background: "#f8fafc",
+                border: "1px solid #e5e7eb",
+                borderRadius: 10
+              }}
+            >
+              <strong>Cantidad</strong>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  onClick={() =>
+                    setCantidadProductoExtras((prev) => Math.max(prev - 1, 1))
+                  }
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#e5e7eb",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  -
+                </button>
+
+                <strong>{cantidadProductoExtras}</strong>
+
+                <button
+                  onClick={() => setCantidadProductoExtras((prev) => prev + 1)}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#22c55e",
+                    color: "white",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <p style={{ marginTop: 10, fontWeight: "bold" }}>
+              Total: ${calcularPrecioProducto(productoParaExtras, [], extrasSeleccionados) * cantidadProductoExtras}
+            </p>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button
+                onClick={confirmarProductoConExtras}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#22c55e",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Agregar
+              </button>
+
+              <button
+                onClick={() => {
+                  setProductoParaExtras(null);
+                  setExtrasSeleccionados([]);
+                  setCantidadProductoExtras(1);
                 }}
                 style={{
                   flex: 1,

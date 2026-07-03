@@ -27,7 +27,10 @@ const PRECIOS_QUESADILLA_BURRITO_SOPE = {
   tresOMas: 75,
 };
 
-const EXTRAS_HAMBURGUESAS_EL_GUERO = [
+// Extras para Tortas El Güero
+// Estos NO aparecen como productos separados.
+// Solo aparecerán cuando el cliente seleccione una torta o hamburguesa.
+const EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO = [
   {
     id: "extra-carne-el-guero",
     nombre: "Extra carne",
@@ -131,64 +134,73 @@ const negocios = [
         id: "torta-combinada-el-guero",
         nombre: "Torta combinada",
         precio: 55,
-        descripcion: "Carnes frías",
+        descripcion: "Carnes frías. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-pollo-el-guero",
         nombre: "Torta de pollo",
         precio: 55,
-        descripcion: "Torta de pollo",
+        descripcion: "Torta de pollo. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-combinada-con-pollo-el-guero",
         nombre: "Torta combinada c/pollo",
         precio: 60,
-        descripcion: "Combinada con pollo",
+        descripcion: "Combinada con pollo. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-milanesa-el-guero",
         nombre: "Torta de milanesa",
         precio: 55,
-        descripcion: "Torta de milanesa",
+        descripcion: "Torta de milanesa. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-milanesa-con-pollo-el-guero",
         nombre: "Torta milanesa con pollo",
         precio: 60,
-        descripcion: "Milanesa con pollo",
+        descripcion: "Milanesa con pollo. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-asada-el-guero",
         nombre: "Torta de asada",
         precio: 60,
-        descripcion: "Torta de asada",
+        descripcion: "Torta de asada. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-asada-con-pollo-el-guero",
         nombre: "Torta asada c/pollo",
         precio: 65,
-        descripcion: "Asada con pollo",
+        descripcion: "Asada con pollo. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-campechana-el-guero",
         nombre: "Torta campechana",
         precio: 60,
-        descripcion: "Torta campechana",
+        descripcion: "Torta campechana. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "torta-salchicha-con-huevo-el-guero",
         nombre: "Torta salchicha con huevo",
         precio: 50,
-        descripcion: "Salchicha con huevo",
+        descripcion: "Salchicha con huevo. Puedes agregar extras.",
         imagen: "/productos/tortas-el-guero.jpg",
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
 
       // HOT DOGS
@@ -256,15 +268,16 @@ const negocios = [
         precio: 90,
         descripcion: "Hamburguesa tradicional. Puedes agregar extras.",
         imagen: "/productos/hamburguesas-el-guero.jpg",
-        extras: EXTRAS_HAMBURGUESAS_EL_GUERO,
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
       {
         id: "hamburguesa-especial-el-guero",
         nombre: "Hamburguesa especial",
         precio: 115,
-        descripcion: "Doble carne, piña, queso amarillo y quesillo. Puedes agregar extras.",
+        descripcion:
+          "Doble carne, piña, queso amarillo y quesillo. Puedes agregar extras.",
         imagen: "/productos/hamburguesas-el-guero.jpg",
-        extras: EXTRAS_HAMBURGUESAS_EL_GUERO,
+        extras: EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO,
       },
     ],
   },
