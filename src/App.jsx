@@ -57,8 +57,31 @@ export default function App() {
     faltan: 10
   });
 
+  // 👤 Cliente con cuenta opcional: teléfono + PIN
+  const [cliente, setCliente] = useState(() => {
+    try {
+      const guardado = localStorage.getItem("cliente");
+      return guardado ? JSON.parse(guardado) : null;
+    } catch {
+      return null;
+    }
+  });
+
   // 🔐 CLIENTE ID FIJO Y SEGURO
-  const [clienteId] = useState(() => {
+  const [clienteId, setClienteId] = useState(() => {
+    try {
+      const clienteGuardado = localStorage.getItem("cliente");
+      if (clienteGuardado) {
+        const clienteParsed = JSON.parse(clienteGuardado);
+        if (clienteParsed?.clienteId) {
+          localStorage.setItem("clienteId", clienteParsed.clienteId);
+          return clienteParsed.clienteId;
+        }
+      }
+    } catch {
+      // continúa con clienteId local
+    }
+
     let id = localStorage.getItem("clienteId");
     if (!id) {
       id = crypto.randomUUID();
@@ -66,6 +89,14 @@ export default function App() {
     }
     return id;
   });
+
+  // 🔐 Formulario de acceso
+  const [authModo, setAuthModo] = useState("login"); // login | registro
+  const [authNombre, setAuthNombre] = useState("");
+  const [authTelefono, setAuthTelefono] = useState("");
+  const [authPin, setAuthPin] = useState("");
+  const [authMensaje, setAuthMensaje] = useState("");
+  const [authCargando, setAuthCargando] = useState(false);
 
   const zonas = {
     "Tuxtla Chico": { min: 20, max: 60 },
@@ -81,7 +112,11 @@ export default function App() {
 
   // SPLASH
   useEffect(() => {
-    const timer = setTimeout(() => setScreen("home"), 2000);
+    const timer = setTimeout(() => {
+      const clienteGuardado = localStorage.getItem("cliente");
+      setScreen(clienteGuardado ? "home" : "auth");
+    }, 2000);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -183,6 +218,104 @@ export default function App() {
       localStorage.removeItem("pedidoActual");
     }
   }, []);
+
+  // 👤 Guardar sesión del cliente
+  const guardarSesionCliente = (clienteData, recompensaData = null) => {
+    if (!clienteData?.clienteId) return;
+
+    localStorage.setItem("cliente", JSON.stringify(clienteData));
+    localStorage.setItem("clienteId", clienteData.clienteId);
+
+    setCliente(clienteData);
+    setClienteId(clienteData.clienteId);
+
+    if (clienteData.nombre) {
+      setNombre(clienteData.nombre);
+    }
+
+    if (recompensaData) {
+      setRecompensa(recompensaData);
+    }
+
+    setPedidos([]);
+    setPedidoActual(null);
+    localStorage.removeItem("pedidoActual");
+
+    setAuthMensaje("");
+    setAuthPin("");
+    setScreen("home");
+  };
+
+  // 🔐 Registrar o iniciar sesión con teléfono + PIN
+  const enviarAuth = async (modo) => {
+    try {
+      setAuthCargando(true);
+      setAuthMensaje("");
+
+      const telefonoLimpio = authTelefono.replace(/\D/g, "");
+
+      if (telefonoLimpio.length < 10) {
+        setAuthMensaje("Escribe un número de teléfono válido.");
+        return;
+      }
+
+      if (!/^\d{4,6}$/.test(authPin)) {
+        setAuthMensaje("El PIN debe tener de 4 a 6 números.");
+        return;
+      }
+
+      if (modo === "registrar" && !authNombre.trim()) {
+        setAuthMensaje("Escribe tu nombre.");
+        return;
+      }
+
+      const body =
+        modo === "registrar"
+          ? {
+              nombre: authNombre.trim(),
+              telefono: telefonoLimpio,
+              pin: authPin,
+              clienteIdActual: clienteId
+            }
+          : {
+              telefono: telefonoLimpio,
+              pin: authPin
+            };
+
+      const res = await fetch(`${SOCKET_URL}/auth/${modo}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setAuthMensaje(data.mensaje || "No se pudo continuar.");
+        return;
+      }
+
+      guardarSesionCliente(data.cliente, data.recompensa);
+    } catch (error) {
+      setAuthMensaje("No se pudo conectar con el servidor.");
+    } finally {
+      setAuthCargando(false);
+    }
+  };
+
+  // 🚪 Cerrar sesión / cambiar cuenta
+  const cerrarSesion = () => {
+    localStorage.removeItem("cliente");
+    setCliente(null);
+    setAuthModo("login");
+    setAuthNombre("");
+    setAuthTelefono("");
+    setAuthPin("");
+    setAuthMensaje("");
+    setScreen("auth");
+  };
 
   // ENVIAR
   const enviar = () => {
@@ -509,6 +642,108 @@ ${notaPedido.trim()}`
         </div>
       )}
 
+      {screen === "auth" && (
+        <div className="card">
+
+          <div className="header">
+            <img src={logo} />
+            <h1>🏍️ Mandaditos Ángel</h1>
+            <h1>👤 Acceso de cliente</h1>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 14,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h2 style={{ fontSize: 20, marginBottom: 8 }}>
+              {authModo === "login" ? "Iniciar sesión" : "Crear cuenta"}
+            </h2>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              Usa tu teléfono y un PIN para que tus puntos no se pierdan si cambias de celular.
+            </p>
+
+            {authModo === "registro" && (
+              <input
+                value={authNombre}
+                onChange={(e) => setAuthNombre(e.target.value)}
+                placeholder="Nombre"
+              />
+            )}
+
+            <input
+              value={authTelefono}
+              onChange={(e) => setAuthTelefono(e.target.value)}
+              placeholder="Teléfono"
+              inputMode="numeric"
+            />
+
+            <input
+              value={authPin}
+              onChange={(e) => setAuthPin(e.target.value)}
+              placeholder="PIN de 4 a 6 números"
+              inputMode="numeric"
+              type="password"
+            />
+
+            {authMensaje && (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 10,
+                  background: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: 10,
+                  color: "#991b1b",
+                  fontSize: 14
+                }}
+              >
+                {authMensaje}
+              </div>
+            )}
+
+            <button
+              className="btn"
+              onClick={() => enviarAuth(authModo === "login" ? "login" : "registrar")}
+              disabled={authCargando}
+              style={{ marginTop: 12 }}
+            >
+              {authCargando
+                ? "Cargando..."
+                : authModo === "login"
+                  ? "Iniciar sesión"
+                  : "Crear cuenta"}
+            </button>
+
+            <button
+              onClick={() => {
+                setAuthMensaje("");
+                setAuthModo(authModo === "login" ? "registro" : "login");
+              }}
+              style={{
+                marginTop: 10,
+                padding: "8px 12px",
+                borderRadius: 10,
+                border: "none",
+                background: "#e5e7eb",
+                cursor: "pointer",
+                width: "100%"
+              }}
+            >
+              {authModo === "login"
+                ? "No tengo cuenta, registrarme"
+                : "Ya tengo cuenta, iniciar sesión"}
+            </button>
+          </div>
+
+        </div>
+      )}
+
       {screen === "home" && (
         <div className="card">
 
@@ -516,6 +751,63 @@ ${notaPedido.trim()}`
             <img src={logo} />
             <h1>🏍️ Mandaditos Ángel</h1>
             <h1>✨ Pide lo que quieras. Nosotros lo llevamos hasta la puerta de tu hogar. 🏠</h1>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 10,
+              background: "#f8fafc",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            {cliente ? (
+              <>
+                <p style={{ fontSize: 14 }}>
+                  👤 <strong>{cliente.nombre}</strong>
+                </p>
+
+                <p style={{ fontSize: 13, color: "#666" }}>
+                  📱 {cliente.telefono}
+                </p>
+
+                <button
+                  onClick={cerrarSesion}
+                  style={{
+                    marginTop: 8,
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "#e5e7eb",
+                    cursor: "pointer"
+                  }}
+                >
+                  Cambiar cuenta
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 14, color: "#666" }}>
+                  No has iniciado sesión.
+                </p>
+
+                <button
+                  onClick={() => setScreen("auth")}
+                  style={{
+                    marginTop: 8,
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "#22c55e",
+                    color: "white",
+                    cursor: "pointer"
+                  }}
+                >
+                  Iniciar sesión
+                </button>
+              </>
+            )}
           </div>
 
           <Mapa
