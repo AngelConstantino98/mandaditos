@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = "https://mandaditos-backend.onrender.com";
-// Para producción después usaremos:
-// const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
 const GPS_STORAGE_KEY = "gpsRepartidorActivo";
 
@@ -36,7 +34,15 @@ export default function Repartidor() {
         const data = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          fecha: new Date().toISOString(),
         };
+
+        console.log(
+          "📍 Precisión GPS repartidor:",
+          pos.coords.accuracy,
+          "metros"
+        );
 
         if (socketRef.current) {
           socketRef.current.emit("repartidor-ubicacion", data);
@@ -48,7 +54,7 @@ export default function Repartidor() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0,
       }
     );
@@ -90,11 +96,13 @@ export default function Repartidor() {
     // 📦 NUEVOS PEDIDOS
     socketRef.current.on("nuevo-pedido-repartidor", (nuevoPedido) => {
       setPedidos((prev) => {
-        const existe = prev.find((p) => p.id === nuevoPedido.id);
+        const existe = prev.find(
+          (p) => String(p.id) === String(nuevoPedido.id)
+        );
 
         if (existe) {
           return prev.map((p) =>
-            p.id === nuevoPedido.id ? nuevoPedido : p
+            String(p.id) === String(nuevoPedido.id) ? nuevoPedido : p
           );
         }
 
@@ -107,11 +115,15 @@ export default function Repartidor() {
     // 🔄 ACTUALIZACIÓN DE PEDIDOS
     socketRef.current.on("pedido-actualizado", (pedidoActualizado) => {
       setPedidos((prev) => {
-        const existe = prev.find((p) => p.id === pedidoActualizado.id);
+        const existe = prev.find(
+          (p) => String(p.id) === String(pedidoActualizado.id)
+        );
 
         if (existe) {
           return prev.map((p) =>
-            p.id === pedidoActualizado.id ? pedidoActualizado : p
+            String(p.id) === String(pedidoActualizado.id)
+              ? pedidoActualizado
+              : p
           );
         }
 
@@ -205,9 +217,17 @@ export default function Repartidor() {
             </div>
           )}
 
-          <p><b>👤 Cliente:</b> {p.nombre}</p>
-          <p><b>🛒 Pedido:</b> {p.pedido}</p>
-          <p><b>📍 Zona:</b> {p.zona}</p>
+          <p>
+            <b>👤 Cliente:</b> {p.nombre}
+          </p>
+
+          <p>
+            <b>🛒 Pedido:</b> {p.pedido}
+          </p>
+
+          <p>
+            <b>📍 Zona:</b> {p.zona}
+          </p>
 
           <p>
             <b>💰 Costo:</b>{" "}
@@ -220,8 +240,13 @@ export default function Repartidor() {
             )}
           </p>
 
-          <p><b>📦 Estado:</b> {p.estado}</p>
-          <p><b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}</p>
+          <p>
+            <b>📦 Estado:</b> {p.estado}
+          </p>
+
+          <p>
+            <b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}
+          </p>
 
           {p.promocion?.participo && !p.promocion?.ganador && (
             <p style={{ color: "#92400e", fontWeight: "bold" }}>
@@ -229,9 +254,7 @@ export default function Repartidor() {
             </p>
           )}
 
-          <button onClick={() => abrirMapa(p)}>
-            📍 Ver ubicación
-          </button>
+          <button onClick={() => abrirMapa(p)}>📍 Ver ubicación</button>
 
           {p.estado !== "cancelado" && (
             <>
