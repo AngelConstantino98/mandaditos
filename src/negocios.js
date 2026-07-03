@@ -281,6 +281,24 @@ const negocios = [
       },
     ],
   },
+
+  {
+    id: "tacos-dona-lety",
+    nombre: "Tacos Doña Lety",
+    emoji: "🌮",
+    descripcion: "Tacos de cabeza de res",
+    imagen: "/negocios/tacos-dona-lety.jpg",
+    productos: [
+      {
+        id: "tacos-cabeza-dona-lety",
+        nombre: "Tacos de cabeza de res",
+        precio: null,
+        precioTexto: "Precio a consultar",
+        descripcion: "Tacos de cabeza de res preparados al momento",
+        imagen: "/productos/tacos-cabeza-dona-lety.jpg",
+      },
+    ],
+  },
 ];
 
 export default negocios;
