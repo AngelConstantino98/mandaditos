@@ -44,6 +44,11 @@ export default function App() {
   // 🛒 Carrito visual de negocios locales
   const [carrito, setCarrito] = useState([]);
 
+  // 🌮 Selector de guisos
+  const [productoParaGuisos, setProductoParaGuisos] = useState(null);
+  const [guisosSeleccionados, setGuisosSeleccionados] = useState([]);
+  const [cantidadProductoGuisos, setCantidadProductoGuisos] = useState(1);
+
   // 🍀 Estados de promoción
   const [sorteando, setSorteando] = useState(false);
   const [resultadoPromo, setResultadoPromo] = useState(null);
@@ -488,21 +493,120 @@ ${notaPedido.trim()}`
     setShowCancel(null);
   };
 
+  // 🧼 Limpia texto para crear ids seguros
+  const limpiarTextoId = (texto) =>
+    String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-");
+
+  // 💰 Calcula precio del producto según guisos.
+  // Por ahora usa precio: 1. Después podemos manejar precios reales por guisos.
+  const calcularPrecioProducto = (producto, guisos = []) => {
+  if (producto.preciosPorGuisos) {
+    // Quesillo NO cuenta como carne
+    const cantidadCarnes = guisos.filter(
+      (guiso) => limpiarTextoId(guiso) !== "quesillo"
+    ).length;
+
+    // 3 carnes o más = $75
+    if (cantidadCarnes >= 3) {
+      return (
+        producto.preciosPorGuisos.tresOMasCarnes ??
+        producto.preciosPorGuisos.tresOMas ??
+        producto.precio
+      );
+    }
+
+    // 2 carnes = $65
+    if (cantidadCarnes === 2) {
+      return (
+        producto.preciosPorGuisos.dosCarnes ??
+        producto.preciosPorGuisos.dos ??
+        producto.precio
+      );
+    }
+
+    // 1 carne = $60
+    if (cantidadCarnes === 1) {
+      return (
+        producto.preciosPorGuisos.unaCarne ??
+        producto.preciosPorGuisos.uno ??
+        producto.precio
+      );
+    }
+
+    // Solo quesillo = $60
+    if (
+      cantidadCarnes === 0 &&
+      guisos.some((guiso) => limpiarTextoId(guiso) === "quesillo")
+    ) {
+      return (
+        producto.preciosPorGuisos.unaCarne ??
+        producto.preciosPorGuisos.uno ??
+        producto.precio
+      );
+    }
+  }
+
+  if (producto.preciosPorSeleccion) {
+    if (guisos.length >= 3 && producto.preciosPorSeleccion.tresOMas) {
+      return producto.preciosPorSeleccion.tresOMas;
+    }
+
+    if (guisos.length === 1 && producto.preciosPorSeleccion.uno) {
+      return producto.preciosPorSeleccion.uno;
+    }
+  }
+
+  return Number(producto.precio || 0);
+};
   // 🛒 AGREGAR PRODUCTOS AL CARRITO VISUAL
   const agregarProductoAlCarrito = (producto) => {
     if (!negocioSeleccionado) return;
 
+    // Si tiene guisos, abrimos ventana para elegir guiso(s) y cantidad.
+    if (Array.isArray(producto.guisos) && producto.guisos.length > 0) {
+      setProductoParaGuisos(producto);
+      setGuisosSeleccionados(producto.guisos.length === 1 ? producto.guisos : []);
+      setCantidadProductoGuisos(1);
+      return;
+    }
+
+    // Si no tiene guisos, se agrega normal.
+    agregarProductoConfiguradoAlCarrito(producto, [], 1);
+  };
+
+  // ✅ Agrega producto ya configurado con guisos y cantidad al carrito
+  const agregarProductoConfiguradoAlCarrito = (producto, guisos = [], cantidad = 1) => {
+    if (!negocioSeleccionado) return;
+
+    const cantidadFinal = Math.max(Number(cantidad) || 1, 1);
+    const guisosLimpios = guisos.filter(Boolean);
+    const guisosBase = Array.isArray(producto.guisosBase) ? producto.guisosBase : [];
+    const guisosParaNombre = [...guisosBase, ...guisosLimpios];
+    const guisosId = guisosLimpios.map(limpiarTextoId).join("-");
+    const carritoId = guisosId ? `${producto.id}-${guisosId}` : producto.id;
+
+    const nombreFinal =
+      guisosParaNombre.length > 0
+        ? `${producto.nombre} (${guisosParaNombre.join(", ")})`
+        : producto.nombre;
+
+    const precioFinal = calcularPrecioProducto(producto, guisosLimpios);
+
     setCarrito((prev) => {
       const existe = prev.find(
         (item) =>
-          item.id === producto.id &&
+          item.id === carritoId &&
           item.negocioId === negocioSeleccionado.id
       );
 
       if (existe) {
         return prev.map((item) =>
-          item.id === producto.id && item.negocioId === negocioSeleccionado.id
-            ? { ...item, cantidad: item.cantidad + 1 }
+          item.id === carritoId && item.negocioId === negocioSeleccionado.id
+            ? { ...item, cantidad: item.cantidad + cantidadFinal }
             : item
         );
       }
@@ -511,7 +615,12 @@ ${notaPedido.trim()}`
         ...prev,
         {
           ...producto,
-          cantidad: 1,
+          id: carritoId,
+          productoId: producto.id,
+          nombre: nombreFinal,
+          precio: precioFinal,
+          guisos: guisosLimpios,
+          cantidad: cantidadFinal,
           negocioId: negocioSeleccionado.id,
           negocioNombre: negocioSeleccionado.nombre
         }
@@ -519,25 +628,84 @@ ${notaPedido.trim()}`
     });
   };
 
+  // 🌮 Marcar/desmarcar guisos
+  const alternarGuiso = (guiso) => {
+    setGuisosSeleccionados((prev) => {
+      if (prev.includes(guiso)) {
+        return prev.filter((g) => g !== guiso);
+      }
+
+      if (productoParaGuisos?.maxGuisos && prev.length >= productoParaGuisos.maxGuisos) {
+        alert(`Solo puedes elegir ${productoParaGuisos.maxGuisos} guisos extra.`);
+        return prev;
+      }
+
+      return [...prev, guiso];
+    });
+  };
+
+  // ✅ Confirmar producto con guisos
+  const confirmarProductoConGuisos = () => {
+    if (!productoParaGuisos) return;
+
+    if (!productoParaGuisos.permitirSinGuisos && guisosSeleccionados.length === 0) {
+      alert("Elige al menos un guiso.");
+      return;
+    }
+
+    if (
+      productoParaGuisos.cantidadExactaGuisosExtra &&
+      guisosSeleccionados.length > 0 &&
+      guisosSeleccionados.length !== productoParaGuisos.cantidadExactaGuisosExtra
+    ) {
+      alert(
+        `Para este producto elige ${productoParaGuisos.cantidadExactaGuisosExtra} guisos extra o ninguno.`
+      );
+      return;
+    }
+
+    agregarProductoConfiguradoAlCarrito(
+      productoParaGuisos,
+      guisosSeleccionados,
+      cantidadProductoGuisos
+    );
+
+    setProductoParaGuisos(null);
+    setGuisosSeleccionados([]);
+    setCantidadProductoGuisos(1);
+  };
+
   // 🛒 QUITAR PRODUCTOS DEL CARRITO VISUAL
   const quitarProductoDelCarrito = (productoId, negocioId) => {
-    setCarrito((prev) =>
-      prev
-        .map((item) =>
-          item.id === productoId && item.negocioId === negocioId
-            ? { ...item, cantidad: item.cantidad - 1 }
-            : item
-        )
-        .filter((item) => item.cantidad > 0)
-    );
+    setCarrito((prev) => {
+      let descontado = false;
+
+      return prev
+        .map((item) => {
+          const baseId = item.productoId || item.id;
+
+          if (
+            !descontado &&
+            baseId === productoId &&
+            item.negocioId === negocioId
+          ) {
+            descontado = true;
+            return { ...item, cantidad: item.cantidad - 1 };
+          }
+
+          return item;
+        })
+        .filter((item) => item.cantidad > 0);
+    });
   };
 
   const obtenerCantidadProducto = (productoId, negocioId) => {
-    const item = carrito.find(
-      (p) => p.id === productoId && p.negocioId === negocioId
-    );
-
-    return item ? item.cantidad : 0;
+    return carrito
+      .filter((item) => {
+        const baseId = item.productoId || item.id;
+        return baseId === productoId && item.negocioId === negocioId;
+      })
+      .reduce((total, item) => total + item.cantidad, 0);
   };
 
   const totalProductosCarrito = carrito.reduce(
@@ -1143,34 +1311,68 @@ ${notaPedido.trim()}`
             </p>
 
             {negocios.map((negocio) => (
-              <button
-                key={negocio.id}
-                onClick={() => {
-                  setNegocioSeleccionado(negocio);
-                  setScreen("menu-negocio");
-                }}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  marginBottom: 10,
-                  borderRadius: 12,
-                  border: "1px solid #ddd",
-                  background: "#f9fafb",
-                  textAlign: "left",
-                  cursor: "pointer"
-                }}
-              >
-                <strong>
-                  {negocio.emoji} {negocio.nombre}
-                </strong>
+  <button
+    key={negocio.id}
+    onClick={() => {
+      setNegocioSeleccionado(negocio);
+      setScreen("menu-negocio");
+    }}
+    style={{
+      width: "100%",
+      padding: 10,
+      marginBottom: 10,
+      borderRadius: 12,
+      border: "1px solid #ddd",
+      background: "#f9fafb",
+      textAlign: "left",
+      cursor: "pointer",
+      display: "flex",
+      gap: 10,
+      alignItems: "center"
+    }}
+  >
+    <div
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: 12,
+        background: "#f3f4f6",
+        overflow: "hidden",
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 28
+      }}
+    >
+      {negocio.imagen ? (
+        <img
+          src={negocio.imagen}
+          alt={negocio.nombre}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover"
+          }}
+        />
+      ) : (
+        negocio.emoji
+      )}
+    </div>
 
-                <br />
+    <div>
+      <strong>
+        {negocio.emoji} {negocio.nombre}
+      </strong>
 
-                <span style={{ fontSize: 13, color: "#666" }}>
-                  {negocio.descripcion}
-                </span>
-              </button>
-            ))}
+      <br />
+
+      <span style={{ fontSize: 13, color: "#666" }}>
+        {negocio.descripcion}
+      </span>
+    </div>
+  </button>
+))}
           </div>
 
         </div>
@@ -1426,6 +1628,183 @@ ${notaPedido.trim()}`
             })}
           </div>
 
+        </div>
+      )}
+
+      {productoParaGuisos && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            zIndex: 9999
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 380,
+              background: "white",
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+            }}
+          >
+            <h2 style={{ fontSize: 20, marginBottom: 6 }}>
+              {productoParaGuisos.nombre}
+            </h2>
+
+            {productoParaGuisos.guisosBase?.length > 0 && (
+              <div
+                style={{
+                  marginBottom: 10,
+                  padding: 10,
+                  background: "#fef3c7",
+                  border: "1px solid #f59e0b",
+                  borderRadius: 10,
+                  fontSize: 14
+                }}
+              >
+                Incluye: <strong>{productoParaGuisos.guisosBase.join(", ")}</strong>
+              </div>
+            )}
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              {productoParaGuisos.textoSelector || "Elige uno o varios guisos:"}
+            </p>
+
+            <div style={{ display: "grid", gap: 8 }}>
+              {productoParaGuisos.guisos.map((guiso) => (
+                <label
+                  key={guiso}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: 10,
+                    background: guisosSeleccionados.includes(guiso)
+                      ? "#dcfce7"
+                      : "#f8fafc",
+                    border: guisosSeleccionados.includes(guiso)
+                      ? "1px solid #22c55e"
+                      : "1px solid #e5e7eb",
+                    borderRadius: 10,
+                    cursor: "pointer",
+                    textTransform: "capitalize"
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={guisosSeleccionados.includes(guiso)}
+                    onChange={() => alternarGuiso(guiso)}
+                  />
+
+                  {guiso}
+                </label>
+              ))}
+            </div>
+
+            <p style={{ marginTop: 12, fontWeight: "bold" }}>
+              Precio unitario: ${calcularPrecioProducto(productoParaGuisos, guisosSeleccionados)}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                marginTop: 12,
+                padding: 10,
+                background: "#f8fafc",
+                border: "1px solid #e5e7eb",
+                borderRadius: 10
+              }}
+            >
+              <strong>Cantidad</strong>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  onClick={() =>
+                    setCantidadProductoGuisos((prev) => Math.max(prev - 1, 1))
+                  }
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#e5e7eb",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  -
+                </button>
+
+                <strong>{cantidadProductoGuisos}</strong>
+
+                <button
+                  onClick={() => setCantidadProductoGuisos((prev) => prev + 1)}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#22c55e",
+                    color: "white",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <p style={{ marginTop: 10, fontWeight: "bold" }}>
+              Total: ${calcularPrecioProducto(productoParaGuisos, guisosSeleccionados) * cantidadProductoGuisos}
+            </p>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button
+                onClick={confirmarProductoConGuisos}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#22c55e",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Agregar
+              </button>
+
+              <button
+                onClick={() => {
+                  setProductoParaGuisos(null);
+                  setGuisosSeleccionados([]);
+                  setCantidadProductoGuisos(1);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#e5e7eb",
+                  cursor: "pointer"
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

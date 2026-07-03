@@ -1,69 +1,105 @@
+const GUISOS_LA_BENDICION = [
+  "asada",
+  "deshebrada",
+  "tripa",
+  "chicharrón",
+  "champiñon",
+  "chorizo",
+  "quesillo",
+];
+
+const GUISOS_EXTRA_TLAYUDA = [
+  "deshebrada",
+  "tripa",
+  "chicharrón",
+  "pollo",
+  "chorizo",
+];
+
+// Quesadillas, burritos y sopes:
+// 1 guiso = $60
+// 2 guisos = $65
+// 3 o más guisos = $75
+const PRECIOS_QUESADILLA_BURRITO_SOPE = {
+  uno: 60,
+  dos: 65,
+  tresOMas: 75,
+};
+
 const negocios = [
   {
-    id: "quesadillas-la-bendicion",
-    nombre: "Quesadillas La Bendición",
+    id: "antojitos-la-bendicion-de-dios",
+    nombre: "ANTOJITOS La Bendición de Dios",
     emoji: "🌮",
-    descripcion: "Quesadillas, tacos y antojitos",
+    descripcion:
+      "Quesadillas, tostadas, empanadas, burritos, tacos, sopes y tlayudas",
+    imagen: "/negocios/antojitos-la-bendicion-de-dios.jpg",
     productos: [
       {
-        id: "quesadilla-sencilla",
-        nombre: "Quesadilla sencilla",
-        precio: 25,
-        descripcion: "Quesadilla tradicional con queso",
-        imagen: "/productos/quesadilla-sencilla.jpg"
+        id: "quesadillas-la-bendicion",
+        nombre: "Quesadillas",
+        precio: 60,
+        descripcion: "Quesillo opcional + 1 carne $60, 2 carnes $65, 3 o más carnes $75",
+        imagen: "/productos/quesadillas-la-bendicion.jpg",
+        guisos: GUISOS_LA_BENDICION,
+        preciosPorGuisos: PRECIOS_QUESADILLA_BURRITO_SOPE,
       },
       {
-        id: "quesadilla-asada",
-        nombre: "Quesadilla de asada",
-        precio: 35,
-        descripcion: "Quesadilla con carne asada",
-        imagen: ""
+        id: "burritos-la-bendicion",
+        nombre: "Burritos",
+        precio: 60,
+        descripcion: "Quesillo opcional + 1 carne $60, 2 carnes $65, 3 o más carnes $75",
+        imagen: "/productos/burritos-la-bendicion.jpg",
+        guisos: GUISOS_LA_BENDICION,
+        preciosPorGuisos: PRECIOS_QUESADILLA_BURRITO_SOPE,
       },
       {
-        id: "quesadilla-deshebrada",
-        nombre: "Quesadilla de deshebrada",
-        precio: 35,
-        descripcion: "Quesadilla con carne deshebrada",
-        imagen: ""
+        id: "sopes-la-bendicion",
+        nombre: "Sopes",
+        precio: 60,
+        descripcion: "Quesillo opcional + 1 carne $60, 2 carnes $65, 3 o más carnes $75",
+        imagen: "/productos/sopes-la-bendicion.jpg",
+        guisos: GUISOS_LA_BENDICION,
+        preciosPorGuisos: PRECIOS_QUESADILLA_BURRITO_SOPE,
       },
       {
-        id: "quesadilla-chorizo",
-        nombre: "Quesadilla de chorizo",
-        precio: 35,
-        descripcion: "Quesadilla con chorizo",
-        imagen: ""
-      }
-    ]
-  },
-  {
-    id: "tortas-el-guero",
-    nombre: "Tortas El Güero",
-    emoji: "🥪",
-    descripcion: "Tortas preparadas al momento",
-    productos: [
-      {
-        id: "torta-jamon",
-        nombre: "Torta de jamón",
-        precio: 35,
-        descripcion: "Torta sencilla de jamón",
-        imagen: ""
+        id: "tacos-la-bendicion",
+        nombre: "Tacos de asada",
+        precio: 20,
+        descripcion: "Taco de asada $20 c/u",
+        imagen: "/productos/tacos-la-bendicion.jpg",
+        guisos: ["asada"],
       },
       {
-        id: "torta-pierna",
-        nombre: "Torta de pierna",
-        precio: 45,
-        descripcion: "Torta de pierna preparada",
-        imagen: ""
+        id: "tlayudas-la-bendicion",
+        nombre: "Tlayudas",
+        precio: 110,
+        precioConExtras: 130,
+        descripcion: "Asada con quesillo $110. Con 2 guisos extra $130",
+        imagen: "/productos/tlayudas-la-bendicion.jpg",
+        guisosBase: ["asada con quesillo"],
+        guisos: GUISOS_EXTRA_TLAYUDA,
+        permitirSinGuisos: true,
+        maxGuisos: 2,
+        cantidadExactaGuisosExtra: 2,
+        textoSelector: "Incluye asada con quesillo. Puedes elegir 2 guisos extra:",
       },
       {
-        id: "torta-milanesa",
-        nombre: "Torta de milanesa",
+        id: "empanadas-la-bendicion",
+        nombre: "Orden de empanadas",
         precio: 50,
-        descripcion: "Torta con milanesa",
-        imagen: ""
-      }
-    ]
-  }
+        descripcion: "Orden con 4 empanadas de asada con quesillo",
+        imagen: "/productos/empanadas-la-bendicion.jpg",
+      },
+      {
+        id: "tostadas-la-bendicion",
+        nombre: "Orden de tostadas",
+        precio: 50,
+        descripcion: "Orden con 3 tostadas de asada",
+        imagen: "/productos/tostadas-la-bendicion.jpg",
+      },
+    ],
+  },
 ];
 
 export default negocios;
