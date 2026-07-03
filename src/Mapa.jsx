@@ -1,5 +1,20 @@
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
 import { useState, useEffect } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// ✅ Corrige marcador roto de Leaflet en Vite/React
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 function CambiarVista({ position }) {
   const map = useMap();
@@ -53,8 +68,8 @@ export default function Mapa({ setCoords, repartidor }) {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        timeout: 15000,
+        maximumAge: 0,
       }
     );
   };
@@ -70,7 +85,6 @@ export default function Mapa({ setCoords, repartidor }) {
 
   return (
     <div style={{ marginBottom: "10px" }}>
-
       <button
         onClick={obtenerUbicacion}
         style={{
@@ -82,7 +96,7 @@ export default function Mapa({ setCoords, repartidor }) {
           border: "none",
           cursor: "pointer",
           width: "100%",
-          fontWeight: "bold"
+          fontWeight: "bold",
         }}
       >
         📍 Usar mi ubicación
@@ -99,10 +113,12 @@ export default function Mapa({ setCoords, repartidor }) {
           border: "none",
           cursor: "pointer",
           width: "100%",
-          fontWeight: "bold"
+          fontWeight: "bold",
         }}
       >
-        {seguirRepartidor ? "🛑 Dejar de seguir repartidor" : "🛵 Seguir repartidor"}
+        {seguirRepartidor
+          ? "🛑 Dejar de seguir repartidor"
+          : "🛵 Seguir repartidor"}
       </button>
 
       {!repartidor && (
@@ -111,7 +127,7 @@ export default function Mapa({ setCoords, repartidor }) {
             fontSize: "12px",
             color: "#666",
             textAlign: "center",
-            marginBottom: "8px"
+            marginBottom: "8px",
           }}
         >
           La ubicación del repartidor aparecerá cuando inicie su GPS.
@@ -148,7 +164,6 @@ export default function Mapa({ setCoords, repartidor }) {
               <Popup>🛵 Repartidor en camino</Popup>
             </Marker>
           )}
-
         </MapContainer>
       </div>
     </div>
