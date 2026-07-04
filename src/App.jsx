@@ -11,7 +11,7 @@ const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
 const MENSAJE_GANADOR = `🎉 ¡Felicidades!
 
-Tu pedido será totalmente GRATIS.
+Tu envio será totalmente GRATIS.
 El repartidor ya fue notificado.`;
 
 const MENSAJE_PERDEDOR = `😔 Esta vez no ganaste
@@ -971,7 +971,7 @@ ${notaPedido.trim()}`
 
           <div className="header">
             <img src={logo} />
-            <h1>🏍️ Mandaditos Ángel</h1>
+            <h1>🏍️ MandaPlus</h1>
             <h1>👤 Acceso de cliente</h1>
           </div>
 
@@ -1073,8 +1073,8 @@ ${notaPedido.trim()}`
 
           <div className="header">
             <img src={logo} />
-            <h1>🏍️ Mandaditos Ángel</h1>
-            <h1>✨ Pide lo que quieras. Nosotros lo llevamos hasta la puerta de tu hogar. 🏠</h1>
+            <h1>🏍️ MandaPlus</h1>
+            <h1>Tu app de mandados a domicilio</h1>
           </div>
 
           <div

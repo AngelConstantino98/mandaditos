@@ -1,14 +1,14 @@
 {
   "id": "/cliente",
   "version": "1.0.1",
-  "name": "Mandaditos",
-  "short_name": "Mandaditos",
+  "name": "MandaPlus",
+  "short_name": "MandaPlus",
   "start_url": "./",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#25D366",
-  "description": "Servicio de mandaditos rápido y confiable",
+  "description": "Tu app de mandados a domicilio",
   "icons": [
     {
       "src": "/icon-192.png",
