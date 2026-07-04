@@ -350,7 +350,7 @@ const negocios = [
         nombre: "Hamburguesas",
         precio: 80,
         descripcion: "Hamburguesa de El Carboncito",
-        imagen: "/productos/alambre-el-carboncito.jpg",
+        imagen: "/productos/hamburguesa-el-carboncito.jpg",
       },
       {
         id: "quesadillas-el-carboncito",
@@ -364,7 +364,7 @@ const negocios = [
         nombre: "Papa rellena",
         precio: 80,
         descripcion: "Papa rellena de El Carboncito",
-        imagen: "/productos/alambre-el-carboncito.jpg",
+        imagen: "/productos/papa-rellena.jpg",
       },
 
       {
