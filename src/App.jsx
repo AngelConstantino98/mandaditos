@@ -1255,9 +1255,23 @@ ${notaPedido.trim()}`
               setNegocioSeleccionado(null);
               setScreen("negocios-locales");
             }}
-            style={{ marginTop: 10 }}
+            style={{
+              marginTop: 10,
+              background: "linear-gradient(135deg, #f97316, #facc15)",
+              color: "white",
+              fontWeight: "bold",
+              boxShadow: "0 4px 10px rgba(249, 115, 22, 0.35)"
+            }}
           >
             🍽️ Negocios locales{totalProductosCarrito > 0 ? ` (${totalProductosCarrito})` : ""}
+          </button>
+
+          <button
+            className="btn"
+            onClick={() => setScreen("form")}
+            style={{ marginTop: 8, background: "#16a34a" }}
+          >
+            📦 Hacer pedido personalizado
           </button>
 
           <div
@@ -1374,9 +1388,6 @@ ${notaPedido.trim()}`
             📜 Historial de pedidos{pedidos.length > 0 ? ` (${pedidos.length})` : ""}
           </button>
 
-          <button className="btn" onClick={() => setScreen("form")}>
-            Hacer pedido
-          </button>
         </div>
       )}
 
@@ -2433,7 +2444,23 @@ ${notaPedido.trim()}`
       {screen === "form" && (
         <div className="card">
 
-          <h1>📦 Nuevo pedido</h1>
+          <button
+            type="button"
+            onClick={() => setScreen("home")}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer",
+              marginBottom: 10
+            }}
+          >
+            ← Volver
+          </button>
+
+          <h1>📦 Pedido personalizado</h1>
 
           <input
             value={nombre}
@@ -2444,7 +2471,7 @@ ${notaPedido.trim()}`
           <textarea
             value={pedido}
             onChange={(e) => setPedido(e.target.value)}
-            placeholder="Pedido"
+            placeholder="Escribe lo que necesitas: comida, compras, farmacia, mandado especial, etc."
             rows={6}
             style={{
               width: "100%",
