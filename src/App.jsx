@@ -11,7 +11,7 @@ const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
 const MENSAJE_GANADOR = `🎉 ¡Felicidades!
 
-Tu envio será totalmente GRATIS.
+Tu envío será totalmente GRATIS.
 El repartidor ya fue notificado.`;
 
 const MENSAJE_PERDEDOR = `😔 Esta vez no ganaste
@@ -23,6 +23,12 @@ export default function App() {
   const socketRef = useRef(null);
 
   const [screen, setScreen] = useState("splash");
+
+  // 📲 Instalación PWA
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [canInstall, setCanInstall] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   const [nombre, setNombre] = useState("");
   const [pedido, setPedido] = useState("");
@@ -123,6 +129,72 @@ export default function App() {
     "Sección El 12": { min: 25, max: 60 },
     "El Aguacate": { min: 25, max: 60 },
     "Otro": { min: 25, max: 0 }
+  };
+
+  // 📲 Detectar si la app se puede instalar
+  useEffect(() => {
+    const ua = window.navigator.userAgent || "";
+
+    const ios =
+      /iPhone|iPad|iPod/i.test(ua) ||
+      (window.navigator.platform === "MacIntel" &&
+        window.navigator.maxTouchPoints > 1);
+
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+
+    setIsIOS(ios);
+    setIsStandalone(standalone);
+
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstall(true);
+    };
+
+    const installedHandler = () => {
+      setDeferredPrompt(null);
+      setCanInstall(false);
+      setIsStandalone(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", installedHandler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", installedHandler);
+    };
+  }, []);
+
+  const instalarApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+
+      const { outcome } = await deferredPrompt.userChoice;
+
+      if (outcome === "accepted") {
+        console.log("📲 MandaPlus instalada");
+      } else {
+        console.log("Instalación cancelada");
+      }
+
+      setDeferredPrompt(null);
+      setCanInstall(false);
+      return;
+    }
+
+    if (isIOS) {
+      alert(
+        "Para instalar MandaPlus en iPhone:\n\n1. Abre esta app en Safari\n2. Toca el botón Compartir\n3. Elige 'Agregar a pantalla de inicio'"
+      );
+      return;
+    }
+
+    alert(
+      "Para instalar MandaPlus, abre el menú del navegador y elige 'Instalar app' o 'Agregar a pantalla principal'."
+    );
   };
 
   // SPLASH
@@ -384,7 +456,7 @@ ${notaPedido.trim()}`
 
     const numero = "529621816603";
 
-    const mensaje = `🏍️ NUEVO PEDIDO
+    const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
 
 👤 ${nombre}
 🛒 ${pedidoFinal}
@@ -953,6 +1025,24 @@ ${notaPedido.trim()}`
   }, [pedidoActual?.id, pedidoActual?.estado]);
 
 
+  const mostrarBotonInstalar = !isStandalone && (canInstall || isIOS);
+
+  const estiloBotonInstalar = {
+    margin: "6px auto 8px",
+    padding: "6px 12px",
+    fontSize: 12,
+    fontWeight: 700,
+    border: "none",
+    borderRadius: 999,
+    background: "#111827",
+    color: "white",
+    cursor: "pointer",
+    display: "block",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.18)"
+  };
+
+
+
   return (
     <div className="app">
 
@@ -960,8 +1050,8 @@ ${notaPedido.trim()}`
         <div className="splash">
           <div className="box">
             <img src={logo} style={{ width: "140px" }} />
-            <h1>Mandaditos</h1>
-            <p>Rápido, seguro y confiable</p>
+            <h1>MandaPlus</h1>
+            <p>Tu app de mandados a domicilio</p>
           </div>
         </div>
       )}
@@ -973,6 +1063,16 @@ ${notaPedido.trim()}`
             <img src={logo} />
             <h1>🏍️ MandaPlus</h1>
             <h1>👤 Acceso de cliente</h1>
+
+            {mostrarBotonInstalar && (
+              <button
+                type="button"
+                onClick={instalarApp}
+                style={estiloBotonInstalar}
+              >
+                📲 Instalar app
+              </button>
+            )}
           </div>
 
           <div
@@ -1075,6 +1175,16 @@ ${notaPedido.trim()}`
             <img src={logo} />
             <h1>🏍️ MandaPlus</h1>
             <h1>Tu app de mandados a domicilio</h1>
+
+            {mostrarBotonInstalar && (
+              <button
+                type="button"
+                onClick={instalarApp}
+                style={estiloBotonInstalar}
+              >
+                📲 Instalar app
+              </button>
+            )}
           </div>
 
           <div
