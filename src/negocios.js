@@ -825,10 +825,10 @@ const negocios = [
             descripcion: "Bañadita",
           },
           {
-            id: "chilquada-la-almeja-2",
-            nombre: "Chilquada",
+            id: "chiquiada-la-almeja-2",
+            nombre: "Chiquiada",
             precio: 50,
-            descripcion: "Chilquada",
+            descripcion: "Chiquiada",
           },
           {
             id: "modelo-la-almeja-2",
@@ -881,7 +881,209 @@ const negocios = [
         ],
       },
     ],
+  },
+  {
+    id: "cocteleria-juanito",
+    nombre: "Coctelería Juanito",
+    emoji: "🦐",
+    descripcion: "Cockteles, ensaladas, camarones, mojarras, tostadas, licuados y bebidas",
+    imagen: "/negocios/cocteleria-juanito.jpg",
+    productos: [
+      {
+        id: "cocktel-juanito",
+        nombre: "Cocktel",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Camarón, ostión, pulpo y mixto en chico, mediano o grande",
+        imagen: "/productos/cocktel-juanito.jpg",
+        textoSelector: "Elige tu cocktel:",
+        opciones: [
+          { id: "cocktel-camaron-chico-juanito", nombre: "Camarón chico", precio: 120, descripcion: "Cocktel de camarón chico" },
+          { id: "cocktel-camaron-mediano-juanito", nombre: "Camarón mediano", precio: 140, descripcion: "Cocktel de camarón mediano" },
+          { id: "cocktel-camaron-grande-juanito", nombre: "Camarón grande", precio: 160, descripcion: "Cocktel de camarón grande" },
+          { id: "cocktel-ostion-chico-juanito", nombre: "Ostión chico", precio: 120, descripcion: "Cocktel de ostión chico" },
+          { id: "cocktel-ostion-mediano-juanito", nombre: "Ostión mediano", precio: 140, descripcion: "Cocktel de ostión mediano" },
+          { id: "cocktel-ostion-grande-juanito", nombre: "Ostión grande", precio: 160, descripcion: "Cocktel de ostión grande" },
+          { id: "cocktel-pulpo-chico-juanito", nombre: "Pulpo chico", precio: 120, descripcion: "Cocktel de pulpo chico" },
+          { id: "cocktel-pulpo-mediano-juanito", nombre: "Pulpo mediano", precio: 140, descripcion: "Cocktel de pulpo mediano" },
+          { id: "cocktel-pulpo-grande-juanito", nombre: "Pulpo grande", precio: 160, descripcion: "Cocktel de pulpo grande" },
+          { id: "cocktel-mixto-chico-juanito", nombre: "Mixto chico", precio: 120, descripcion: "Cocktel mixto chico" },
+          { id: "cocktel-mixto-mediano-juanito", nombre: "Mixto mediano", precio: 160, descripcion: "Cocktel mixto mediano" },
+          { id: "cocktel-mixto-grande-juanito", nombre: "Mixto grande", precio: 180, descripcion: "Cocktel mixto grande" },
+        ],
+      },
+
+      {
+        id: "ensaladas-juanito",
+        nombre: "Ensaladas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Camarón, pulpo, mixta y ceviche",
+        imagen: "/productos/ensaladas-juanito.jpg",
+        textoSelector: "Elige tu ensalada:",
+        opciones: [
+          { id: "ensalada-camaron-juanito", nombre: "Camarón", precio: 220, descripcion: "Ensalada de camarón" },
+          { id: "ensalada-camaron-familiar-juanito", nombre: "Camarón familiar", precio: 700, descripcion: "Ensalada de camarón familiar" },
+          { id: "ensalada-pulpo-juanito", nombre: "Pulpo", precio: 220, descripcion: "Ensalada de pulpo" },
+          { id: "ensalada-mixta-juanito", nombre: "Mixta", precio: 250, descripcion: "Ensalada mixta" },
+          { id: "ceviche-juanito", nombre: "Ceviche", precio: 230, descripcion: "Ceviche" },
+        ],
+      },
+
+      {
+        id: "camarones-juanito",
+        nombre: "Camarones",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Aguachile, mojo de ajo, empanizados, a la plancha, a la diabla y a la momia",
+        imagen: "/productos/camarones-juanito.jpg",
+        textoSelector: "Elige tus camarones:",
+        opciones: [
+          { id: "camarones-aguachile-juanito", nombre: "Al aguachile", precio: 230, descripcion: "Camarones al aguachile" },
+          { id: "camarones-mojo-ajo-juanito", nombre: "Al mojo de ajo", precio: 230, descripcion: "Camarones al mojo de ajo" },
+          { id: "camarones-empanizados-juanito", nombre: "Empanizados", precio: 250, descripcion: "Camarones empanizados" },
+          { id: "camarones-plancha-juanito", nombre: "A la plancha", precio: 250, descripcion: "Camarones a la plancha" },
+          { id: "camarones-diabla-juanito", nombre: "A la diabla", precio: 230, descripcion: "Camarones a la diabla" },
+          { id: "camarones-momia-juanito", nombre: "A la momia", precio: 280, descripcion: "Camarones a la momia" },
+        ],
+      },
+
+      {
+        id: "mojarras-juanito",
+        nombre: "Mojarras",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Al mojo de ajo, a la mexicana y empanizada",
+        imagen: "/productos/mojarras-juanito.jpg",
+        textoSelector: "Elige tu mojarra:",
+        opciones: [
+          { id: "mojarra-mojo-ajo-juanito", nombre: "Al mojo de ajo", precio: 250, descripcion: "Mojarra al mojo de ajo" },
+          { id: "mojarra-mexicana-juanito", nombre: "A la mexicana", precio: 250, descripcion: "Mojarra a la mexicana" },
+          { id: "mojarra-empanizada-juanito", nombre: "Empanizada", precio: 250, descripcion: "Mojarra empanizada" },
+        ],
+      },
+
+      {
+        id: "vuelve-a-la-vida-juanito",
+        nombre: "Vuelve a la vida",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Chico, mediano o grande",
+        imagen: "/productos/vuelve-a-la-vida-juanito.jpg",
+        textoSelector: "Elige el tamaño:",
+        opciones: [
+          { id: "vuelve-a-la-vida-chico-juanito", nombre: "Chico", precio: 120, descripcion: "Vuelve a la vida chico" },
+          { id: "vuelve-a-la-vida-mediano-juanito", nombre: "Mediano", precio: 140, descripcion: "Vuelve a la vida mediano" },
+          { id: "vuelve-a-la-vida-grande-juanito", nombre: "Grande", precio: 160, descripcion: "Vuelve a la vida grande" },
+        ],
+      },
+
+      {
+        id: "tostadas-juanito",
+        nombre: "Tostadas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Tostada de camarón por pieza",
+        imagen: "/productos/tostadas-juanito.jpg",
+        textoSelector: "Elige tu tostada:",
+        opciones: [
+          { id: "tostada-camaron-juanito", nombre: "Camarón", precio: 60, descripcion: "Tostada de camarón por pieza" },
+        ],
+      },
+
+      {
+        id: "especiales-mariscos-juanito",
+        nombre: "Especiales de mariscos",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Filete de pescado, caldo de mariscos y shot de ostión",
+        imagen: "/productos/especiales-mariscos-juanito.jpg",
+        textoSelector: "Elige una opción:",
+        opciones: [
+          { id: "filete-pescado-juanito", nombre: "Filete de pescado", precio: 230, descripcion: "Filete de pescado" },
+          { id: "caldo-mariscos-juanito", nombre: "Caldo de mariscos", precio: 280, descripcion: "Caldo de mariscos" },
+          { id: "shot-ostion-juanito", nombre: "Shot de ostión", precio: 35, descripcion: "Shot de ostión" },
+        ],
+      },
+
+      {
+        id: "licuados-juanito",
+        nombre: "Licuados",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Plátano, mamey, fresa y chocomilk",
+        imagen: "/productos/licuados-juanito.jpg",
+        textoSelector: "Elige tu licuado:",
+        opciones: [
+          { id: "licuado-platano-juanito", nombre: "Plátano", precio: 80, descripcion: "Licuado de plátano" },
+          { id: "licuado-mamey-juanito", nombre: "Mamey", precio: 80, descripcion: "Licuado de mamey" },
+          { id: "licuado-fresa-juanito", nombre: "Fresa", precio: 80, descripcion: "Licuado de fresa" },
+          { id: "licuado-chocomilk-juanito", nombre: "Chocomilk", precio: 80, descripcion: "Licuado de chocomilk" },
+        ],
+      },
+
+      {
+        id: "cervezas-juanito",
+        nombre: "Cervezas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "solo en establecimiento",
+        imagen: "/productos/cervezas-juanito.jpg",
+        textoSelector: "Elige tu cerveza:",
+        opciones: [
+          { id: "corona-cuarto-juanito", nombre: "Corona 1/4", precio: 35, descripcion: "Corona 1/4" },
+          { id: "corona-media-juanito", nombre: "Corona 1/2", precio: 45, descripcion: "Corona 1/2" },
+          { id: "victoria-cuarto-juanito", nombre: "Victoria 1/4", precio: 35, descripcion: "Victoria 1/4" },
+          { id: "victoria-media-juanito", nombre: "Victoria 1/2", precio: 45, descripcion: "Victoria 1/2" },
+        ],
+      },
+
+      {
+        id: "micheladas-juanito",
+        nombre: "Micheladas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Sencillas, con camarón y chiquiadas",
+        imagen: "/productos/micheladas-juanito.jpg",
+        textoSelector: "Elige tu michelada:",
+        opciones: [
+          { id: "michelada-sencilla-juanito", nombre: "Sencillas", precio: 70, descripcion: "Michelada sencilla" },
+          { id: "michelada-camaron-juanito", nombre: "Con camarón", precio: 85, descripcion: "Michelada con camarón" },
+          { id: "michelada-chiquiada-juanito", nombre: "Chiquiadas", precio: 70, descripcion: "Michelada chiquiada" },
+        ],
+      },
+
+      {
+        id: "refrescos-juanito",
+        nombre: "Refrescos",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Solo en establecimiento",
+        imagen: "/productos/refrescos-juanito.jpg",
+        textoSelector: "Elige tu refresco:",
+        opciones: [
+          { id: "refresco-juanito", nombre: "Refresco", precio: 35, descripcion: "solo en establecimiento" },
+        ],
+      },
+
+      {
+        id: "jarras-agua-juanito",
+        nombre: "Jarras de agua",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Piña, melón, sandía y horchata",
+        imagen: "/productos/jarras-agua-juanito.jpg",
+        textoSelector: "Elige tu jarra de agua:",
+        opciones: [
+          { id: "jarra-agua-pina-juanito", nombre: "Piña", precio: 120, descripcion: "Jarra de agua de piña" },
+          { id: "jarra-agua-melon-juanito", nombre: "Melón", precio: 120, descripcion: "Jarra de agua de melón" },
+          { id: "jarra-agua-sandia-juanito", nombre: "Sandía", precio: 120, descripcion: "Jarra de agua de sandía" },
+          { id: "jarra-agua-horchata-juanito", nombre: "Horchata", precio: 120, descripcion: "Jarra de agua de horchata" },
+        ],
+      },
+    ],
   }
+
 ];
 
 export default negocios;
