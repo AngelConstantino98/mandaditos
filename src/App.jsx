@@ -62,8 +62,6 @@ export default function App() {
 
   // 📋 Selector de opciones
   const [productoParaOpciones, setProductoParaOpciones] = useState(null);
-  const [opcionSeleccionada, setOpcionSeleccionada] = useState(null);
-  const [cantidadProductoOpciones, setCantidadProductoOpciones] = useState(1);
 
   // 🍀 Estados de promoción
   const [sorteando, setSorteando] = useState(false);
@@ -673,11 +671,9 @@ ${notaPedido.trim()}`
   const agregarProductoAlCarrito = (producto) => {
     if (!negocioSeleccionado) return;
 
-    // Si tiene opciones, abrimos ventana para elegir una opción y cantidad.
+    // Si tiene opciones, abrimos ventana para agregar una o varias opciones sin salir.
     if (Array.isArray(producto.opciones) && producto.opciones.length > 0) {
       setProductoParaOpciones(producto);
-      setOpcionSeleccionada(null);
-      setCantidadProductoOpciones(1);
       return;
     }
 
@@ -860,37 +856,28 @@ ${notaPedido.trim()}`
     setCantidadProductoExtras(1);
   };
 
-  // ✅ Confirmar producto con opción
-  const confirmarProductoConOpcion = () => {
-    if (!productoParaOpciones) return;
-
-    if (!opcionSeleccionada) {
-      alert("Elige una opción.");
-      return;
-    }
+  // ✅ Agregar una opción sin cerrar el selector
+  const agregarOpcionAlCarrito = (productoBase, opcion, cantidad = 1) => {
+    if (!productoBase || !opcion) return;
 
     const productoConOpcion = {
-      ...productoParaOpciones,
-      id: opcionSeleccionada.id,
-      nombre: `${productoParaOpciones.nombre} - ${opcionSeleccionada.nombre}`,
-      precio: opcionSeleccionada.precio,
-      precioTexto: opcionSeleccionada.precioTexto,
-      descripcion: opcionSeleccionada.descripcion || productoParaOpciones.descripcion,
-      imagen: productoParaOpciones.imagen,
-      opcion: opcionSeleccionada,
+      ...productoBase,
+      id: opcion.id,
+      nombre: `${productoBase.nombre} - ${opcion.nombre}`,
+      precio: opcion.precio,
+      precioTexto: opcion.precioTexto,
+      descripcion: opcion.descripcion || productoBase.descripcion,
+      imagen: productoBase.imagen,
+      opcion,
       opciones: undefined
     };
 
     agregarProductoConfiguradoAlCarrito(
       productoConOpcion,
       [],
-      cantidadProductoOpciones,
+      cantidad,
       []
     );
-
-    setProductoParaOpciones(null);
-    setOpcionSeleccionada(null);
-    setCantidadProductoOpciones(1);
   };
 
   // 🛒 QUITAR PRODUCTOS DEL CARRITO VISUAL
@@ -2102,7 +2089,7 @@ ${notaPedido.trim()}`
           <div
             style={{
               width: "100%",
-              maxWidth: 400,
+              maxWidth: 430,
               background: "white",
               borderRadius: 16,
               padding: 16,
@@ -2116,125 +2103,124 @@ ${notaPedido.trim()}`
             </h2>
 
             <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
-              {productoParaOpciones.textoSelector || "Elige una opción:"}
+              {productoParaOpciones.textoSelector || "Agrega una o varias opciones:"}
             </p>
 
             <div style={{ display: "grid", gap: 8 }}>
               {productoParaOpciones.opciones.map((opcion) => {
-                const seleccionado = opcionSeleccionada?.id === opcion.id;
+                const cantidadOpcion = obtenerCantidadProducto(
+                  opcion.id,
+                  negocioSeleccionado.id
+                );
 
                 return (
-                  <label
+                  <div
                     key={opcion.id}
                     style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 8,
                       padding: 10,
-                      background: seleccionado ? "#dcfce7" : "#f8fafc",
-                      border: seleccionado
+                      background: cantidadOpcion > 0 ? "#dcfce7" : "#f8fafc",
+                      border: cantidadOpcion > 0
                         ? "1px solid #22c55e"
                         : "1px solid #e5e7eb",
-                      borderRadius: 10,
-                      cursor: "pointer"
+                      borderRadius: 10
                     }}
                   >
-                    <input
-                      type="radio"
-                      name={`opcion-${productoParaOpciones.id}`}
-                      checked={seleccionado}
-                      onChange={() => setOpcionSeleccionada(opcion)}
-                      style={{ marginTop: 3 }}
-                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 8
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <strong>{opcion.nombre}</strong>
 
-                    <div style={{ flex: 1 }}>
-                      <strong>{opcion.nombre}</strong>
+                        {opcion.descripcion && (
+                          <p style={{ fontSize: 12, color: "#666", marginTop: 3 }}>
+                            {opcion.descripcion}
+                          </p>
+                        )}
+                      </div>
 
-                      {opcion.descripcion && (
-                        <p style={{ fontSize: 12, color: "#666", marginTop: 3 }}>
-                          {opcion.descripcion}
-                        </p>
-                      )}
+                      <strong>{mostrarPrecioProducto(opcion)}</strong>
                     </div>
 
-                    <strong>{mostrarPrecioProducto(opcion)}</strong>
-                  </label>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 8,
+                        marginTop: 10
+                      }}
+                    >
+                      <span style={{ fontSize: 13, color: "#166534" }}>
+                        {cantidadOpcion > 0
+                          ? `En carrito: ${cantidadOpcion}`
+                          : "Aún no agregado"}
+                      </span>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <button
+                          onClick={() =>
+                            quitarProductoDelCarrito(
+                              opcion.id,
+                              negocioSeleccionado.id
+                            )
+                          }
+                          disabled={cantidadOpcion === 0}
+                          style={{
+                            width: 34,
+                            height: 34,
+                            borderRadius: 10,
+                            border: "none",
+                            background: cantidadOpcion === 0 ? "#f3f4f6" : "#e5e7eb",
+                            color: cantidadOpcion === 0 ? "#9ca3af" : "#111827",
+                            cursor: cantidadOpcion === 0 ? "not-allowed" : "pointer",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          -
+                        </button>
+
+                        <strong>{cantidadOpcion}</strong>
+
+                        <button
+                          onClick={() =>
+                            agregarOpcionAlCarrito(
+                              productoParaOpciones,
+                              opcion,
+                              1
+                            )
+                          }
+                          style={{
+                            minWidth: 90,
+                            height: 34,
+                            padding: "0 10px",
+                            borderRadius: 10,
+                            border: "none",
+                            background: "#22c55e",
+                            color: "white",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          + Agregar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
 
             <p style={{ marginTop: 12, fontWeight: "bold" }}>
-              Precio unitario:{" "}
-              {opcionSeleccionada
-                ? mostrarPrecioProducto(opcionSeleccionada)
-                : "Elige una opción"}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 10,
-                marginTop: 12,
-                padding: 10,
-                background: "#f8fafc",
-                border: "1px solid #e5e7eb",
-                borderRadius: 10
-              }}
-            >
-              <strong>Cantidad</strong>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
-                  onClick={() =>
-                    setCantidadProductoOpciones((prev) => Math.max(prev - 1, 1))
-                  }
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 10,
-                    border: "none",
-                    background: "#e5e7eb",
-                    cursor: "pointer",
-                    fontWeight: "bold"
-                  }}
-                >
-                  -
-                </button>
-
-                <strong>{cantidadProductoOpciones}</strong>
-
-                <button
-                  onClick={() => setCantidadProductoOpciones((prev) => prev + 1)}
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 10,
-                    border: "none",
-                    background: "#22c55e",
-                    color: "white",
-                    cursor: "pointer",
-                    fontWeight: "bold"
-                  }}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <p style={{ marginTop: 10, fontWeight: "bold" }}>
-              Total:{" "}
-              {opcionSeleccionada && productoTienePrecio(opcionSeleccionada)
-                ? `$${Number(opcionSeleccionada.precio || 0) * cantidadProductoOpciones}`
-                : opcionSeleccionada
-                  ? mostrarPrecioProducto(opcionSeleccionada)
-                  : "Elige una opción"}
+              Total productos: {textoTotalCarrito}
             </p>
 
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <button
-                onClick={confirmarProductoConOpcion}
+                onClick={() => setProductoParaOpciones(null)}
                 style={{
                   flex: 1,
                   padding: "10px",
@@ -2246,15 +2232,11 @@ ${notaPedido.trim()}`
                   cursor: "pointer"
                 }}
               >
-                Agregar
+                Listo
               </button>
 
               <button
-                onClick={() => {
-                  setProductoParaOpciones(null);
-                  setOpcionSeleccionada(null);
-                  setCantidadProductoOpciones(1);
-                }}
+                onClick={() => setProductoParaOpciones(null)}
                 style={{
                   flex: 1,
                   padding: "10px",
@@ -2264,9 +2246,13 @@ ${notaPedido.trim()}`
                   cursor: "pointer"
                 }}
               >
-                Cancelar
+                Cerrar
               </button>
             </div>
+
+            <p style={{ fontSize: 12, color: "#166534", marginTop: 8 }}>
+              Puedes agregar varias opciones sin salir de esta ventana.
+            </p>
           </div>
         </div>
       )}

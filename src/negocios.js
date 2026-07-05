@@ -553,7 +553,335 @@ const negocios = [
         ],
       },
     ],
-  },
+  },,
+
+  {
+    id: "cockteleria-la-almeja-2",
+    nombre: "COCKTELERIA LA ALMEJA 2",
+    emoji: "🦐",
+    descripcion:
+      "Cockteles, ensaladas, camarones, pescado, tostadas, caldos y bebidas",
+    imagen: "/negocios/cockteleria-la-almeja-2.jpg",
+    productos: [
+      {
+        id: "cocktel-la-almeja-2",
+        nombre: "Cocktel",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Camarón y vuelve a la vida en chico, mediano o grande",
+        imagen: "/productos/cocktel-la-almeja-2.jpg",
+        textoSelector: "Elige tu cocktel:",
+        opciones: [
+          {
+            id: "cocktel-camaron-chico-la-almeja-2",
+            nombre: "Camarón chico",
+            precio: 90,
+            descripcion: "Cocktel de camarón chico",
+          },
+          {
+            id: "cocktel-camaron-mediano-la-almeja-2",
+            nombre: "Camarón mediano",
+            precio: 140,
+            descripcion: "Cocktel de camarón mediano",
+          },
+          {
+            id: "cocktel-camaron-grande-la-almeja-2",
+            nombre: "Camarón grande",
+            precio: 170,
+            descripcion: "Cocktel de camarón grande",
+          },
+          {
+            id: "cocktel-vuelve-vida-chico-la-almeja-2",
+            nombre: "Vuelve a la vida chico",
+            precio: 90,
+            descripcion: "Cocktel vuelve a la vida chico",
+          },
+          {
+            id: "cocktel-vuelve-vida-mediano-la-almeja-2",
+            nombre: "Vuelve a la vida mediano",
+            precio: 140,
+            descripcion: "Cocktel vuelve a la vida mediano",
+          },
+          {
+            id: "cocktel-vuelve-vida-grande-la-almeja-2",
+            nombre: "Vuelve a la vida grande",
+            precio: 170,
+            descripcion: "Cocktel vuelve a la vida grande",
+          },
+        ],
+      },
+
+      {
+        id: "ensaladas-la-almeja-2",
+        nombre: "Ensaladas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Ensaladas de mariscos y camarón",
+        imagen: "/productos/ensaladas-la-almeja-2.jpg",
+        textoSelector: "Elige tu ensalada:",
+        opciones: [
+          {
+            id: "ensalada-mariscos-la-almeja-2",
+            nombre: "De mariscos",
+            precio: 200,
+            descripcion: "Ensalada de mariscos",
+          },
+          {
+            id: "ensalada-camaron-la-almeja-2",
+            nombre: "De camarón",
+            precio: 200,
+            descripcion: "Ensalada de camarón",
+          },
+        ],
+      },
+
+      {
+        id: "camarones-la-almeja-2",
+        nombre: "Camarones",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Aguachile, mojo de ajo, empanizados y ceviche",
+        imagen: "/productos/camarones-la-almeja-2.jpg",
+        textoSelector: "Elige tus camarones:",
+        opciones: [
+          {
+            id: "aguachile-chitepin-la-almeja-2",
+            nombre: "Aguachile chitepin",
+            precio: 220,
+            descripcion: "Camarones en aguachile chitepin",
+          },
+          {
+            id: "camarones-al-aguachile-la-almeja-2",
+            nombre: "Al aguachile",
+            precio: 200,
+            descripcion: "Camarones al aguachile",
+          },
+          {
+            id: "camarones-mojo-ajo-la-almeja-2",
+            nombre: "Al mojo de ajo",
+            precio: 180,
+            descripcion: "Camarones al mojo de ajo",
+          },
+          {
+            id: "camarones-empanizados-la-almeja-2",
+            nombre: "Empanizados",
+            precio: 180,
+            descripcion: "Camarones empanizados",
+          },
+          {
+            id: "ceviche-camaron-la-almeja-2",
+            nombre: "Ceviche de camarón",
+            precio: 200,
+            descripcion: "Ceviche de camarón",
+          },
+        ],
+      },
+
+      {
+        id: "pescado-la-almeja-2",
+        nombre: "Pescado",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Filetes, ceviche, mojarra y macabil",
+        imagen: "/productos/pescado-la-almeja-2.jpg",
+        textoSelector: "Elige tu pescado:",
+        opciones: [
+          {
+            id: "filete-mexicana-la-almeja-2",
+            nombre: "Filete a la mexicana",
+            precio: 150,
+            descripcion: "Filete a la mexicana",
+          },
+          {
+            id: "filete-vapor-la-almeja-2",
+            nombre: "Filete al vapor",
+            precio: 150,
+            descripcion: "Filete al vapor",
+          },
+          {
+            id: "ceviche-pescado-la-almeja-2",
+            nombre: "Ceviche",
+            precio: 100,
+            descripcion: "Ceviche de pescado",
+          },
+          {
+            id: "filete-empanizado-la-almeja-2",
+            nombre: "Filete empanizado",
+            precio: 130,
+            descripcion: "Filete empanizado",
+          },
+          {
+            id: "mojarra-la-almeja-2",
+            nombre: "Mojarra",
+            precio: 150,
+            descripcion: "Mojarra",
+          },
+          {
+            id: "macabil-la-almeja-2",
+            nombre: "Macabil",
+            precio: 180,
+            descripcion: "Macabil",
+          },
+          {
+            id: "mojarra-vapor-la-almeja-2",
+            nombre: "Mojarra al vapor",
+            precio: 180,
+            descripcion: "Mojarra al vapor",
+          },
+          {
+            id: "mojarra-mexicana-la-almeja-2",
+            nombre: "Mojarra a la mexicana",
+            precio: 180,
+            descripcion: "Mojarra a la mexicana",
+          },
+        ],
+      },
+
+      {
+        id: "tostadas-la-almeja-2",
+        nombre: "Tostadas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Ceviche, camarón, mixtas, calamar y caracol",
+        imagen: "/productos/tostadas-la-almeja-2.jpg",
+        textoSelector: "Elige tus tostadas:",
+        opciones: [
+          {
+            id: "tostada-ceviche-la-almeja-2",
+            nombre: "De ceviche",
+            precio: 45,
+            descripcion: "Tostada de ceviche",
+          },
+          {
+            id: "tostada-camaron-la-almeja-2",
+            nombre: "De camarón",
+            precio: 45,
+            descripcion: "Tostada de camarón",
+          },
+          {
+            id: "tostada-mixta-la-almeja-2",
+            nombre: "Mixtas",
+            precio: 60,
+            descripcion: "Tostada mixta",
+          },
+          {
+            id: "tostada-calamar-la-almeja-2",
+            nombre: "De calamar",
+            precio: 45,
+            descripcion: "Tostada de calamar",
+          },
+          {
+            id: "tostada-caracol-la-almeja-2",
+            nombre: "De caracol",
+            precio: 45,
+            descripcion: "Tostada de caracol",
+          },
+        ],
+      },
+
+      {
+        id: "caldos-la-almeja-2",
+        nombre: "Caldos",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Caldo de camarón, mariscos y sopa de mariscos",
+        imagen: "/productos/caldos-la-almeja-2.jpg",
+        textoSelector: "Elige tu caldo:",
+        opciones: [
+          {
+            id: "caldo-camaron-la-almeja-2",
+            nombre: "De camarón",
+            precio: 200,
+            descripcion: "Caldo de camarón",
+          },
+          {
+            id: "caldo-mariscos-la-almeja-2",
+            nombre: "De mariscos",
+            precio: 220,
+            descripcion: "Caldo de mariscos",
+          },
+          {
+            id: "sopa-mariscos-la-almeja-2",
+            nombre: "Sopa de mariscos",
+            precio: 220,
+            descripcion: "Sopa de mariscos",
+          },
+        ],
+      },
+
+      {
+        id: "bebidas-la-almeja-2",
+        nombre: "Bebidas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Bebidas, micheladas, refrescos y agua natural",
+        imagen: "/productos/bebidas-la-almeja-2.jpg",
+        textoSelector: "Elige tu bebida:",
+        opciones: [
+          {
+            id: "banadita-la-almeja-2",
+            nombre: "Bañadita",
+            precio: 100,
+            descripcion: "Bañadita",
+          },
+          {
+            id: "chilquada-la-almeja-2",
+            nombre: "Chilquada",
+            precio: 50,
+            descripcion: "Chilquada",
+          },
+          {
+            id: "modelo-la-almeja-2",
+            nombre: "Modelo",
+            precio: 35,
+            descripcion: "Modelo",
+          },
+          {
+            id: "michelada-copa-la-almeja-2",
+            nombre: "Michelada copa",
+            precio: 50,
+            descripcion: "Michelada copa",
+          },
+          {
+            id: "michelada-copa-camaron-la-almeja-2",
+            nombre: "Michelada copa/camarón",
+            precio: 80,
+            descripcion: "Michelada copa con camarón",
+          },
+          {
+            id: "michelada-tarro-la-almeja-2",
+            nombre: "Michelada tarro",
+            precio: 60,
+            descripcion: "Michelada tarro",
+          },
+          {
+            id: "michelada-tarro-camaron-la-almeja-2",
+            nombre: "Michelada tarro/camarón",
+            precio: 90,
+            descripcion: "Michelada tarro con camarón",
+          },
+          {
+            id: "refresco-la-almeja-2",
+            nombre: "Refresco",
+            precio: 25,
+            descripcion: "Refresco",
+          },
+          {
+            id: "agua-natural-la-almeja-2",
+            nombre: "Agua natural",
+            precio: 25,
+            descripcion: "Agua natural",
+          },
+          {
+            id: "jarra-agua-natural-la-almeja-2",
+            nombre: "Jarra de agua natural",
+            precio: 120,
+            descripcion: "Jarra de agua natural",
+          },
+        ],
+      },
+    ],
+  }
 ];
 
 export default negocios;
