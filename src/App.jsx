@@ -769,7 +769,9 @@ ${notaPedido.trim()}`
       return;
     }
 
-    if (pedidoActual.estado === "cancelado") {
+    const estadoPedidoActual = String(pedidoActual.estado || "").toLowerCase();
+
+    if (estadoPedidoActual === "cancelado") {
       setResultadoPromo({
         tipo: "error",
         mensaje: "Los pedidos cancelados no pueden participar."
@@ -777,10 +779,10 @@ ${notaPedido.trim()}`
       return;
     }
 
-    if (pedidoActual.estado === "entregado") {
+    if (estadoPedidoActual !== "entregado") {
       setResultadoPromo({
         tipo: "error",
-        mensaje: "Esta promoción solo está disponible antes de entregar el pedido."
+        mensaje: "🍀 Podrás probar tu suerte cuando el repartidor marque tu pedido como entregado.\n\nSi ganas, no se te cobra el envío."
       });
       return;
     }
@@ -1396,8 +1398,8 @@ ${notaPedido.trim()}`
     return () => clearTimeout(timer);
   }, [pedidoActual?.id, promoParaMostrar?.tipo, promoParaMostrar?.mensaje]);
 
-  // 📦 Oculta el pedido actual del inicio 1 minuto después de ser entregado.
-  // El pedido sigue disponible en la pantalla de historial.
+  // 📦 Oculta el pedido actual del inicio 10 minutos después de ser entregado.
+  // Así el cliente tiene tiempo de presionar "Probar mi suerte".
   useEffect(() => {
     if (pedidoActual?.estado !== "entregado") {
       return;
@@ -1407,7 +1409,7 @@ ${notaPedido.trim()}`
       setPedidoActual(null);
       setResultadoPromo(null);
       localStorage.removeItem("pedidoActual");
-    }, 60000);
+    }, 600000);
 
     return () => clearTimeout(timer);
   }, [pedidoActual?.id, pedidoActual?.estado]);
@@ -1748,8 +1750,7 @@ ${notaPedido.trim()}`
               )}
 
               {!pedidoActual.promocion?.participo &&
-                pedidoActual.estado !== "cancelado" &&
-                pedidoActual.estado !== "entregado" && (
+                pedidoActual.estado !== "cancelado" && (
                   <button
                     className="btn"
                     onClick={probarSuerte}

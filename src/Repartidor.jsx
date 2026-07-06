@@ -483,9 +483,9 @@ export default function Repartidor() {
                   marginBottom: "10px",
                 }}
               >
-                🎁 PEDIDO GRATIS
+                🎁 ENVÍO GRATIS
                 <br />
-                🚫 NO COBRAR AL CLIENTE
+                🚫 NO COBRAR ENVÍO AL CLIENTE
               </div>
             )}
 
