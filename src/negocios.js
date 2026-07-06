@@ -340,6 +340,9 @@ const negocios = [
     emoji: "🔥",
     descripcion: "Tacos, gringas, tortas, quesadillas y especialidades",
     imagen: "/negocios/negocio-elcarboncito.jpeg",
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "16:00", cierra: "00:30" },
+    ],
     productos: [
       {
         id: "tacos-el-carboncito",
