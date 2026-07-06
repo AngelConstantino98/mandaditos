@@ -22,8 +22,45 @@ Gracias por participar.
 export default function App() {
   const socketRef = useRef(null);
   const pedidoActualRef = useRef(null);
+  const screenRef = useRef("splash");
+  const navegandoConBotonAtrasRef = useRef(false);
 
-  const [screen, setScreen] = useState("splash");
+  const [screen, setScreenBase] = useState("splash");
+
+  // 📱 Navegación interna para que el botón "atrás" del teléfono funcione dentro de la app.
+  const setScreen = (nuevaPantalla, opciones = {}) => {
+    const pantallaFinal =
+      typeof nuevaPantalla === "function"
+        ? nuevaPantalla(screenRef.current)
+        : nuevaPantalla;
+
+    if (!pantallaFinal) return;
+
+    const pantallaAnterior = screenRef.current;
+
+    screenRef.current = pantallaFinal;
+    setScreenBase(pantallaFinal);
+
+    const puedeUsarHistorial =
+      typeof window !== "undefined" &&
+      !opciones.sinHistorial &&
+      !navegandoConBotonAtrasRef.current;
+
+    if (!puedeUsarHistorial) return;
+
+    const state = {
+      mandaPlusScreen: pantallaFinal,
+    };
+
+    if (opciones.reemplazar || pantallaAnterior === "splash") {
+      window.history.replaceState(state, "", window.location.href);
+      return;
+    }
+
+    if (pantallaFinal !== pantallaAnterior) {
+      window.history.pushState(state, "", window.location.href);
+    }
+  };
 
   // 📲 Instalación PWA
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -164,6 +201,49 @@ export default function App() {
     "Otro": { min: 25, max: 0 }
   };
 
+  // 📱 Mantener referencia de pantalla actual
+  useEffect(() => {
+    screenRef.current = screen;
+  }, [screen]);
+
+  // 📱 Botón físico "atrás" de Android / botón atrás del navegador
+  useEffect(() => {
+    window.history.replaceState(
+      { mandaPlusScreen: screenRef.current },
+      "",
+      window.location.href
+    );
+
+    const manejarBotonAtras = (event) => {
+      const pantallaAnterior = event.state?.mandaPlusScreen;
+
+      if (!pantallaAnterior) {
+        return;
+      }
+
+      navegandoConBotonAtrasRef.current = true;
+
+      setShowCancel(null);
+      setProductoParaGuisos(null);
+      setProductoParaExtras(null);
+      setProductoParaOpciones(null);
+      setProductoParaToppings(null);
+
+      screenRef.current = pantallaAnterior;
+      setScreenBase(pantallaAnterior);
+
+      setTimeout(() => {
+        navegandoConBotonAtrasRef.current = false;
+      }, 0);
+    };
+
+    window.addEventListener("popstate", manejarBotonAtras);
+
+    return () => {
+      window.removeEventListener("popstate", manejarBotonAtras);
+    };
+  }, []);
+
   // 📲 Detectar si la app se puede instalar
   useEffect(() => {
     const ua = window.navigator.userAgent || "";
@@ -237,12 +317,12 @@ export default function App() {
 
       if (accesoDueno) {
         const duenoGuardado = localStorage.getItem("duenoActivo");
-        setScreen(duenoGuardado ? "dueno-panel" : "dueno-login");
+        setScreen(duenoGuardado ? "dueno-panel" : "dueno-login", { reemplazar: true });
         return;
       }
 
       const clienteGuardado = localStorage.getItem("cliente");
-      setScreen(clienteGuardado ? "home" : "auth");
+      setScreen(clienteGuardado ? "home" : "auth", { reemplazar: true });
     }, 2000);
 
     return () => clearTimeout(timer);
@@ -422,7 +502,7 @@ export default function App() {
 
     setAuthMensaje("");
     setAuthPin("");
-    setScreen("home");
+    setScreen("home", { reemplazar: true });
   };
 
   // 🔐 Registrar o iniciar sesión con teléfono + PIN
@@ -493,7 +573,7 @@ export default function App() {
     setAuthTelefono("");
     setAuthPin("");
     setAuthMensaje("");
-    setScreen("auth");
+    setScreen("auth", { reemplazar: true });
   };
 
   // 👑 Iniciar sesión del dueño
@@ -535,7 +615,7 @@ export default function App() {
       setDueno(duenoActivo);
       setDuenoUsuario("");
       setDuenoPin("");
-      setScreen("dueno-panel");
+      setScreen("dueno-panel", { reemplazar: true });
 
       cargarResumenDueno(duenoActivo, duenoFecha);
     } catch (error) {
@@ -550,7 +630,7 @@ export default function App() {
   const cargarResumenDueno = async (duenoActivo = dueno, fecha = duenoFecha) => {
     try {
       if (!duenoActivo?.usuario || !duenoActivo?.pin) {
-        setScreen("dueno-login");
+        setScreen("dueno-login", { reemplazar: true });
         return;
       }
 
@@ -593,7 +673,7 @@ export default function App() {
     setDuenoUsuario("");
     setDuenoPin("");
     setDuenoMensaje("");
-    setScreen("home");
+    setScreen("home", { reemplazar: true });
   };
 
   // ENVIAR
@@ -679,7 +759,7 @@ ${notaPedido.trim()}`
     setCarrito([]);
     setNegocioSeleccionado(null);
 
-    setScreen("home");
+    setScreen("home", { reemplazar: true });
   };
 
   // 🍀 PROBAR SUERTE
@@ -1718,7 +1798,7 @@ ${notaPedido.trim()}`
           <button
             onClick={() => {
               setDuenoMensaje("");
-              setScreen("home");
+              setScreen("home", { reemplazar: true });
             }}
             style={{
               width: "fit-content",
@@ -2007,7 +2087,7 @@ ${notaPedido.trim()}`
           <button
             onClick={() => {
               setShowCancel(null);
-              setScreen("home");
+              setScreen("home", { reemplazar: true });
             }}
             style={{
               width: "fit-content",
@@ -2166,7 +2246,7 @@ ${notaPedido.trim()}`
           <button
             onClick={() => {
               setNegocioSeleccionado(null);
-              setScreen("home");
+              setScreen("home", { reemplazar: true });
             }}
             style={{
               width: "fit-content",
@@ -2270,7 +2350,7 @@ ${notaPedido.trim()}`
 
           <button
             onClick={() => {
-              setScreen("negocios-locales");
+              setScreen("negocios-locales", { reemplazar: true });
             }}
             style={{
               width: "fit-content",
