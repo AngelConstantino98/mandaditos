@@ -930,6 +930,9 @@ const negocios = [
     emoji: "🦐",
     descripcion: "Cockteles, ensaladas, camarones, mojarras, tostadas, licuados y bebidas",
     imagen: "/negocios/cocteleria-juanito.jpg",
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "10:00", cierra: "20:00" },
+    ],
     productos: [
       {
         id: "cocktel-juanito",
@@ -1204,7 +1207,6 @@ const negocios = [
       },
     ],
   },
-,
 
   {
     id: "pasteleria-oscarin",
@@ -1306,7 +1308,6 @@ const negocios = [
       },
     ],
   },
-,
 
   {
     id: "papeleria-las-gueras",
