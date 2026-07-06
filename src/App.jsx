@@ -3231,20 +3231,26 @@ ${notaPedido.trim()}`
             inset: 0,
             background: "rgba(0,0,0,0.45)",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "center",
-            padding: 16,
-            zIndex: 9999
+            padding: "14px 12px",
+            zIndex: 999999,
+            overflowY: "auto",
+            WebkitOverflowScrolling: "touch"
           }}
         >
           <div
             style={{
               width: "100%",
-              maxWidth: 380,
+              maxWidth: 430,
+              maxHeight: "calc(100dvh - 28px)",
               background: "white",
-              borderRadius: 16,
+              borderRadius: 18,
               padding: 16,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+              boxSizing: "border-box",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch"
             }}
           >
             <h2 style={{ fontSize: 20, marginBottom: 6 }}>
@@ -3270,33 +3276,53 @@ ${notaPedido.trim()}`
               {productoParaGuisos.textoSelector || "Elige uno o varios guisos:"}
             </p>
 
-            <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "grid", gap: 9 }}>
               {productoParaGuisos.guisos.map((guiso) => (
                 <label
                   key={guiso}
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: 10,
+                    alignItems: "flex-start",
+                    gap: 10,
+                    padding: "12px 11px",
+                    minHeight: 48,
                     background: guisosSeleccionados.includes(guiso)
                       ? "#dcfce7"
                       : "#f8fafc",
                     border: guisosSeleccionados.includes(guiso)
                       ? "1px solid #22c55e"
                       : "1px solid #e5e7eb",
-                    borderRadius: 10,
+                    borderRadius: 12,
                     cursor: "pointer",
-                    textTransform: "capitalize"
+                    textTransform: "capitalize",
+                    lineHeight: 1.25,
+                    boxSizing: "border-box"
                   }}
                 >
                   <input
                     type="checkbox"
                     checked={guisosSeleccionados.includes(guiso)}
                     onChange={() => alternarGuiso(guiso)}
+                    style={{
+                      flexShrink: 0,
+                      marginTop: 2
+                    }}
                   />
 
-                  {guiso}
+                  <span
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      whiteSpace: "normal",
+                      overflowWrap: "anywhere",
+                      wordBreak: "normal",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#111827"
+                    }}
+                  >
+                    {guiso}
+                  </span>
                 </label>
               ))}
             </div>
@@ -3362,18 +3388,30 @@ ${notaPedido.trim()}`
               Total: ${calcularPrecioProducto(productoParaGuisos, guisosSeleccionados) * cantidadProductoGuisos}
             </p>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                marginTop: 12,
+                position: "sticky",
+                bottom: 0,
+                background: "white",
+                paddingTop: 10,
+                paddingBottom: 2
+              }}
+            >
               <button
                 onClick={confirmarProductoConGuisos}
                 style={{
                   flex: 1,
-                  padding: "10px",
-                  borderRadius: 10,
+                  padding: "12px",
+                  borderRadius: 12,
                   border: "none",
                   background: "#22c55e",
                   color: "white",
                   fontWeight: "bold",
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  minHeight: 46
                 }}
               >
                 Agregar
@@ -3387,11 +3425,13 @@ ${notaPedido.trim()}`
                 }}
                 style={{
                   flex: 1,
-                  padding: "10px",
-                  borderRadius: 10,
+                  padding: "12px",
+                  borderRadius: 12,
                   border: "none",
                   background: "#e5e7eb",
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  minHeight: 46,
+                  fontWeight: "bold"
                 }}
               >
                 Cancelar
@@ -3452,9 +3492,10 @@ ${notaPedido.trim()}`
                           key={topping}
                           style={{
                             display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            padding: 10,
+                            alignItems: "flex-start",
+                            gap: 10,
+                            padding: "12px 11px",
+                            minHeight: 48,
                             background: seleccionado ? "#dcfce7" : "#f8fafc",
                             border: seleccionado
                               ? "1px solid #22c55e"
@@ -3467,9 +3508,21 @@ ${notaPedido.trim()}`
                             type="checkbox"
                             checked={seleccionado}
                             onChange={() => alternarTopping(topping)}
+                            style={{
+                              flexShrink: 0,
+                              marginTop: 2
+                            }}
                           />
 
-                          <span style={{ flex: 1 }}>
+                          <span
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              whiteSpace: "normal",
+                              overflowWrap: "anywhere",
+                              fontWeight: 700
+                            }}
+                          >
                             {topping}
                           </span>
                         </label>
@@ -3536,9 +3589,21 @@ ${notaPedido.trim()}`
                               type="checkbox"
                               checked={seleccionado}
                               onChange={() => alternarJarabe(jarabe)}
+                              style={{
+                                flexShrink: 0,
+                                marginTop: 2
+                              }}
                             />
 
-                            <span style={{ flex: 1 }}>
+                            <span
+                              style={{
+                                flex: 1,
+                                minWidth: 0,
+                                whiteSpace: "normal",
+                                overflowWrap: "anywhere",
+                                fontWeight: 700
+                              }}
+                            >
                               {jarabe}
                             </span>
                           </label>
