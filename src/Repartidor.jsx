@@ -15,6 +15,7 @@ export default function Repartidor() {
 
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
+  const [pestana, setPestana] = useState("nuevos");
 
   const [repartidor, setRepartidor] = useState(null);
   const [usuarioRepartidor, setUsuarioRepartidor] = useState("");
@@ -37,6 +38,32 @@ export default function Repartidor() {
     } catch {
       return null;
     }
+  };
+
+  const obtenerEstadoPedido = (pedido) =>
+    String(pedido?.estado || "").toLowerCase();
+
+  const pedidoEstaFinalizado = (pedido) => {
+    const estado = obtenerEstadoPedido(pedido);
+    return estado === "cancelado" || estado === "entregado";
+  };
+
+  const pedidoEsMio = (pedido) => {
+    if (!repartidor?.id) return false;
+
+    return (
+      Boolean(pedido?.repartidorId) &&
+      String(pedido.repartidorId) === String(repartidor.id)
+    );
+  };
+
+  const pedidoEsDeOtro = (pedido) => {
+    if (!repartidor?.id) return false;
+
+    return (
+      Boolean(pedido?.repartidorId) &&
+      String(pedido.repartidorId) !== String(repartidor.id)
+    );
   };
 
   const obtenerTelefonoPedido = (pedido) => {
@@ -98,6 +125,7 @@ export default function Repartidor() {
       setRepartidor(data.repartidor);
       setUsuarioRepartidor("");
       setPinRepartidor("");
+      setPestana("nuevos");
     } catch (error) {
       console.log("Error login repartidor:", error);
       setErrorLogin("No se pudo conectar con el servidor.");
@@ -114,6 +142,7 @@ export default function Repartidor() {
     setUsuarioRepartidor("");
     setPinRepartidor("");
     setErrorLogin("");
+    setPestana("nuevos");
   };
 
   // 🟢 GPS
@@ -290,11 +319,11 @@ export default function Repartidor() {
     }
 
     const pedidoTieneRepartidor = Boolean(pedido.repartidorId);
-    const pedidoEsDeOtro =
+    const pedidoEsDeOtroRepartidor =
       pedidoTieneRepartidor &&
       String(pedido.repartidorId) !== String(repartidorActivo.id);
 
-    if (estado === "aceptado" && pedidoEsDeOtro) {
+    if (estado === "aceptado" && pedidoEsDeOtroRepartidor) {
       alert(
         `Este pedido ya fue aceptado por ${pedido.repartidorNombre || "otro repartidor"}.`
       );
@@ -307,7 +336,7 @@ export default function Repartidor() {
         return;
       }
 
-      if (pedidoEsDeOtro) {
+      if (pedidoEsDeOtroRepartidor) {
         alert(
           `Solo ${pedido.repartidorNombre || "el repartidor asignado"} puede actualizar este pedido.`
         );
@@ -321,6 +350,14 @@ export default function Repartidor() {
       repartidorId: repartidorActivo.id,
       repartidorNombre: repartidorActivo.nombre,
     });
+
+    if (estado === "aceptado" || estado === "en camino") {
+      setPestana("mis");
+    }
+
+    if (estado === "entregado") {
+      setPestana("entregados");
+    }
   };
 
   const abrirMapa = (p) => {
@@ -333,6 +370,89 @@ export default function Repartidor() {
       alert("Este pedido no tiene ubicación GPS");
     }
   };
+
+  const abrirRuta = (p) => {
+    const gps = p.ubicacionGPS || p.gps;
+
+    if (gps) {
+      const { lat, lng } = gps;
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+        "_blank"
+      );
+    } else {
+      alert("Este pedido no tiene ubicación GPS para abrir ruta.");
+    }
+  };
+
+  const pedidosNuevos = pedidos.filter((p) => {
+    const estado = obtenerEstadoPedido(p);
+
+    return (
+      estado === "pendiente" &&
+      !p.repartidorId
+    );
+  });
+
+  const pedidosMios = pedidos.filter((p) => {
+    const estado = obtenerEstadoPedido(p);
+
+    return (
+      pedidoEsMio(p) &&
+      estado !== "cancelado" &&
+      estado !== "entregado"
+    );
+  });
+
+  const pedidosEntregados = pedidos.filter((p) => {
+    return pedidoEsMio(p) && obtenerEstadoPedido(p) === "entregado";
+  });
+
+  const pedidosCancelados = pedidos.filter((p) => {
+    return obtenerEstadoPedido(p) === "cancelado";
+  });
+
+  const obtenerPedidosPorPestana = () => {
+    if (pestana === "mis") return pedidosMios;
+    if (pestana === "entregados") return pedidosEntregados;
+    if (pestana === "cancelados") return pedidosCancelados;
+    return pedidosNuevos;
+  };
+
+  const pedidosMostrados = obtenerPedidosPorPestana();
+
+  const pestanas = [
+    {
+      id: "nuevos",
+      label: "📦 Nuevos",
+      cantidad: pedidosNuevos.length,
+      descripcion: "Pedidos pendientes sin repartidor asignado.",
+    },
+    {
+      id: "mis",
+      label: "🛵 Mis pedidos",
+      cantidad: pedidosMios.length,
+      descripcion: "Pedidos aceptados por ti o en camino.",
+    },
+    {
+      id: "entregados",
+      label: "✅ Entregados",
+      cantidad: pedidosEntregados.length,
+      descripcion: "Pedidos que tú ya marcaste como entregados.",
+    },
+    {
+      id: "cancelados",
+      label: "❌ Cancelados",
+      cantidad: pedidosCancelados.length,
+      descripcion: "Pedidos cancelados por clientes.",
+    },
+  ];
+
+  const descripcionPestana =
+    pestanas.find((item) => item.id === pestana)?.descripcion || "";
+
+  const totalEntregasHoyMias = pedidosEntregados.length;
+  const totalComisionHoyMia = totalEntregasHoyMias * 10;
 
   if (!repartidor) {
     return (
@@ -396,16 +516,35 @@ export default function Repartidor() {
     );
   }
 
+  const estiloBotonPestana = (id) => ({
+    padding: "10px 12px",
+    borderRadius: 999,
+    border: pestana === id ? "2px solid #2563eb" : "1px solid #d1d5db",
+    background: pestana === id ? "#eff6ff" : "white",
+    color: pestana === id ? "#1d4ed8" : "#111827",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow:
+      pestana === id ? "0 3px 8px rgba(37, 99, 235, 0.18)" : "none",
+  });
+
   return (
-    <div className="app-driver">
-      <h1>🏍️ Panel Repartidor</h1>
+    <div
+      className="app-driver"
+      style={{
+        padding: 10,
+        background: "#f3f4f6",
+        minHeight: "100vh",
+      }}
+    >
+      <h1 style={{ marginBottom: 10 }}>🏍️ Panel Repartidor</h1>
 
       <div
         style={{
           background: "#eff6ff",
           border: "1px solid #93c5fd",
-          borderRadius: 10,
-          padding: 10,
+          borderRadius: 12,
+          padding: 12,
           marginBottom: 12,
         }}
       >
@@ -413,38 +552,153 @@ export default function Repartidor() {
           👤 Repartidor activo: {repartidor.nombre}
         </p>
 
-        <button onClick={cerrarSesionRepartidor}>Cerrar sesión</button>
+        <button
+          onClick={cerrarSesionRepartidor}
+          style={{
+            marginTop: 8,
+            padding: "7px 10px",
+            borderRadius: 8,
+            border: "none",
+            background: "#e5e7eb",
+            cursor: "pointer",
+          }}
+        >
+          Cerrar sesión
+        </button>
       </div>
 
-      {!activo ? (
-        <button onClick={iniciarGPS}>▶️ Iniciar GPS</button>
-      ) : (
-        <button onClick={detenerGPS}>⏹️ Detener GPS</button>
-      )}
+      <div
+        style={{
+          background: "white",
+          borderRadius: 12,
+          border: "1px solid #e5e7eb",
+          padding: 12,
+          marginBottom: 12,
+        }}
+      >
+        {!activo ? (
+          <button
+            onClick={iniciarGPS}
+            style={{
+              padding: "9px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#16a34a",
+              color: "white",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            ▶️ Iniciar GPS
+          </button>
+        ) : (
+          <button
+            onClick={detenerGPS}
+            style={{
+              padding: "9px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#dc2626",
+              color: "white",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            ⏹️ Detener GPS
+          </button>
+        )}
 
-      {activo && (
-        <p style={{ color: "green", fontWeight: "bold" }}>
-          🛰️ GPS activo. Tu ubicación se comparte solo con tus pedidos asignados.
+        {activo && (
+          <p style={{ color: "green", fontWeight: "bold", marginTop: 8 }}>
+            🛰️ GPS activo. Tu ubicación se comparte solo con tus pedidos asignados.
+          </p>
+        )}
+      </div>
+
+      <div
+        style={{
+          background: "#111827",
+          color: "white",
+          borderRadius: 12,
+          padding: 12,
+          marginBottom: 12,
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <p style={{ margin: 0, fontSize: 13, opacity: 0.85 }}>
+            Mis entregas
+          </p>
+          <strong style={{ fontSize: 22 }}>{totalEntregasHoyMias}</strong>
+        </div>
+
+        <div>
+          <p style={{ margin: 0, fontSize: 13, opacity: 0.85 }}>
+            Comisión dueño
+          </p>
+          <strong style={{ fontSize: 22 }}>${totalComisionHoyMia}</strong>
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "white",
+          borderRadius: 12,
+          border: "1px solid #e5e7eb",
+          padding: 10,
+          marginBottom: 12,
+        }}
+      >
+        <h2 style={{ marginBottom: 8 }}>📦 Pedidos</h2>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: 10,
+          }}
+        >
+          {pestanas.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setPestana(item.id)}
+              style={estiloBotonPestana(item.id)}
+            >
+              {item.label} ({item.cantidad})
+            </button>
+          ))}
+        </div>
+
+        <p style={{ color: "#6b7280", fontSize: 14, margin: 0 }}>
+          {descripcionPestana}
         </p>
+      </div>
+
+      {pedidosMostrados.length === 0 && (
+        <div
+          style={{
+            background: "white",
+            borderRadius: 12,
+            border: "1px solid #e5e7eb",
+            padding: 18,
+            textAlign: "center",
+            color: "#6b7280",
+          }}
+        >
+          No hay pedidos en esta sección.
+        </div>
       )}
 
-      <hr />
-
-      <h2>📦 Pedidos</h2>
-
-      {pedidos.length === 0 && <p>No hay pedidos</p>}
-
-      {pedidos.map((p) => {
+      {pedidosMostrados.map((p) => {
         const telefonoCliente = obtenerTelefonoPedido(p);
         const pedidoTieneRepartidor = Boolean(p.repartidorId);
-        const pedidoEsMio =
-          pedidoTieneRepartidor &&
-          String(p.repartidorId) === String(repartidor.id);
-        const pedidoEsDeOtro =
-          pedidoTieneRepartidor &&
-          String(p.repartidorId) !== String(repartidor.id);
-        const pedidoFinalizado =
-          p.estado === "cancelado" || p.estado === "entregado";
+        const esMio = pedidoEsMio(p);
+        const esDeOtro = pedidoEsDeOtro(p);
+        const finalizado = pedidoEstaFinalizado(p);
+        const estado = obtenerEstadoPedido(p);
 
         return (
           <div
@@ -452,22 +706,23 @@ export default function Repartidor() {
             style={{
               border: p.promocion?.ganador
                 ? "3px solid #10b981"
-                : pedidoEsMio
+                : esMio
                   ? "3px solid #2563eb"
-                  : pedidoEsDeOtro
+                  : esDeOtro
                     ? "2px solid #f59e0b"
                     : "1px solid #ccc",
-              padding: 10,
+              padding: 12,
               marginBottom: 10,
-              borderRadius: 10,
-              opacity: p.estado === "cancelado" ? 0.5 : 1,
+              borderRadius: 14,
+              opacity: estado === "cancelado" ? 0.6 : 1,
               background: p.promocion?.ganador
                 ? "#ecfdf5"
-                : pedidoEsMio
+                : esMio
                   ? "#eff6ff"
-                  : pedidoEsDeOtro
+                  : esDeOtro
                     ? "#fffbeb"
                     : "#fff",
+              boxShadow: "0 2px 8px rgba(15, 23, 42, 0.06)",
             }}
           >
             {p.promocion?.ganador && (
@@ -509,7 +764,7 @@ export default function Repartidor() {
               </div>
             )}
 
-            {pedidoEsMio && !pedidoFinalizado && (
+            {esMio && !finalizado && (
               <div
                 style={{
                   background: "#2563eb",
@@ -525,7 +780,7 @@ export default function Repartidor() {
               </div>
             )}
 
-            {pedidoEsDeOtro && !pedidoFinalizado && (
+            {esDeOtro && !finalizado && (
               <div
                 style={{
                   background: "#f59e0b",
@@ -563,7 +818,7 @@ export default function Repartidor() {
               <b>💰 Costo:</b>{" "}
               {p.promocion?.ganador ? (
                 <span style={{ color: "green", fontWeight: "bold" }}>
-                  GRATIS POR PROMOCIÓN
+                  ENVÍO GRATIS POR PROMOCIÓN
                 </span>
               ) : (
                 p.costo || "No especificado"
@@ -590,38 +845,51 @@ export default function Repartidor() {
               </p>
             )}
 
-            <button onClick={() => abrirMapa(p)}>📍 Ver ubicación</button>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                marginTop: 10,
+              }}
+            >
+              <button onClick={() => abrirMapa(p)}>📍 Ver ubicación</button>
 
-            {telefonoCliente && (
-              <button onClick={() => llamarCliente(p)}>📞 Llamar cliente</button>
-            )}
+              <button onClick={() => abrirRuta(p)}>🧭 Ruta</button>
 
-            {!pedidoFinalizado && !pedidoTieneRepartidor && (
-              <button onClick={() => cambiarEstado(p, "aceptado")}>
-                ✔ Aceptar
-              </button>
-            )}
+              {telefonoCliente && (
+                <button onClick={() => llamarCliente(p)}>📞 Llamar cliente</button>
+              )}
 
-            {!pedidoFinalizado && pedidoEsMio && (
-              <>
-                {p.estado !== "en camino" && (
-                  <button onClick={() => cambiarEstado(p, "en camino")}>
-                    🚀 En camino
-                  </button>
-                )}
-
-                <button onClick={() => cambiarEstado(p, "entregado")}>
-                  ✅ Entregado
+              {!finalizado && !pedidoTieneRepartidor && (
+                <button onClick={() => cambiarEstado(p, "aceptado")}>
+                  ✔ Aceptar
                 </button>
-              </>
+              )}
+
+              {!finalizado && esMio && (
+                <>
+                  {estado !== "en camino" && (
+                    <button onClick={() => cambiarEstado(p, "en camino")}>
+                      🚀 En camino
+                    </button>
+                  )}
+
+                  <button onClick={() => cambiarEstado(p, "entregado")}>
+                    ✅ Entregado
+                  </button>
+                </>
+              )}
+            </div>
+
+            {estado === "cancelado" && (
+              <p style={{ color: "red", fontWeight: "bold", marginTop: 10 }}>
+                ❌ Pedido cancelado por cliente
+              </p>
             )}
 
-            {p.estado === "cancelado" && (
-              <p style={{ color: "red" }}>❌ Pedido cancelado por cliente</p>
-            )}
-
-            {p.estado === "entregado" && (
-              <p style={{ color: "green", fontWeight: "bold" }}>
+            {estado === "entregado" && (
+              <p style={{ color: "green", fontWeight: "bold", marginTop: 10 }}>
                 ✅ Pedido entregado
               </p>
             )}
