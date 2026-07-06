@@ -135,6 +135,13 @@ export default function App() {
     faltan: 10
   });
 
+  // 🟢 Servicio disponible si al menos un repartidor está trabajando
+  const [servicio, setServicio] = useState({
+    activo: true,
+    repartidores: [],
+    mensaje: "Servicio disponible."
+  });
+
   // 👤 Cliente con cuenta opcional: teléfono + PIN
   const [cliente, setCliente] = useState(() => {
     try {
@@ -378,6 +385,12 @@ export default function App() {
           setRecompensa(data);
         }
       });
+
+      socketRef.current.emit("obtener-servicio", (data) => {
+        if (data) {
+          setServicio(data);
+        }
+      });
     });
 
     socketRef.current.on("connect_error", (err) => {
@@ -441,6 +454,19 @@ export default function App() {
       if (data) {
         setRecompensa(data);
       }
+    });
+
+    socketRef.current.on("servicio-actualizado", (data) => {
+      if (data) {
+        setServicio(data);
+      }
+    });
+
+    socketRef.current.on("pedido-rechazado", (data) => {
+      mostrarAlerta(
+        data?.mensaje || "Por el momento estamos fuera de servicio. Intenta más tarde.",
+        "Fuera de servicio"
+      );
     });
 
     socketRef.current.on("repartidor-movimiento", (data) => {
@@ -697,6 +723,14 @@ export default function App() {
       return;
     }
 
+    if (!servicio.activo) {
+      mostrarAlerta(
+        "Por el momento estamos fuera de servicio. Intenta más tarde.",
+        "Fuera de servicio"
+      );
+      return;
+    }
+
     const pedidoFinal = notaPedido.trim()
       ? `${pedido}
 
@@ -733,18 +767,30 @@ ${notaPedido.trim()}`
       fecha: new Date().toISOString()
     };
 
-    socketRef.current.emit("nuevo-pedido", pedidoData);
+    socketRef.current
+      .timeout(7000)
+      .emit("nuevo-pedido", pedidoData, (err, respuesta) => {
+        if (err || !respuesta?.ok) {
+          mostrarAlerta(
+            respuesta?.mensaje ||
+              "No se pudo enviar el pedido. Intenta nuevamente.",
+            "Pedido no enviado"
+          );
+          return;
+        }
 
-    setPedidoActual(pedidoData);
-    localStorage.setItem("pedidoActual", JSON.stringify(pedidoData));
+        const pedidoGuardado = respuesta.pedido || pedidoData;
 
-    setResultadoPromo(null);
-    setSorteando(false);
-    setOcultarPromoInicio(false);
+        setPedidoActual(pedidoGuardado);
+        localStorage.setItem("pedidoActual", JSON.stringify(pedidoGuardado));
 
-    const numero = "529621816603";
+        setResultadoPromo(null);
+        setSorteando(false);
+        setOcultarPromoInicio(false);
 
-    const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
+        const numero = "529621816603";
+
+        const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
 
 👤 ${nombre}
 🛒 ${pedidoFinal}
@@ -757,23 +803,24 @@ ${notaPedido.trim()}`
     : "No compartida"
 }`;
 
-    setTimeout(() => {
-      window.open(
-        `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`,
-        "_blank"
-      );
-    }, 200);
+        setTimeout(() => {
+          window.open(
+            `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`,
+            "_blank"
+          );
+        }, 200);
 
-    setNombre("");
-    setPedido("");
-    setNotaPedido("");
-    setUbicacion("");
-    setZona("");
-    setCoords(null);
-    setCarrito([]);
-    setNegocioSeleccionado(null);
+        setNombre("");
+        setPedido("");
+        setNotaPedido("");
+        setUbicacion("");
+        setZona("");
+        setCoords(null);
+        setCarrito([]);
+        setNegocioSeleccionado(null);
 
-    setScreen("home", { reemplazar: true });
+        setScreen("home", { reemplazar: true });
+      });
   };
 
   // 🍀 PROBAR SUERTE
@@ -1675,6 +1722,25 @@ ${notaPedido.trim()}`
               </button>
             )}
           </div>
+
+          {!servicio.activo && (
+            <div
+              style={{
+                marginTop: 10,
+                padding: 12,
+                background: "#fee2e2",
+                border: "1px solid #ef4444",
+                borderRadius: 12,
+                color: "#991b1b",
+                fontWeight: "bold",
+                textAlign: "center"
+              }}
+            >
+              ⏰ Por el momento estamos fuera de servicio.
+              <br />
+              Intenta más tarde.
+            </div>
+          )}
 
           <div
             style={{

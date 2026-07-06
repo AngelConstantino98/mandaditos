@@ -18,6 +18,15 @@ export default function Repartidor() {
   const [pedidos, setPedidos] = useState([]);
   const [pestana, setPestana] = useState("todos");
   const [conectado, setConectado] = useState(false);
+  const disponibleRef = useRef(true);
+
+  const [disponible, setDisponible] = useState(true);
+  const [miFechaCambioServicio, setMiFechaCambioServicio] = useState(null);
+  const [servicioGlobal, setServicioGlobal] = useState({
+    activo: true,
+    repartidores: [],
+  });
+  const [cambiandoServicio, setCambiandoServicio] = useState(false);
   const [sonidoPedidos, setSonidoPedidos] = useState(() => {
     return localStorage.getItem(SONIDO_PEDIDOS_STORAGE_KEY) === "true";
   });
@@ -32,6 +41,10 @@ export default function Repartidor() {
   useEffect(() => {
     repartidorRef.current = repartidor;
   }, [repartidor]);
+
+  useEffect(() => {
+    disponibleRef.current = disponible;
+  }, [disponible]);
 
   const reproducirSonidoPedido = () => {
     try {
@@ -77,6 +90,10 @@ export default function Repartidor() {
   };
 
   const notificarPedidoNuevo = () => {
+    if (!disponibleRef.current) {
+      return;
+    }
+
     if (navigator.vibrate) {
       navigator.vibrate([250, 100, 250]);
     }
@@ -129,6 +146,57 @@ export default function Repartidor() {
     );
   };
 
+  const obtenerTiempoPedido = (pedido) => {
+    const fechaPedido =
+      pedido?.fecha ||
+      pedido?.fechaCreacion ||
+      pedido?.createdAt ||
+      pedido?.fecha_creacion ||
+      null;
+
+    const tiempoPorFecha = fechaPedido ? new Date(fechaPedido).getTime() : NaN;
+
+    if (!Number.isNaN(tiempoPorFecha)) {
+      return tiempoPorFecha;
+    }
+
+    const tiempoPorId = Number(pedido?.id);
+
+    if (Number.isFinite(tiempoPorId)) {
+      return tiempoPorId;
+    }
+
+    return NaN;
+  };
+
+  const pedidoLlegoAntesDeMiSalida = (pedido) => {
+    if (disponible) {
+      return true;
+    }
+
+    const tiempoSalida = miFechaCambioServicio
+      ? new Date(miFechaCambioServicio).getTime()
+      : NaN;
+
+    const tiempoPedido = obtenerTiempoPedido(pedido);
+
+    if (Number.isNaN(tiempoSalida) || Number.isNaN(tiempoPedido)) {
+      return false;
+    }
+
+    return tiempoPedido <= tiempoSalida;
+  };
+
+  const puedoAceptarPedido = (pedido) => {
+    const estado = obtenerEstadoPedido(pedido);
+
+    return (
+      estado === "pendiente" &&
+      !pedido?.repartidorId &&
+      (disponible || pedidoLlegoAntesDeMiSalida(pedido))
+    );
+  };
+
   const obtenerTelefonoPedido = (pedido) => {
     return String(
       pedido?.telefonoCliente ||
@@ -147,6 +215,61 @@ export default function Repartidor() {
     }
 
     window.location.href = `tel:${telefono}`;
+  };
+
+  const actualizarServicioDesdeServidor = (estado) => {
+    if (!estado) return;
+
+    setServicioGlobal(estado);
+
+    const repartidorActivo = obtenerRepartidorActivo();
+
+    if (!repartidorActivo?.id) return;
+
+    const miEstado = estado.repartidores?.find(
+      (item) => String(item.repartidorId) === String(repartidorActivo.id)
+    );
+
+    if (miEstado) {
+      setDisponible(miEstado.disponible !== false);
+      setMiFechaCambioServicio(miEstado.fechaActualizacion || null);
+    }
+  };
+
+  const cambiarDisponibilidad = () => {
+    const repartidorActivo = obtenerRepartidorActivo();
+
+    if (!repartidorActivo?.id) {
+      alert("Primero inicia sesión como repartidor.");
+      return;
+    }
+
+    const nuevoEstado = !disponible;
+
+    setCambiandoServicio(true);
+
+    socketRef.current
+      ?.timeout(7000)
+      .emit(
+        "repartidor-servicio",
+        {
+          repartidorId: repartidorActivo.id,
+          disponible: nuevoEstado,
+        },
+        (err, respuesta) => {
+          setCambiandoServicio(false);
+
+          if (err || !respuesta?.ok) {
+            alert(
+              respuesta?.mensaje ||
+                "No se pudo actualizar tu estado de servicio."
+            );
+            return;
+          }
+
+          actualizarServicioDesdeServidor(respuesta.estado);
+        }
+      );
   };
 
   const iniciarSesionRepartidor = async (e) => {
@@ -186,6 +309,11 @@ export default function Repartidor() {
 
       repartidorRef.current = data.repartidor;
       setRepartidor(data.repartidor);
+
+      socketRef.current?.emit("obtener-servicio", (estado) => {
+        actualizarServicioDesdeServidor(estado);
+      });
+
       setUsuarioRepartidor("");
       setPinRepartidor("");
       setPestana("todos");
@@ -302,6 +430,10 @@ export default function Repartidor() {
 
       socketRef.current.emit("repartidor-conectar");
 
+      socketRef.current.emit("obtener-servicio", (estado) => {
+        actualizarServicioDesdeServidor(estado);
+      });
+
       // ✅ Si el GPS estaba activo antes de recargar, se vuelve a iniciar solo
       const gpsGuardado = localStorage.getItem(GPS_STORAGE_KEY);
 
@@ -359,6 +491,10 @@ export default function Repartidor() {
       console.log("🔄 actualización:", pedidoActualizado);
     });
 
+    socketRef.current.on("servicio-actualizado", (estado) => {
+      actualizarServicioDesdeServidor(estado);
+    });
+
     socketRef.current.on("error-repartidor", (data) => {
       if (data?.mensaje) {
         alert(data.mensaje);
@@ -396,6 +532,13 @@ export default function Repartidor() {
     const pedidoEsDeOtroRepartidor =
       pedidoTieneRepartidor &&
       String(pedido.repartidorId) !== String(repartidorActivo.id);
+
+    if (estado === "aceptado" && !disponible && !pedidoLlegoAntesDeMiSalida(pedido)) {
+      alert(
+        "Estás fuera de servicio. Solo puedes aceptar pedidos que llegaron antes de que terminaras tu jornada."
+      );
+      return;
+    }
 
     if (estado === "aceptado" && pedidoEsDeOtroRepartidor) {
       alert(
@@ -459,14 +602,7 @@ export default function Repartidor() {
     }
   };
 
-  const pedidosNuevos = pedidos.filter((p) => {
-    const estado = obtenerEstadoPedido(p);
-
-    return (
-      estado === "pendiente" &&
-      !p.repartidorId
-    );
-  });
+  const pedidosNuevos = pedidos.filter((p) => puedoAceptarPedido(p));
 
   const pedidosMios = pedidos.filter((p) => {
     const estado = obtenerEstadoPedido(p);
@@ -766,6 +902,38 @@ export default function Repartidor() {
           {conectado ? "🟢 Conectado al servidor" : "🔴 Sin conexión"}
         </p>
 
+        <p
+          style={{
+            margin: "6px 0 0",
+            fontWeight: "bold",
+            color: disponible ? "#16a34a" : "#dc2626",
+          }}
+        >
+          {disponible ? "🟢 En servicio" : "🔴 Fuera de servicio"}
+        </p>
+
+        <button
+          onClick={cambiarDisponibilidad}
+          disabled={cambiandoServicio || !conectado}
+          style={{
+            marginTop: 8,
+            marginRight: 8,
+            padding: "7px 10px",
+            borderRadius: 8,
+            border: "none",
+            background: disponible ? "#dc2626" : "#16a34a",
+            color: "white",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          {cambiandoServicio
+            ? "Actualizando..."
+            : disponible
+              ? "🔴 Ponerme fuera de servicio"
+              : "🟢 Volver a servicio"}
+        </button>
+
         <button
           onClick={cerrarSesionRepartidor}
           style={{
@@ -780,6 +948,40 @@ export default function Repartidor() {
           Cerrar sesión
         </button>
       </div>
+
+      {!servicioGlobal.activo && (
+        <div
+          style={{
+            background: "#fee2e2",
+            color: "#991b1b",
+            border: "1px solid #ef4444",
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 12,
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          ⏰ Todos están fuera de servicio. Los clientes ya no pueden enviar pedidos nuevos.
+        </div>
+      )}
+
+      {!disponible && (
+        <div
+          style={{
+            background: "#fff7ed",
+            color: "#9a3412",
+            border: "1px solid #fb923c",
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 12,
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          🔴 Estás fuera de servicio. Puedes terminar tus pedidos activos y aceptar pedidos que ya habían llegado antes de salir. No puedes aceptar pedidos nuevos que lleguen después.
+        </div>
+      )}
 
       <div
         style={{
@@ -1113,11 +1315,27 @@ export default function Repartidor() {
                 <button onClick={() => llamarCliente(p)}>📞 Llamar cliente</button>
               )}
 
-              {!finalizado && !pedidoTieneRepartidor && (
+              {!finalizado && !pedidoTieneRepartidor && puedoAceptarPedido(p) && (
                 <button onClick={() => cambiarEstado(p, "aceptado")}>
                   ✔ Aceptar
                 </button>
               )}
+
+              {!finalizado &&
+                !pedidoTieneRepartidor &&
+                !puedoAceptarPedido(p) &&
+                !disponible && (
+                  <p
+                    style={{
+                      width: "100%",
+                      color: "#9a3412",
+                      fontWeight: "bold",
+                      marginTop: 6,
+                    }}
+                  >
+                    🔴 Este pedido llegó después de que te pusiste fuera de servicio.
+                  </p>
+                )}
 
               {!finalizado && esMio && (
                 <>
