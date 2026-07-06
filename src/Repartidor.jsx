@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:3001";
+const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 // Para subir en línea, usa este y comenta el local:
 // const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
