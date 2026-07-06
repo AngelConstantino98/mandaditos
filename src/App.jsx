@@ -21,6 +21,7 @@ Gracias por participar.
 
 export default function App() {
   const socketRef = useRef(null);
+  const pedidoActualRef = useRef(null);
 
   const [screen, setScreen] = useState("splash");
 
@@ -264,6 +265,11 @@ export default function App() {
     };
   }, [dueno]);
 
+  // 📦 Mantener referencia actual del pedido para filtrar GPS del repartidor correcto
+  useEffect(() => {
+    pedidoActualRef.current = pedidoActual;
+  }, [pedidoActual]);
+
   // SOCKET
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
@@ -288,6 +294,12 @@ export default function App() {
       if (data.clienteId !== clienteId) return;
 
       setPedidoActual(data);
+
+      const estadoPedido = String(data.estado || "").toLowerCase();
+
+      if (estadoPedido === "cancelado" || estadoPedido === "entregado") {
+        setRepartidor(null);
+      }
 
       setPedidos((prev) => {
         const existe = prev.find((p) => p.id === data.id);
@@ -337,7 +349,30 @@ export default function App() {
       }
     });
 
-    socketRef.current.on("repartidor-movimiento", setRepartidor);
+    socketRef.current.on("repartidor-movimiento", (data) => {
+      const pedidoVigente = pedidoActualRef.current;
+
+      if (!pedidoVigente?.id) {
+        return;
+      }
+
+      const estadoPedido = String(pedidoVigente.estado || "").toLowerCase();
+
+      if (estadoPedido === "cancelado" || estadoPedido === "entregado") {
+        setRepartidor(null);
+        return;
+      }
+
+      if (!pedidoVigente.repartidorId || !data?.repartidorId) {
+        return;
+      }
+
+      if (String(pedidoVigente.repartidorId) !== String(data.repartidorId)) {
+        return;
+      }
+
+      setRepartidor(data);
+    });
 
     socketRef.current.on("pedidos-iniciales", (data) => {
       const filtrados = data.filter((p) => p.clienteId === clienteId);
@@ -599,6 +634,8 @@ ${notaPedido.trim()}`
       costo,
       gps: ubicacionGPS,
       estado: "pendiente",
+      repartidorId: "",
+      repartidorNombre: "",
       fecha: new Date().toISOString()
     };
 
@@ -1621,8 +1658,14 @@ ${notaPedido.trim()}`
           {pedidoActual && (
             <div style={{ marginTop: 10, padding: 10, background: "#eee", borderRadius: 10 }}>
               <p>👤 {pedidoActual.nombre}</p>
-              <p>🛒 {pedidoActual.pedido}</p>
+              <p style={{ whiteSpace: "pre-line" }}>🛒 {pedidoActual.pedido}</p>
               <p>📦 {pedidoActual.estado}</p>
+
+              {pedidoActual.repartidorNombre && (
+                <p style={{ color: "#2563eb", fontWeight: "bold" }}>
+                  🛵 Repartidor asignado: {pedidoActual.repartidorNombre}
+                </p>
+              )}
 
               {!pedidoActual.promocion?.participo &&
                 pedidoActual.estado !== "cancelado" &&

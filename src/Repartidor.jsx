@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = "https://mandaditos-backend.onrender.com";
-// Para subir en línea, usa este y comenta el local:
-// const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+// Para trabajar local, usa este y comenta el de producción:
+// const SOCKET_URL = "http://localhost:3001";
 
 const GPS_STORAGE_KEY = "gpsRepartidorActivo";
 const REPARTIDOR_STORAGE_KEY = "repartidorActivo";
@@ -11,6 +11,7 @@ const REPARTIDOR_STORAGE_KEY = "repartidorActivo";
 export default function Repartidor() {
   const socketRef = useRef(null);
   const watchId = useRef(null);
+  const repartidorRef = useRef(null);
 
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
@@ -20,6 +21,23 @@ export default function Repartidor() {
   const [pinRepartidor, setPinRepartidor] = useState("");
   const [cargandoLogin, setCargandoLogin] = useState(false);
   const [errorLogin, setErrorLogin] = useState("");
+
+  useEffect(() => {
+    repartidorRef.current = repartidor;
+  }, [repartidor]);
+
+  const obtenerRepartidorActivo = () => {
+    if (repartidorRef.current) {
+      return repartidorRef.current;
+    }
+
+    try {
+      const guardado = localStorage.getItem(REPARTIDOR_STORAGE_KEY);
+      return guardado ? JSON.parse(guardado) : null;
+    } catch {
+      return null;
+    }
+  };
 
   const obtenerTelefonoPedido = (pedido) => {
     return String(
@@ -76,6 +94,7 @@ export default function Repartidor() {
         JSON.stringify(data.repartidor)
       );
 
+      repartidorRef.current = data.repartidor;
       setRepartidor(data.repartidor);
       setUsuarioRepartidor("");
       setPinRepartidor("");
@@ -90,6 +109,7 @@ export default function Repartidor() {
   const cerrarSesionRepartidor = () => {
     detenerGPS();
     localStorage.removeItem(REPARTIDOR_STORAGE_KEY);
+    repartidorRef.current = null;
     setRepartidor(null);
     setUsuarioRepartidor("");
     setPinRepartidor("");
@@ -98,6 +118,13 @@ export default function Repartidor() {
 
   // 🟢 GPS
   const iniciarGPS = () => {
+    const repartidorActivo = obtenerRepartidorActivo();
+
+    if (!repartidorActivo?.id) {
+      alert("Primero inicia sesión como repartidor.");
+      return;
+    }
+
     if (!navigator.geolocation) {
       alert("Tu dispositivo no soporta GPS");
       return;
@@ -115,11 +142,19 @@ export default function Repartidor() {
 
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
+        const repartidorGPS = obtenerRepartidorActivo();
+
+        if (!repartidorGPS?.id) {
+          return;
+        }
+
         const data = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
           fecha: new Date().toISOString(),
+          repartidorId: repartidorGPS.id,
+          repartidorNombre: repartidorGPS.nombre,
         };
 
         console.log(
@@ -159,7 +194,9 @@ export default function Repartidor() {
 
     if (repartidorGuardado) {
       try {
-        setRepartidor(JSON.parse(repartidorGuardado));
+        const repartidorParseado = JSON.parse(repartidorGuardado);
+        repartidorRef.current = repartidorParseado;
+        setRepartidor(repartidorParseado);
       } catch {
         localStorage.removeItem(REPARTIDOR_STORAGE_KEY);
       }
@@ -227,6 +264,12 @@ export default function Repartidor() {
       console.log("🔄 actualización:", pedidoActualizado);
     });
 
+    socketRef.current.on("error-repartidor", (data) => {
+      if (data?.mensaje) {
+        alert(data.mensaje);
+      }
+    });
+
     return () => {
       if (watchId.current !== null) {
         navigator.geolocation.clearWatch(watchId.current);
@@ -239,16 +282,44 @@ export default function Repartidor() {
 
   // 📦 cambiar estado
   const cambiarEstado = (pedido, estado) => {
-    if (!repartidor) {
+    const repartidorActivo = obtenerRepartidorActivo();
+
+    if (!repartidorActivo) {
       alert("Primero inicia sesión como repartidor.");
       return;
+    }
+
+    const pedidoTieneRepartidor = Boolean(pedido.repartidorId);
+    const pedidoEsDeOtro =
+      pedidoTieneRepartidor &&
+      String(pedido.repartidorId) !== String(repartidorActivo.id);
+
+    if (estado === "aceptado" && pedidoEsDeOtro) {
+      alert(
+        `Este pedido ya fue aceptado por ${pedido.repartidorNombre || "otro repartidor"}.`
+      );
+      return;
+    }
+
+    if (["en camino", "entregado"].includes(estado)) {
+      if (!pedidoTieneRepartidor) {
+        alert("Primero debes aceptar el pedido.");
+        return;
+      }
+
+      if (pedidoEsDeOtro) {
+        alert(
+          `Solo ${pedido.repartidorNombre || "el repartidor asignado"} puede actualizar este pedido.`
+        );
+        return;
+      }
     }
 
     socketRef.current.emit("cambiar-estado", {
       ...pedido,
       estado,
-      repartidorId: repartidor.id,
-      repartidorNombre: repartidor.nombre,
+      repartidorId: repartidorActivo.id,
+      repartidorNombre: repartidorActivo.nombre,
     });
   };
 
@@ -353,7 +424,7 @@ export default function Repartidor() {
 
       {activo && (
         <p style={{ color: "green", fontWeight: "bold" }}>
-          🛰️ GPS activo. Tu ubicación se está compartiendo.
+          🛰️ GPS activo. Tu ubicación se comparte solo con tus pedidos asignados.
         </p>
       )}
 
@@ -365,6 +436,15 @@ export default function Repartidor() {
 
       {pedidos.map((p) => {
         const telefonoCliente = obtenerTelefonoPedido(p);
+        const pedidoTieneRepartidor = Boolean(p.repartidorId);
+        const pedidoEsMio =
+          pedidoTieneRepartidor &&
+          String(p.repartidorId) === String(repartidor.id);
+        const pedidoEsDeOtro =
+          pedidoTieneRepartidor &&
+          String(p.repartidorId) !== String(repartidor.id);
+        const pedidoFinalizado =
+          p.estado === "cancelado" || p.estado === "entregado";
 
         return (
           <div
@@ -372,12 +452,22 @@ export default function Repartidor() {
             style={{
               border: p.promocion?.ganador
                 ? "3px solid #10b981"
-                : "1px solid #ccc",
+                : pedidoEsMio
+                  ? "3px solid #2563eb"
+                  : pedidoEsDeOtro
+                    ? "2px solid #f59e0b"
+                    : "1px solid #ccc",
               padding: 10,
               marginBottom: 10,
               borderRadius: 10,
               opacity: p.estado === "cancelado" ? 0.5 : 1,
-              background: p.promocion?.ganador ? "#ecfdf5" : "#fff",
+              background: p.promocion?.ganador
+                ? "#ecfdf5"
+                : pedidoEsMio
+                  ? "#eff6ff"
+                  : pedidoEsDeOtro
+                    ? "#fffbeb"
+                    : "#fff",
             }}
           >
             {p.promocion?.ganador && (
@@ -416,6 +506,38 @@ export default function Repartidor() {
                 🎁 CUPÓN DE RECOMPENSA
                 <br />
                 Descontar $20 del envío
+              </div>
+            )}
+
+            {pedidoEsMio && !pedidoFinalizado && (
+              <div
+                style={{
+                  background: "#2563eb",
+                  color: "white",
+                  padding: "10px",
+                  borderRadius: "10px",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  marginBottom: "10px",
+                }}
+              >
+                🛵 Este pedido está asignado a ti
+              </div>
+            )}
+
+            {pedidoEsDeOtro && !pedidoFinalizado && (
+              <div
+                style={{
+                  background: "#f59e0b",
+                  color: "white",
+                  padding: "10px",
+                  borderRadius: "10px",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  marginBottom: "10px",
+                }}
+              >
+                🔒 Pedido tomado por {p.repartidorNombre || "otro repartidor"}
               </div>
             )}
 
@@ -474,15 +596,19 @@ export default function Repartidor() {
               <button onClick={() => llamarCliente(p)}>📞 Llamar cliente</button>
             )}
 
-            {p.estado !== "cancelado" && (
-              <>
-                <button onClick={() => cambiarEstado(p, "aceptado")}>
-                  ✔ Aceptar
-                </button>
+            {!pedidoFinalizado && !pedidoTieneRepartidor && (
+              <button onClick={() => cambiarEstado(p, "aceptado")}>
+                ✔ Aceptar
+              </button>
+            )}
 
-                <button onClick={() => cambiarEstado(p, "en camino")}>
-                  🚀 En camino
-                </button>
+            {!pedidoFinalizado && pedidoEsMio && (
+              <>
+                {p.estado !== "en camino" && (
+                  <button onClick={() => cambiarEstado(p, "en camino")}>
+                    🚀 En camino
+                  </button>
+                )}
 
                 <button onClick={() => cambiarEstado(p, "entregado")}>
                   ✅ Entregado
@@ -492,6 +618,12 @@ export default function Repartidor() {
 
             {p.estado === "cancelado" && (
               <p style={{ color: "red" }}>❌ Pedido cancelado por cliente</p>
+            )}
+
+            {p.estado === "entregado" && (
+              <p style={{ color: "green", fontWeight: "bold" }}>
+                ✅ Pedido entregado
+              </p>
             )}
           </div>
         );
