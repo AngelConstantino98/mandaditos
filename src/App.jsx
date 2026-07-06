@@ -5,7 +5,7 @@ import Mapa from "./Mapa";
 import negocios from "./negocios";
 import "./App.css";
 
-const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+const SOCKET_URL = "http://localhost:3001";
 // Para producción después usaremos:
 // const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 

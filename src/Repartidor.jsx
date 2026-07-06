@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "https://mandaditos-backend.onrender.com";
+const SOCKET_URL = "http://localhost:3001";
+// Para subir en línea, usa este y comenta el local:
+// const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
 const GPS_STORAGE_KEY = "gpsRepartidorActivo";
+const REPARTIDOR_STORAGE_KEY = "repartidorActivo";
 
 export default function Repartidor() {
   const socketRef = useRef(null);
@@ -11,6 +14,12 @@ export default function Repartidor() {
 
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
+
+  const [repartidor, setRepartidor] = useState(null);
+  const [usuarioRepartidor, setUsuarioRepartidor] = useState("");
+  const [pinRepartidor, setPinRepartidor] = useState("");
+  const [cargandoLogin, setCargandoLogin] = useState(false);
+  const [errorLogin, setErrorLogin] = useState("");
 
   const obtenerTelefonoPedido = (pedido) => {
     return String(
@@ -30,6 +39,61 @@ export default function Repartidor() {
     }
 
     window.location.href = `tel:${telefono}`;
+  };
+
+  const iniciarSesionRepartidor = async (e) => {
+    e.preventDefault();
+
+    if (!usuarioRepartidor.trim() || !pinRepartidor.trim()) {
+      setErrorLogin("Escribe usuario y PIN.");
+      return;
+    }
+
+    try {
+      setCargandoLogin(true);
+      setErrorLogin("");
+
+      const respuesta = await fetch(`${SOCKET_URL}/repartidor/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          usuario: usuarioRepartidor,
+          pin: pinRepartidor,
+        }),
+      });
+
+      const data = await respuesta.json();
+
+      if (!respuesta.ok || !data.ok) {
+        setErrorLogin(data.mensaje || "No se pudo iniciar sesión.");
+        return;
+      }
+
+      localStorage.setItem(
+        REPARTIDOR_STORAGE_KEY,
+        JSON.stringify(data.repartidor)
+      );
+
+      setRepartidor(data.repartidor);
+      setUsuarioRepartidor("");
+      setPinRepartidor("");
+    } catch (error) {
+      console.log("Error login repartidor:", error);
+      setErrorLogin("No se pudo conectar con el servidor.");
+    } finally {
+      setCargandoLogin(false);
+    }
+  };
+
+  const cerrarSesionRepartidor = () => {
+    detenerGPS();
+    localStorage.removeItem(REPARTIDOR_STORAGE_KEY);
+    setRepartidor(null);
+    setUsuarioRepartidor("");
+    setPinRepartidor("");
+    setErrorLogin("");
   };
 
   // 🟢 GPS
@@ -91,6 +155,16 @@ export default function Repartidor() {
   };
 
   useEffect(() => {
+    const repartidorGuardado = localStorage.getItem(REPARTIDOR_STORAGE_KEY);
+
+    if (repartidorGuardado) {
+      try {
+        setRepartidor(JSON.parse(repartidorGuardado));
+      } catch {
+        localStorage.removeItem(REPARTIDOR_STORAGE_KEY);
+      }
+    }
+
     socketRef.current = io(SOCKET_URL);
 
     socketRef.current.on("connect", () => {
@@ -165,9 +239,16 @@ export default function Repartidor() {
 
   // 📦 cambiar estado
   const cambiarEstado = (pedido, estado) => {
+    if (!repartidor) {
+      alert("Primero inicia sesión como repartidor.");
+      return;
+    }
+
     socketRef.current.emit("cambiar-estado", {
       ...pedido,
       estado,
+      repartidorId: repartidor.id,
+      repartidorNombre: repartidor.nombre,
     });
   };
 
@@ -182,9 +263,87 @@ export default function Repartidor() {
     }
   };
 
+  if (!repartidor) {
+    return (
+      <div className="app-driver">
+        <h1>🏍️ Panel Repartidor</h1>
+
+        <div
+          style={{
+            maxWidth: 420,
+            margin: "30px auto",
+            padding: 20,
+            border: "1px solid #ddd",
+            borderRadius: 12,
+            background: "white",
+          }}
+        >
+          <h2>👤 Iniciar sesión</h2>
+
+          <form onSubmit={iniciarSesionRepartidor}>
+            <input
+              type="text"
+              placeholder="Usuario repartidor"
+              value={usuarioRepartidor}
+              onChange={(e) => setUsuarioRepartidor(e.target.value)}
+              style={{
+                width: "100%",
+                padding: 12,
+                marginBottom: 10,
+                borderRadius: 8,
+                border: "1px solid #ccc",
+              }}
+            />
+
+            <input
+              type="password"
+              inputMode="numeric"
+              placeholder="PIN"
+              value={pinRepartidor}
+              onChange={(e) => setPinRepartidor(e.target.value)}
+              style={{
+                width: "100%",
+                padding: 12,
+                marginBottom: 10,
+                borderRadius: 8,
+                border: "1px solid #ccc",
+              }}
+            />
+
+            {errorLogin && (
+              <p style={{ color: "red", fontWeight: "bold" }}>
+                {errorLogin}
+              </p>
+            )}
+
+            <button type="submit" disabled={cargandoLogin}>
+              {cargandoLogin ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-driver">
       <h1>🏍️ Panel Repartidor</h1>
+
+      <div
+        style={{
+          background: "#eff6ff",
+          border: "1px solid #93c5fd",
+          borderRadius: 10,
+          padding: 10,
+          marginBottom: 12,
+        }}
+      >
+        <p style={{ margin: 0, fontWeight: "bold", color: "#1d4ed8" }}>
+          👤 Repartidor activo: {repartidor.nombre}
+        </p>
+
+        <button onClick={cerrarSesionRepartidor}>Cerrar sesión</button>
+      </div>
 
       {!activo ? (
         <button onClick={iniciarGPS}>▶️ Iniciar GPS</button>
@@ -292,6 +451,12 @@ export default function Repartidor() {
             <p>
               <b>📦 Estado:</b> {p.estado}
             </p>
+
+            {p.repartidorNombre && (
+              <p>
+                <b>🛵 Atendido por:</b> {p.repartidorNombre}
+              </p>
+            )}
 
             <p>
               <b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}
