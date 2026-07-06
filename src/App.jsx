@@ -1067,32 +1067,23 @@ ${notaPedido.trim()}`
       return;
     }
 
-    const carritoPorNegocio = carrito.reduce((grupos, item) => {
-      const negocio = item.negocioNombre || "Negocio no especificado";
+    const negociosEnCarrito = [
+      ...new Set(carrito.map((item) => item.negocioNombre))
+    ];
 
-      if (!grupos[negocio]) {
-        grupos[negocio] = [];
-      }
+    const textoNegocios =
+      negociosEnCarrito.length === 1
+        ? `Negocio: ${negociosEnCarrito[0]}`
+        : `Negocios:\n${negociosEnCarrito.map((n) => `- ${n}`).join("\n")}`;
 
-      grupos[negocio].push(item);
-
-      return grupos;
-    }, {});
-
-    const detallePorNegocio = Object.entries(carritoPorNegocio)
-      .map(([negocio, productos]) => {
-        const productosTexto = productos
-          .map((item) => {
-            const precioLinea = mostrarPrecioLineaCarrito(item);
-            return `- ${item.cantidad} x ${item.nombre} — ${precioLinea}`;
-          })
-          .join("\n");
-
-        return `🏪 ${negocio}\n${productosTexto}`;
+    const detalleProductos = carrito
+      .map((item) => {
+        const precioLinea = mostrarPrecioLineaCarrito(item);
+        return `- ${item.cantidad} x ${item.nombre} — ${precioLinea}`;
       })
-      .join("\n\n");
+      .join("\n");
 
-    const pedidoArmado = `Pedido de negocios locales:\n\n${detallePorNegocio}\n\nTotal productos: ${textoTotalCarrito}`;
+    const pedidoArmado = `${textoNegocios}\n\nPedido:\n${detalleProductos}\n\nTotal productos: ${textoTotalCarrito}`;
 
     setPedido(pedidoArmado);
     setNotaPedido("");
@@ -1417,11 +1408,11 @@ ${notaPedido.trim()}`
                     marginBottom: 8
                   }}
                 >
-                  🎁 ¡Tienes un envío gratis disponible!
+                  🎁 ¡Tienes un cupón de $20 disponible!
                 </p>
 
                 <p style={{ fontSize: 13, color: "#78350f" }}>
-                  Podrás usarlo en tu próximo pedido. Después de usarlo, tu progreso volverá a 0/10.
+                  Se aplicará automáticamente en tu próximo pedido. Si el envío cuesta $20, tu envío será GRATIS. Si el envío cuesta más, solo pagarás la diferencia. Después de usarlo, tu progreso volverá a 0/10.
                 </p>
               </>
             ) : (
@@ -1453,7 +1444,7 @@ ${notaPedido.trim()}`
                 </div>
 
                 <p style={{ fontSize: 13, color: "#555" }}>
-                  Te faltan <strong>{recompensa.faltan}</strong> pedidos entregados para ganar un envío gratis.
+                  Te faltan <strong>{recompensa.faltan}</strong> pedidos entregados para ganar un cupón de $20.
                 </p>
               </>
             )}
