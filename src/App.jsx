@@ -41,6 +41,31 @@ export default function App() {
     setAlertaApp(null);
   };
 
+  const actualizarEstadoNegociosApp = (estado) => {
+    const mapa = {};
+
+    estado?.negocios?.forEach((item) => {
+      if (!item?.negocioId) return;
+      mapa[item.negocioId] = item;
+    });
+
+    setNegociosEstado(mapa);
+  };
+
+  const negocioEstaAbierto = (negocioId) => {
+    return negociosEstado[negocioId]?.abierto !== false;
+  };
+
+  const obtenerEstadoNegocio = (negocio) => {
+    return (
+      negociosEstado[negocio.id] || {
+        negocioId: negocio.id,
+        negocioNombre: negocio.nombre,
+        abierto: true,
+      }
+    );
+  };
+
   // 📱 Navegación interna para que el botón "atrás" del teléfono funcione dentro de la app.
   const setScreen = (nuevaPantalla, opciones = {}) => {
     const pantallaFinal =
@@ -141,6 +166,12 @@ export default function App() {
     repartidores: [],
     mensaje: "Servicio disponible."
   });
+
+  // 🏪 Negocios abiertos/cerrados desde el panel dueño
+  const [negociosEstado, setNegociosEstado] = useState({});
+  const [duenoNegociosCargando, setDuenoNegociosCargando] = useState(false);
+  const [duenoNegociosMensaje, setDuenoNegociosMensaje] = useState("");
+  const [negociosPedidoActual, setNegociosPedidoActual] = useState([]);
 
   // 👤 Cliente con cuenta opcional: teléfono + PIN
   const [cliente, setCliente] = useState(() => {
@@ -391,6 +422,12 @@ export default function App() {
           setServicio(data);
         }
       });
+
+      socketRef.current.emit("obtener-negocios-estado", (data) => {
+        if (data) {
+          actualizarEstadoNegociosApp(data);
+        }
+      });
     });
 
     socketRef.current.on("connect_error", (err) => {
@@ -462,10 +499,16 @@ export default function App() {
       }
     });
 
+    socketRef.current.on("negocios-actualizados", (data) => {
+      if (data) {
+        actualizarEstadoNegociosApp(data);
+      }
+    });
+
     socketRef.current.on("pedido-rechazado", (data) => {
       mostrarAlerta(
         data?.mensaje || "Por el momento estamos fuera de servicio. Intenta más tarde.",
-        "Fuera de servicio"
+        data?.negocioId ? "Negocio cerrado" : "Fuera de servicio"
       );
     });
 
@@ -658,6 +701,7 @@ export default function App() {
       setScreen("dueno-panel", { reemplazar: true });
 
       cargarResumenDueno(duenoActivo, duenoFecha);
+      cargarEstadoNegociosDueno(duenoActivo);
     } catch (error) {
       console.log("Error login dueño:", error);
       setDuenoMensaje("No se pudo conectar con el servidor.");
@@ -705,6 +749,82 @@ export default function App() {
     }
   };
 
+  // 👑 Cargar estado de negocios para abrir/cerrar desde panel dueño
+  const cargarEstadoNegociosDueno = async (duenoActivo = dueno) => {
+    try {
+      if (!duenoActivo?.usuario || !duenoActivo?.pin) return;
+
+      const res = await fetch(`${SOCKET_URL}/dueno/estado-negocios`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario: duenoActivo.usuario,
+          pin: duenoActivo.pin
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setDuenoNegociosMensaje(data.mensaje || "No se pudo cargar negocios.");
+        return;
+      }
+
+      actualizarEstadoNegociosApp(data.estado);
+    } catch (error) {
+      console.log("Error cargando estado negocios:", error);
+      setDuenoNegociosMensaje("No se pudo conectar con el servidor.");
+    }
+  };
+
+  const cambiarEstadoNegocioDueno = async (negocio, abierto) => {
+    try {
+      if (!dueno?.usuario || !dueno?.pin) {
+        setScreen("dueno-login", { reemplazar: true });
+        return;
+      }
+
+      setDuenoNegociosCargando(true);
+      setDuenoNegociosMensaje("");
+
+      const res = await fetch(`${SOCKET_URL}/dueno/cambiar-negocio`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario: dueno.usuario,
+          pin: dueno.pin,
+          negocioId: negocio.id,
+          negocioNombre: negocio.nombre,
+          abierto
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setDuenoNegociosMensaje(data.mensaje || "No se pudo actualizar negocio.");
+        return;
+      }
+
+      actualizarEstadoNegociosApp(data.estado);
+
+      setDuenoNegociosMensaje(
+        abierto
+          ? `${negocio.nombre} está abierto.`
+          : `${negocio.nombre} está cerrado.`
+      );
+    } catch (error) {
+      console.log("Error actualizando negocio:", error);
+      setDuenoNegociosMensaje("No se pudo conectar con el servidor.");
+    } finally {
+      setDuenoNegociosCargando(false);
+    }
+  };
+
   // 👑 Cerrar sesión del dueño
   const cerrarSesionDueno = () => {
     localStorage.removeItem("duenoActivo");
@@ -727,6 +847,20 @@ export default function App() {
       mostrarAlerta(
         "Por el momento estamos fuera de servicio. Intenta más tarde.",
         "Fuera de servicio"
+      );
+      return;
+    }
+
+    const negocioCerradoPedido = negociosPedidoActual.find(
+      (negocioId) => !negocioEstaAbierto(negocioId)
+    );
+
+    if (negocioCerradoPedido) {
+      const negocio = negocios.find((item) => item.id === negocioCerradoPedido);
+
+      mostrarAlerta(
+        `${negocio?.nombre || "Este negocio"} está cerrado por el momento. No se puede enviar este pedido.`,
+        "Negocio cerrado"
       );
       return;
     }
@@ -764,7 +898,8 @@ ${notaPedido.trim()}`
       estado: "pendiente",
       repartidorId: "",
       repartidorNombre: "",
-      fecha: new Date().toISOString()
+      fecha: new Date().toISOString(),
+      negociosIds: negociosPedidoActual
     };
 
     socketRef.current
@@ -818,6 +953,7 @@ ${notaPedido.trim()}`
         setCoords(null);
         setCarrito([]);
         setNegocioSeleccionado(null);
+        setNegociosPedidoActual([]);
 
         setScreen("home", { reemplazar: true });
       });
@@ -1009,6 +1145,14 @@ ${notaPedido.trim()}`
   // 🛒 AGREGAR PRODUCTOS AL CARRITO VISUAL
   const agregarProductoAlCarrito = (producto) => {
     if (!negocioSeleccionado) return;
+
+    if (!negocioEstaAbierto(negocioSeleccionado.id)) {
+      mostrarAlerta(
+        `${negocioSeleccionado.nombre} está cerrado por el momento.`,
+        "Negocio cerrado"
+      );
+      return;
+    }
 
     // Si tiene toppings o jarabes, abrimos ventana especial.
     // Esto se usa para Monsis Fresas.
@@ -1399,6 +1543,16 @@ ${notaPedido.trim()}`
       return;
     }
 
+    const negocioCerrado = carrito.find((item) => !negocioEstaAbierto(item.negocioId));
+
+    if (negocioCerrado) {
+      mostrarAlerta(
+        `${negocioCerrado.negocioNombre || "Este negocio"} está cerrado por el momento. Elimina ese producto del carrito o espera a que abra.`,
+        "Negocio cerrado"
+      );
+      return;
+    }
+
     const carritoPorNegocio = carrito.reduce((grupos, item) => {
       const negocio = item.negocioNombre || "Negocio no especificado";
 
@@ -1427,6 +1581,9 @@ ${notaPedido.trim()}`
     const pedidoArmado = `Pedido de negocios locales:\n\n${detallePorNegocio}\n\nTotal productos: ${textoTotalCarrito}`;
 
     setPedido(pedidoArmado);
+    setNegociosPedidoActual([
+      ...new Set(carrito.map((item) => item.negocioId).filter(Boolean))
+    ]);
     setNotaPedido("");
     setScreen("form");
   };
@@ -1496,6 +1653,10 @@ ${notaPedido.trim()}`
   useEffect(() => {
     if (screen === "dueno-panel" && dueno && !duenoResumen) {
       cargarResumenDueno(dueno, duenoFecha);
+    }
+
+    if (screen === "dueno-panel" && dueno) {
+      cargarEstadoNegociosDueno(dueno);
     }
   }, [screen, dueno?.usuario]);
 
@@ -1971,6 +2132,7 @@ ${notaPedido.trim()}`
                   return;
                 }
 
+                setNegociosPedidoActual([]);
                 setScreen("form");
               }}
               style={{
@@ -2562,6 +2724,96 @@ ${notaPedido.trim()}`
             }}
           >
             <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+              🏪 Abrir / cerrar negocios
+            </h2>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 10 }}>
+              Cuando un negocio esté cerrado, los clientes podrán verlo, pero no podrán hacer pedidos ahí.
+            </p>
+
+            {duenoNegociosMensaje && (
+              <div
+                style={{
+                  marginBottom: 10,
+                  padding: 10,
+                  background: "#f8fafc",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  color: "#334155"
+                }}
+              >
+                {duenoNegociosMensaje}
+              </div>
+            )}
+
+            {negocios.map((negocio) => {
+              const estadoNegocio = obtenerEstadoNegocio(negocio);
+              const abierto = estadoNegocio.abierto !== false;
+
+              return (
+                <div
+                  key={negocio.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    padding: 10,
+                    marginBottom: 8,
+                    borderRadius: 12,
+                    border: abierto ? "1px solid #bbf7d0" : "1px solid #fecaca",
+                    background: abierto ? "#f0fdf4" : "#fff1f2"
+                  }}
+                >
+                  <div>
+                    <strong>
+                      {negocio.emoji} {negocio.nombre}
+                    </strong>
+
+                    <p
+                      style={{
+                        margin: "3px 0 0",
+                        fontSize: 12,
+                        color: abierto ? "#166534" : "#991b1b",
+                        fontWeight: "bold"
+                      }}
+                    >
+                      {abierto ? "🟢 Abierto" : "🔴 Cerrado"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => cambiarEstadoNegocioDueno(negocio, !abierto)}
+                    disabled={duenoNegociosCargando}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 10,
+                      border: "none",
+                      background: abierto ? "#dc2626" : "#16a34a",
+                      color: "white",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      minWidth: 95
+                    }}
+                  >
+                    {abierto ? "Cerrar" : "Abrir"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h2 style={{ fontSize: 18, marginBottom: 8 }}>
               📅 Corte del día
             </h2>
 
@@ -2903,69 +3155,104 @@ ${notaPedido.trim()}`
               Elige un negocio para ver su menú.
             </p>
 
-            {negocios.map((negocio) => (
-  <button
-    key={negocio.id}
-    onClick={() => {
-      setNegocioSeleccionado(negocio);
-      setScreen("menu-negocio");
-    }}
-    style={{
-      width: "100%",
-      padding: 10,
-      marginBottom: 10,
-      borderRadius: 12,
-      border: "1px solid #ddd",
-      background: "#f9fafb",
-      textAlign: "left",
-      cursor: "pointer",
-      display: "flex",
-      gap: 10,
-      alignItems: "center"
-    }}
-  >
-    <div
-      style={{
-        width: 70,
-        height: 70,
-        borderRadius: 12,
-        background: "#f3f4f6",
-        overflow: "hidden",
-        flexShrink: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 28
-      }}
-    >
-      {negocio.imagen ? (
-        <img
-          src={negocio.imagen}
-          alt={negocio.nombre}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover"
-          }}
-        />
-      ) : (
-        negocio.emoji
-      )}
-    </div>
+            {negocios.map((negocio) => {
+              const abierto = negocioEstaAbierto(negocio.id);
 
-    <div>
-      <strong>
-        {negocio.emoji} {negocio.nombre}
-      </strong>
+              return (
+                <button
+                  key={negocio.id}
+                  onClick={() => {
+                    if (!abierto) {
+                      mostrarAlerta(
+                        `${negocio.nombre} está cerrado por el momento. Intenta más tarde.`,
+                        "Negocio cerrado"
+                      );
+                      return;
+                    }
 
-      <br />
+                    setNegocioSeleccionado(negocio);
+                    setScreen("menu-negocio");
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: 10,
+                    marginBottom: 10,
+                    borderRadius: 12,
+                    border: abierto ? "1px solid #ddd" : "1px solid #fca5a5",
+                    background: abierto ? "#f9fafb" : "#fff1f2",
+                    textAlign: "left",
+                    cursor: abierto ? "pointer" : "not-allowed",
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    opacity: abierto ? 1 : 0.75
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 70,
+                      height: 70,
+                      borderRadius: 12,
+                      background: "#f3f4f6",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 28,
+                      filter: abierto ? "none" : "grayscale(1)"
+                    }}
+                  >
+                    {negocio.imagen ? (
+                      <img
+                        src={negocio.imagen}
+                        alt={negocio.nombre}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover"
+                        }}
+                      />
+                    ) : (
+                      negocio.emoji
+                    )}
+                  </div>
 
-      <span style={{ fontSize: 13, color: "#666" }}>
-        {negocio.descripcion}
-      </span>
-    </div>
-  </button>
-))}
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 8
+                      }}
+                    >
+                      <strong>
+                        {negocio.emoji} {negocio.nombre}
+                      </strong>
+
+                      <span
+                        style={{
+                          padding: "4px 8px",
+                          borderRadius: 999,
+                          background: abierto ? "#dcfce7" : "#fee2e2",
+                          color: abierto ? "#166534" : "#991b1b",
+                          fontSize: 11,
+                          fontWeight: 900,
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {abierto ? "Abierto" : "Cerrado"}
+                      </span>
+                    </div>
+
+                    <span style={{ fontSize: 13, color: "#666" }}>
+                      {negocio.descripcion}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
         </div>
@@ -3007,6 +3294,27 @@ ${notaPedido.trim()}`
               {negocioSeleccionado.descripcion}
             </p>
           </div>
+
+          {!negocioEstaAbierto(negocioSeleccionado.id) && (
+            <div
+              style={{
+                marginTop: 10,
+                padding: 12,
+                background: "#fee2e2",
+                borderRadius: 12,
+                border: "1px solid #ef4444",
+                color: "#991b1b",
+                fontWeight: "bold",
+                textAlign: "center"
+              }}
+            >
+              🔴 Este negocio está cerrado por el momento.
+              <br />
+              <span style={{ fontSize: 13 }}>
+                Puedes ver el menú, pero no se pueden enviar pedidos.
+              </span>
+            </div>
+          )}
 
           {carrito.length > 0 && (
             <div
