@@ -7,6 +7,7 @@ const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
 const GPS_STORAGE_KEY = "gpsRepartidorActivo";
 const REPARTIDOR_STORAGE_KEY = "repartidorActivo";
+const SONIDO_PEDIDOS_STORAGE_KEY = "sonidoPedidosActivo";
 
 export default function Repartidor() {
   const socketRef = useRef(null);
@@ -16,6 +17,11 @@ export default function Repartidor() {
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
   const [pestana, setPestana] = useState("todos");
+  const [conectado, setConectado] = useState(false);
+  const [sonidoPedidos, setSonidoPedidos] = useState(() => {
+    return localStorage.getItem(SONIDO_PEDIDOS_STORAGE_KEY) === "true";
+  });
+  const [pedidoParaEntregar, setPedidoParaEntregar] = useState(null);
 
   const [repartidor, setRepartidor] = useState(null);
   const [usuarioRepartidor, setUsuarioRepartidor] = useState("");
@@ -26,6 +32,63 @@ export default function Repartidor() {
   useEffect(() => {
     repartidorRef.current = repartidor;
   }, [repartidor]);
+
+  const reproducirSonidoPedido = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContext) return;
+
+      const audioContext = new AudioContext();
+      const ahora = audioContext.currentTime;
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(880, ahora);
+
+      gain.gain.setValueAtTime(0.001, ahora);
+      gain.gain.exponentialRampToValueAtTime(0.25, ahora + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, ahora + 0.35);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start(ahora);
+      oscillator.stop(ahora + 0.36);
+
+      setTimeout(() => {
+        audioContext.close();
+      }, 600);
+    } catch (error) {
+      console.log("No se pudo reproducir sonido:", error);
+    }
+  };
+
+  const activarSonidoPedidos = () => {
+    localStorage.setItem(SONIDO_PEDIDOS_STORAGE_KEY, "true");
+    setSonidoPedidos(true);
+    reproducirSonidoPedido();
+
+    if (navigator.vibrate) {
+      navigator.vibrate(120);
+    }
+  };
+
+  const notificarPedidoNuevo = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate([250, 100, 250]);
+    }
+
+    const sonidoActivo =
+      sonidoPedidos ||
+      localStorage.getItem(SONIDO_PEDIDOS_STORAGE_KEY) === "true";
+
+    if (sonidoActivo) {
+      reproducirSonidoPedido();
+    }
+  };
 
   const obtenerRepartidorActivo = () => {
     if (repartidorRef.current) {
@@ -235,6 +298,7 @@ export default function Repartidor() {
 
     socketRef.current.on("connect", () => {
       console.log("🟢 Repartidor conectado:", socketRef.current.id);
+      setConectado(true);
 
       socketRef.current.emit("repartidor-conectar");
 
@@ -255,6 +319,8 @@ export default function Repartidor() {
 
     // 📦 NUEVOS PEDIDOS
     socketRef.current.on("nuevo-pedido-repartidor", (nuevoPedido) => {
+      notificarPedidoNuevo();
+
       setPedidos((prev) => {
         const existe = prev.find(
           (p) => String(p.id) === String(nuevoPedido.id)
@@ -297,6 +363,14 @@ export default function Repartidor() {
       if (data?.mensaje) {
         alert(data.mensaje);
       }
+    });
+
+    socketRef.current.on("disconnect", () => {
+      setConectado(false);
+    });
+
+    socketRef.current.on("connect_error", () => {
+      setConectado(false);
     });
 
     return () => {
@@ -561,6 +635,112 @@ export default function Repartidor() {
         minHeight: "100vh",
       }}
     >
+      {pedidoParaEntregar && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.55)",
+            zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 380,
+              background: "white",
+              borderRadius: 18,
+              padding: 18,
+              boxShadow: "0 20px 45px rgba(0,0,0,0.25)",
+              border: "1px solid #e5e7eb",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: "50%",
+                background: "#dcfce7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 10px",
+                fontSize: 28,
+              }}
+            >
+              ✅
+            </div>
+
+            <h2 style={{ fontSize: 20, marginBottom: 8, color: "#111827" }}>
+              Confirmar entrega
+            </h2>
+
+            <p
+              style={{
+                fontSize: 15,
+                color: "#374151",
+                lineHeight: 1.4,
+                marginBottom: 16,
+              }}
+            >
+              ¿Seguro que quieres marcar este pedido como entregado?
+            </p>
+
+            <p
+              style={{
+                fontSize: 14,
+                color: "#6b7280",
+                marginBottom: 16,
+              }}
+            >
+              Cliente: <strong>{pedidoParaEntregar.nombre}</strong>
+            </p>
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setPedidoParaEntregar(null)}
+                style={{
+                  flex: 1,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#e5e7eb",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                }}
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => {
+                  const pedidoConfirmado = pedidoParaEntregar;
+                  setPedidoParaEntregar(null);
+                  cambiarEstado(pedidoConfirmado, "entregado");
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#16a34a",
+                  color: "white",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                }}
+              >
+                Sí, entregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 style={{ marginBottom: 10 }}>🏍️ Panel Repartidor</h1>
 
       <div
@@ -574,6 +754,16 @@ export default function Repartidor() {
       >
         <p style={{ margin: 0, fontWeight: "bold", color: "#1d4ed8" }}>
           👤 Repartidor activo: {repartidor.nombre}
+        </p>
+
+        <p
+          style={{
+            margin: "6px 0 0",
+            fontWeight: "bold",
+            color: conectado ? "#16a34a" : "#dc2626",
+          }}
+        >
+          {conectado ? "🟢 Conectado al servidor" : "🔴 Sin conexión"}
         </p>
 
         <button
@@ -637,6 +827,44 @@ export default function Repartidor() {
             🛰️ GPS activo. Tu ubicación se comparte solo con tus pedidos asignados.
           </p>
         )}
+
+        <div
+          style={{
+            marginTop: 10,
+            paddingTop: 10,
+            borderTop: "1px solid #e5e7eb",
+          }}
+        >
+          <p
+            style={{
+              margin: "0 0 8px",
+              fontSize: 14,
+              color: sonidoPedidos ? "#166534" : "#6b7280",
+              fontWeight: "bold",
+            }}
+          >
+            {sonidoPedidos
+              ? "🔔 Sonido de pedidos activo"
+              : "🔕 Sonido de pedidos apagado"}
+          </p>
+
+          {!sonidoPedidos && (
+            <button
+              onClick={activarSonidoPedidos}
+              style={{
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "none",
+                background: "#f59e0b",
+                color: "white",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              🔔 Activar sonido
+            </button>
+          )}
+        </div>
       </div>
 
       <div
@@ -899,7 +1127,7 @@ export default function Repartidor() {
                     </button>
                   )}
 
-                  <button onClick={() => cambiarEstado(p, "entregado")}>
+                  <button onClick={() => setPedidoParaEntregar(p)}>
                     ✅ Entregado
                   </button>
                 </>
