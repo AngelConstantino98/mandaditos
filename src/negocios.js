@@ -1196,7 +1196,7 @@ const negocios = [
 
   {
     id: "pasteleria-oscarin",
-    nombre: "Pastelería Oscarín",
+    nombre: "oscarin pasteleria",
     emoji: "🎂",
     descripcion: "Pasteles tres leches y tradicionales de 15 a 20 porciones",
     imagen: "/negocios/pasteleria-oscarin.jpg",
