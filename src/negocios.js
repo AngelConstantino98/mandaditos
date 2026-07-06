@@ -1192,7 +1192,7 @@ const negocios = [
       },
     ],
   },
-,
+
 
   {
     id: "pasteleria-oscarin",
