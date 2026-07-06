@@ -1192,6 +1192,105 @@ const negocios = [
       },
     ],
   },
+,
+
+  {
+    id: "pasteleria-oscarin",
+    nombre: "Pastelería Oscarín",
+    emoji: "🎂",
+    descripcion: "Pasteles tres leches y tradicionales de 15 a 20 porciones",
+    imagen: "/negocios/pasteleria-oscarin.jpg",
+    productos: [
+      {
+        id: "pastel-vainilla-oscarin",
+        nombre: "Pastel tradicional vainilla",
+        precio: 300,
+        descripcion:
+          "Pastel tradicional de vainilla, relleno de crema batida. Porciones: 15/20. Presentación única. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-vainilla.jpg",
+      },
+      {
+        id: "pastel-manjar-oscarin",
+        nombre: "Manjar",
+        precio: 350,
+        descripcion:
+          "Pastel base de vainilla, relleno de crema tipo manjar sabor vainilla y canela. Porciones: 15/20. Presentación única. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-manjar.jpg",
+      },
+      {
+        id: "pastel-capuchino-oscarin",
+        nombre: "Capuchino",
+        precio: 300,
+        descripcion:
+          "Pastel tres leches con sabor a café capuchino, relleno de su misma crema. Porciones: 15/20. Presentación única. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-capuchino.jpg",
+      },
+      {
+        id: "pastel-moka-oscarin",
+        nombre: "Moka",
+        precio: 300,
+        descripcion:
+          "Pastel tres leches con sabor moka tradicional, relleno de su misma crema. Porciones: 15/20. Presentación única. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-moka.jpg",
+      },
+      {
+        id: "pastel-oreo-oscarin",
+        nombre: "Oreo",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches sabor galleta de chocolate, relleno de galleta Oreo triturada. Porciones: 15/20. Presentación variada. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-oreo.jpg",
+      },
+      {
+        id: "pastel-nuez-oscarin",
+        nombre: "Nuez",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches relleno de crema de nuez triturada. Porciones: 15/20. Presentación variada. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-nuez.jpg",
+      },
+      {
+        id: "pastel-coco-oscarin",
+        nombre: "Coco",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches sabor coco, relleno de crema de coco y glaseado con coco rallado. Porciones: 15/20. Presentación única. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-coco.jpg",
+      },
+      {
+        id: "pastel-chocolate-oscarin",
+        nombre: "Chocolate",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches de vainilla, relleno de crema de chocolate semiamargo. Porciones: 15/20. Presentación variada. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-chocolate.jpg",
+      },
+      {
+        id: "pastel-malvavisco-oscarin",
+        nombre: "Malvavisco",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches relleno con una explosión de malvavisco en el centro. Porciones: 15/20. Presentación única. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-malvavisco.jpg",
+      },
+      {
+        id: "pastel-fiesta-oscarin",
+        nombre: "Fiesta",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches relleno de chispas de chocolate, ideal para fiestas. Porciones: 15/20. Presentación variada. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-fiesta.jpg",
+      },
+      {
+        id: "pastel-carajillo-oscarin",
+        nombre: "Carajillo",
+        precio: 350,
+        descripcion:
+          "Pastel tres leches relleno de crema de café con un toque de whisky. Porciones: 15/20. Presentación variada. Mantener frío, no mayor a 6°C.",
+        imagen: "/productos/pasteleria-oscarin-carajillo.jpg",
+      },
+    ],
+  },
 
 ];
 
