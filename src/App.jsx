@@ -27,6 +27,20 @@ export default function App() {
 
   const [screen, setScreenBase] = useState("splash");
 
+  // 💬 Alerta formal dentro de la app para no mostrar el nombre del dominio del navegador.
+  const [alertaApp, setAlertaApp] = useState(null);
+
+  const mostrarAlerta = (mensaje, titulo = "MandaPlus") => {
+    setAlertaApp({
+      titulo,
+      mensaje,
+    });
+  };
+
+  const cerrarAlerta = () => {
+    setAlertaApp(null);
+  };
+
   // 📱 Navegación interna para que el botón "atrás" del teléfono funcione dentro de la app.
   const setScreen = (nuevaPantalla, opciones = {}) => {
     const pantallaFinal =
@@ -299,13 +313,13 @@ export default function App() {
     }
 
     if (isIOS) {
-      alert(
+      mostrarAlerta(
         "Para instalar MandaPlus en iPhone:\n\n1. Abre esta app en Safari\n2. Toca el botón Compartir\n3. Elige 'Agregar a pantalla de inicio'"
       );
       return;
     }
 
-    alert(
+    mostrarAlerta(
       "Para instalar MandaPlus, abre el menú del navegador y elige 'Instalar app' o 'Agregar a pantalla principal'."
     );
   };
@@ -679,7 +693,7 @@ export default function App() {
   // ENVIAR
   const enviar = () => {
     if (!nombre || !pedido || !ubicacion || !zona) {
-      alert("Completa todos los campos");
+      mostrarAlerta("Completa todos los campos");
       return;
     }
 
@@ -765,7 +779,7 @@ ${notaPedido.trim()}`
   // 🍀 PROBAR SUERTE
   const probarSuerte = () => {
     if (!pedidoActual?.id) {
-      alert("Primero realiza un pedido.");
+      mostrarAlerta("Primero realiza un pedido.");
       return;
     }
 
@@ -1079,7 +1093,7 @@ ${notaPedido.trim()}`
       }
 
       if (productoParaGuisos?.maxGuisos && prev.length >= productoParaGuisos.maxGuisos) {
-        alert(`Solo puedes elegir ${productoParaGuisos.maxGuisos} guisos extra.`);
+        mostrarAlerta(`Solo puedes elegir ${productoParaGuisos.maxGuisos} guisos extra.`);
         return prev;
       }
 
@@ -1092,7 +1106,7 @@ ${notaPedido.trim()}`
     if (!productoParaGuisos) return;
 
     if (!productoParaGuisos.permitirSinGuisos && guisosSeleccionados.length === 0) {
-      alert("Elige al menos un guiso.");
+      mostrarAlerta("Elige al menos un guiso.");
       return;
     }
 
@@ -1101,7 +1115,7 @@ ${notaPedido.trim()}`
       guisosSeleccionados.length > 0 &&
       guisosSeleccionados.length !== productoParaGuisos.cantidadExactaGuisosExtra
     ) {
-      alert(
+      mostrarAlerta(
         `Para este producto elige ${productoParaGuisos.cantidadExactaGuisosExtra} guisos extra o ninguno.`
       );
       return;
@@ -1158,7 +1172,7 @@ ${notaPedido.trim()}`
       const maxToppings = Number(productoParaToppings?.maxToppings || 0);
 
       if (maxToppings > 0 && prev.length >= maxToppings) {
-        alert(
+        mostrarAlerta(
           maxToppings === 1
             ? "Solo puedes elegir 1 topping."
             : `Solo puedes elegir ${maxToppings} toppings.`
@@ -1193,7 +1207,7 @@ ${notaPedido.trim()}`
       productoParaToppings.toppings.length > 0 &&
       toppingsSeleccionados.length === 0
     ) {
-      alert(
+      mostrarAlerta(
         maxToppings === 1
           ? "Elige 1 topping."
           : "Elige al menos 1 topping."
@@ -1334,7 +1348,7 @@ ${notaPedido.trim()}`
   // 🛒 CONFIRMAR CARRITO Y PASARLO AL FORMULARIO
   const confirmarCarrito = () => {
     if (carrito.length === 0) {
-      alert("Agrega al menos un producto al carrito.");
+      mostrarAlerta("Agrega al menos un producto al carrito.");
       return;
     }
 
@@ -1442,6 +1456,84 @@ ${notaPedido.trim()}`
 
   return (
     <div className="app">
+
+      {alertaApp && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.55)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 380,
+              background: "white",
+              borderRadius: 18,
+              padding: 18,
+              boxShadow: "0 20px 45px rgba(0,0,0,0.25)",
+              border: "1px solid #e5e7eb",
+              textAlign: "center"
+            }}
+          >
+            <div
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: "50%",
+                background: "#ecfdf5",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 10px",
+                fontSize: 28
+              }}
+            >
+              ⚠️
+            </div>
+
+            <h2
+              style={{
+                fontSize: 20,
+                marginBottom: 8,
+                color: "#111827"
+              }}
+            >
+              {alertaApp.titulo}
+            </h2>
+
+            <p
+              style={{
+                fontSize: 15,
+                color: "#374151",
+                whiteSpace: "pre-line",
+                lineHeight: 1.4,
+                marginBottom: 16
+              }}
+            >
+              {alertaApp.mensaje}
+            </p>
+
+            <button
+              className="btn"
+              onClick={cerrarAlerta}
+              style={{
+                background: "#16a34a",
+                color: "white",
+                marginTop: 0
+              }}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
 
       {screen === "splash" && (
         <div className="splash">
