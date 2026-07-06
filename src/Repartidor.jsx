@@ -12,6 +12,26 @@ export default function Repartidor() {
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
 
+  const obtenerTelefonoPedido = (pedido) => {
+    return String(
+      pedido?.telefonoCliente ||
+        pedido?.telefono ||
+        pedido?.clienteTelefono ||
+        ""
+    ).replace(/\D/g, "");
+  };
+
+  const llamarCliente = (pedido) => {
+    const telefono = obtenerTelefonoPedido(pedido);
+
+    if (!telefono) {
+      alert("Este pedido no tiene teléfono del cliente.");
+      return;
+    }
+
+    window.location.href = `tel:${telefono}`;
+  };
+
   // 🟢 GPS
   const iniciarGPS = () => {
     if (!navigator.geolocation) {
@@ -184,99 +204,133 @@ export default function Repartidor() {
 
       {pedidos.length === 0 && <p>No hay pedidos</p>}
 
-      {pedidos.map((p) => (
-        <div
-          key={p.id}
-          style={{
-            border: p.promocion?.ganador
-              ? "3px solid #10b981"
-              : "1px solid #ccc",
-            padding: 10,
-            marginBottom: 10,
-            borderRadius: 10,
-            opacity: p.estado === "cancelado" ? 0.5 : 1,
-            background: p.promocion?.ganador ? "#ecfdf5" : "#fff",
-          }}
-        >
-          {p.promocion?.ganador && (
-            <div
-              style={{
-                background: "#10b981",
-                color: "white",
-                padding: "12px",
-                borderRadius: "10px",
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: "18px",
-                marginBottom: "10px",
-              }}
-            >
-              🎁 PEDIDO GRATIS
-              <br />
-              🚫 NO COBRAR AL CLIENTE
-            </div>
-          )}
+      {pedidos.map((p) => {
+        const telefonoCliente = obtenerTelefonoPedido(p);
 
-          <p>
-            <b>👤 Cliente:</b> {p.nombre}
-          </p>
-
-          <p>
-            <b>🛒 Pedido:</b> {p.pedido}
-          </p>
-
-          <p>
-            <b>📍 Zona:</b> {p.zona}
-          </p>
-
-          <p>
-            <b>💰 Costo:</b>{" "}
-            {p.promocion?.ganador ? (
-              <span style={{ color: "green", fontWeight: "bold" }}>
-                GRATIS POR PROMOCIÓN
-              </span>
-            ) : (
-              p.costo || "No especificado"
+        return (
+          <div
+            key={p.id}
+            style={{
+              border: p.promocion?.ganador
+                ? "3px solid #10b981"
+                : "1px solid #ccc",
+              padding: 10,
+              marginBottom: 10,
+              borderRadius: 10,
+              opacity: p.estado === "cancelado" ? 0.5 : 1,
+              background: p.promocion?.ganador ? "#ecfdf5" : "#fff",
+            }}
+          >
+            {p.promocion?.ganador && (
+              <div
+                style={{
+                  background: "#10b981",
+                  color: "white",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  fontSize: "18px",
+                  marginBottom: "10px",
+                }}
+              >
+                🎁 PEDIDO GRATIS
+                <br />
+                🚫 NO COBRAR AL CLIENTE
+              </div>
             )}
-          </p>
 
-          <p>
-            <b>📦 Estado:</b> {p.estado}
-          </p>
+            {p.recompensa?.usada && (
+              <div
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  marginBottom: "10px",
+                  border: "1px solid #f59e0b",
+                }}
+              >
+                🎁 CUPÓN DE RECOMPENSA
+                <br />
+                Descontar $20 del envío
+              </div>
+            )}
 
-          <p>
-            <b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}
-          </p>
-
-          {p.promocion?.participo && !p.promocion?.ganador && (
-            <p style={{ color: "#92400e", fontWeight: "bold" }}>
-              🍀 Participó en la promoción, pero no ganó.
+            <p>
+              <b>👤 Cliente:</b> {p.nombre}
             </p>
-          )}
 
-          <button onClick={() => abrirMapa(p)}>📍 Ver ubicación</button>
+            {telefonoCliente && (
+              <p>
+                <b>📞 Teléfono:</b> {telefonoCliente}
+              </p>
+            )}
 
-          {p.estado !== "cancelado" && (
-            <>
-              <button onClick={() => cambiarEstado(p, "aceptado")}>
-                ✔ Aceptar
-              </button>
+            <p style={{ whiteSpace: "pre-line" }}>
+              <b>🛒 Pedido:</b> {p.pedido}
+            </p>
 
-              <button onClick={() => cambiarEstado(p, "en camino")}>
-                🚀 En camino
-              </button>
+            <p>
+              <b>📍 Zona:</b> {p.zona}
+            </p>
 
-              <button onClick={() => cambiarEstado(p, "entregado")}>
-                ✅ Entregado
-              </button>
-            </>
-          )}
+            <p>
+              <b>💰 Costo:</b>{" "}
+              {p.promocion?.ganador ? (
+                <span style={{ color: "green", fontWeight: "bold" }}>
+                  GRATIS POR PROMOCIÓN
+                </span>
+              ) : (
+                p.costo || "No especificado"
+              )}
+            </p>
 
-          {p.estado === "cancelado" && (
-            <p style={{ color: "red" }}>❌ Pedido cancelado por cliente</p>
-          )}
-        </div>
-      ))}
+            <p>
+              <b>📦 Estado:</b> {p.estado}
+            </p>
+
+            <p>
+              <b>📍 Ubicación:</b> {p.ubicacion || "No proporcionada"}
+            </p>
+
+            {p.promocion?.participo && !p.promocion?.ganador && (
+              <p style={{ color: "#92400e", fontWeight: "bold" }}>
+                🍀 Participó en la promoción, pero no ganó.
+              </p>
+            )}
+
+            <button onClick={() => abrirMapa(p)}>📍 Ver ubicación</button>
+
+            {telefonoCliente && (
+              <button onClick={() => llamarCliente(p)}>📞 Llamar cliente</button>
+            )}
+
+            {p.estado !== "cancelado" && (
+              <>
+                <button onClick={() => cambiarEstado(p, "aceptado")}>
+                  ✔ Aceptar
+                </button>
+
+                <button onClick={() => cambiarEstado(p, "en camino")}>
+                  🚀 En camino
+                </button>
+
+                <button onClick={() => cambiarEstado(p, "entregado")}>
+                  ✅ Entregado
+                </button>
+              </>
+            )}
+
+            {p.estado === "cancelado" && (
+              <p style={{ color: "red" }}>❌ Pedido cancelado por cliente</p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
