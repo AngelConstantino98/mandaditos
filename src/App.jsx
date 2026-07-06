@@ -124,6 +124,33 @@ export default function App() {
   const [authMensaje, setAuthMensaje] = useState("");
   const [authCargando, setAuthCargando] = useState(false);
 
+  // 👑 Panel dueño
+  const [dueno, setDueno] = useState(() => {
+    try {
+      const guardado = localStorage.getItem("duenoActivo");
+      return guardado ? JSON.parse(guardado) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [duenoUsuario, setDuenoUsuario] = useState("");
+  const [duenoPin, setDuenoPin] = useState("");
+  const [duenoMensaje, setDuenoMensaje] = useState("");
+  const [duenoCargando, setDuenoCargando] = useState(false);
+  const [duenoResumen, setDuenoResumen] = useState(null);
+  const [duenoFecha, setDuenoFecha] = useState(() => {
+    try {
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Mexico_City",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).format(new Date());
+    } catch {
+      return new Date().toISOString().slice(0, 10);
+    }
+  });
+
   const zonas = {
     "Tuxtla Chico": { min: 20, max: 60 },
     "Margaritas": { min: 25, max: 60 },
@@ -205,12 +232,37 @@ export default function App() {
   // SPLASH
   useEffect(() => {
     const timer = setTimeout(() => {
+      const accesoDueno = window.location.hash === "#dueno";
+
+      if (accesoDueno) {
+        const duenoGuardado = localStorage.getItem("duenoActivo");
+        setScreen(duenoGuardado ? "dueno-panel" : "dueno-login");
+        return;
+      }
+
       const clienteGuardado = localStorage.getItem("cliente");
       setScreen(clienteGuardado ? "home" : "auth");
     }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  // 👑 Acceso oculto al Panel Dueño con #dueno
+  useEffect(() => {
+    const abrirPanelDuenoPorHash = () => {
+      if (window.location.hash === "#dueno") {
+        setScreen(dueno ? "dueno-panel" : "dueno-login");
+      }
+    };
+
+    abrirPanelDuenoPorHash();
+
+    window.addEventListener("hashchange", abrirPanelDuenoPorHash);
+
+    return () => {
+      window.removeEventListener("hashchange", abrirPanelDuenoPorHash);
+    };
+  }, [dueno]);
 
   // SOCKET
   useEffect(() => {
@@ -407,6 +459,106 @@ export default function App() {
     setAuthPin("");
     setAuthMensaje("");
     setScreen("auth");
+  };
+
+  // 👑 Iniciar sesión del dueño
+  const iniciarSesionDueno = async () => {
+    try {
+      setDuenoCargando(true);
+      setDuenoMensaje("");
+
+      if (!duenoUsuario.trim() || !duenoPin.trim()) {
+        setDuenoMensaje("Escribe usuario y PIN.");
+        return;
+      }
+
+      const res = await fetch(`${SOCKET_URL}/dueno/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario: duenoUsuario.trim(),
+          pin: duenoPin.trim()
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setDuenoMensaje(data.mensaje || "No se pudo iniciar sesión.");
+        return;
+      }
+
+      const duenoActivo = {
+        ...data.dueno,
+        pin: duenoPin.trim()
+      };
+
+      localStorage.setItem("duenoActivo", JSON.stringify(duenoActivo));
+
+      setDueno(duenoActivo);
+      setDuenoUsuario("");
+      setDuenoPin("");
+      setScreen("dueno-panel");
+
+      cargarResumenDueno(duenoActivo, duenoFecha);
+    } catch (error) {
+      console.log("Error login dueño:", error);
+      setDuenoMensaje("No se pudo conectar con el servidor.");
+    } finally {
+      setDuenoCargando(false);
+    }
+  };
+
+  // 👑 Cargar resumen de entregas
+  const cargarResumenDueno = async (duenoActivo = dueno, fecha = duenoFecha) => {
+    try {
+      if (!duenoActivo?.usuario || !duenoActivo?.pin) {
+        setScreen("dueno-login");
+        return;
+      }
+
+      setDuenoCargando(true);
+      setDuenoMensaje("");
+
+      const res = await fetch(`${SOCKET_URL}/dueno/resumen-entregas`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario: duenoActivo.usuario,
+          pin: duenoActivo.pin,
+          fecha
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setDuenoMensaje(data.mensaje || "No se pudo cargar el resumen.");
+        return;
+      }
+
+      setDuenoResumen(data);
+    } catch (error) {
+      console.log("Error cargando resumen dueño:", error);
+      setDuenoMensaje("No se pudo conectar con el servidor.");
+    } finally {
+      setDuenoCargando(false);
+    }
+  };
+
+  // 👑 Cerrar sesión del dueño
+  const cerrarSesionDueno = () => {
+    localStorage.removeItem("duenoActivo");
+    setDueno(null);
+    setDuenoResumen(null);
+    setDuenoUsuario("");
+    setDuenoPin("");
+    setDuenoMensaje("");
+    setScreen("home");
   };
 
   // ENVIAR
@@ -1067,23 +1219,32 @@ ${notaPedido.trim()}`
       return;
     }
 
-    const negociosEnCarrito = [
-      ...new Set(carrito.map((item) => item.negocioNombre))
-    ];
+    const carritoPorNegocio = carrito.reduce((grupos, item) => {
+      const negocio = item.negocioNombre || "Negocio no especificado";
 
-    const textoNegocios =
-      negociosEnCarrito.length === 1
-        ? `Negocio: ${negociosEnCarrito[0]}`
-        : `Negocios:\n${negociosEnCarrito.map((n) => `- ${n}`).join("\n")}`;
+      if (!grupos[negocio]) {
+        grupos[negocio] = [];
+      }
 
-    const detalleProductos = carrito
-      .map((item) => {
-        const precioLinea = mostrarPrecioLineaCarrito(item);
-        return `- ${item.cantidad} x ${item.nombre} — ${precioLinea}`;
+      grupos[negocio].push(item);
+
+      return grupos;
+    }, {});
+
+    const detallePorNegocio = Object.entries(carritoPorNegocio)
+      .map(([negocio, productos]) => {
+        const productosTexto = productos
+          .map((item) => {
+            const precioLinea = mostrarPrecioLineaCarrito(item);
+            return `- ${item.cantidad} x ${item.nombre} — ${precioLinea}`;
+          })
+          .join("\n");
+
+        return `🏪 ${negocio}\n${productosTexto}`;
       })
-      .join("\n");
+      .join("\n\n");
 
-    const pedidoArmado = `${textoNegocios}\n\nPedido:\n${detalleProductos}\n\nTotal productos: ${textoTotalCarrito}`;
+    const pedidoArmado = `Pedido de negocios locales:\n\n${detallePorNegocio}\n\nTotal productos: ${textoTotalCarrito}`;
 
     setPedido(pedidoArmado);
     setNotaPedido("");
@@ -1150,6 +1311,13 @@ ${notaPedido.trim()}`
     display: "block",
     boxShadow: "0 2px 6px rgba(0,0,0,0.18)"
   };
+
+  // 👑 Si el dueño entra directo con #dueno y ya tiene sesión, cargamos el resumen.
+  useEffect(() => {
+    if (screen === "dueno-panel" && dueno && !duenoResumen) {
+      cargarResumenDueno(dueno, duenoFecha);
+    }
+  }, [screen, dueno?.usuario]);
 
 
 
@@ -1497,6 +1665,295 @@ ${notaPedido.trim()}`
           >
             📜 Historial de pedidos{pedidos.length > 0 ? ` (${pedidos.length})` : ""}
           </button>
+
+        </div>
+      )}
+
+      {screen === "dueno-login" && (
+        <div className="card">
+
+          <button
+            onClick={() => {
+              setDuenoMensaje("");
+              setScreen("home");
+            }}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer"
+            }}
+          >
+            ← Volver
+          </button>
+
+          <div className="header">
+            <img src={logo} />
+            <h1>👑 Panel Dueño</h1>
+            <p style={{ fontSize: 14, color: "#666" }}>
+              Acceso privado para revisar cuentas de repartidores.
+            </p>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 14,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h2 style={{ fontSize: 20, marginBottom: 8 }}>
+              Iniciar sesión
+            </h2>
+
+            <input
+              value={duenoUsuario}
+              onChange={(e) => setDuenoUsuario(e.target.value)}
+              placeholder="Usuario dueño"
+            />
+
+            <input
+              value={duenoPin}
+              onChange={(e) => setDuenoPin(e.target.value)}
+              placeholder="PIN"
+              inputMode="numeric"
+              type="password"
+            />
+
+            {duenoMensaje && (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 10,
+                  background: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: 10,
+                  color: "#991b1b",
+                  fontSize: 14
+                }}
+              >
+                {duenoMensaje}
+              </div>
+            )}
+
+            <button
+              className="btn"
+              onClick={iniciarSesionDueno}
+              disabled={duenoCargando}
+              style={{ marginTop: 12, background: "#111827" }}
+            >
+              {duenoCargando ? "Entrando..." : "Entrar"}
+            </button>
+          </div>
+
+        </div>
+      )}
+
+      {screen === "dueno-panel" && (
+        <div className="card">
+
+          <button
+            onClick={() => setScreen("home")}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer"
+            }}
+          >
+            ← Volver
+          </button>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#111827",
+              color: "white",
+              borderRadius: 12
+            }}
+          >
+            <h1 style={{ fontSize: 22, marginBottom: 6 }}>
+              👑 Panel Dueño
+            </h1>
+
+            <p style={{ fontSize: 14 }}>
+              Dueño activo: <strong>{dueno?.nombre || "Dueño"}</strong>
+            </p>
+
+            <button
+              onClick={cerrarSesionDueno}
+              style={{
+                marginTop: 8,
+                padding: "6px 10px",
+                borderRadius: 8,
+                border: "none",
+                background: "#ef4444",
+                color: "white",
+                cursor: "pointer"
+              }}
+            >
+              Cerrar sesión dueño
+            </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+              📅 Corte del día
+            </h2>
+
+            <input
+              type="date"
+              value={duenoFecha}
+              onChange={(e) => setDuenoFecha(e.target.value)}
+            />
+
+            <button
+              className="btn"
+              onClick={() => cargarResumenDueno(dueno, duenoFecha)}
+              disabled={duenoCargando}
+              style={{ marginTop: 8, background: "#2563eb" }}
+            >
+              {duenoCargando ? "Cargando..." : "Actualizar resumen"}
+            </button>
+
+            {duenoMensaje && (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 10,
+                  background: "#fee2e2",
+                  border: "1px solid #ef4444",
+                  borderRadius: 10,
+                  color: "#991b1b",
+                  fontSize: 14
+                }}
+              >
+                {duenoMensaje}
+              </div>
+            )}
+          </div>
+
+          {duenoResumen && (
+            <>
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 14,
+                  background: "#ecfdf5",
+                  borderRadius: 12,
+                  border: "1px solid #22c55e",
+                  textAlign: "center"
+                }}
+              >
+                <h2 style={{ fontSize: 20, marginBottom: 6 }}>
+                  Total del día: ${duenoResumen.totalGeneral || 0}
+                </h2>
+
+                <p style={{ fontSize: 14, color: "#166534" }}>
+                  Entregas registradas: <strong>{duenoResumen.totalEntregas || 0}</strong>
+                </p>
+              </div>
+
+              <div style={{ marginTop: 10 }}>
+                {duenoResumen.resumen?.map((item) => (
+                  <div
+                    key={item.repartidorId}
+                    style={{
+                      marginBottom: 10,
+                      padding: 12,
+                      background: "#ffffff",
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
+                    <h3 style={{ fontSize: 18 }}>
+                      🛵 {item.repartidorNombre}
+                    </h3>
+
+                    <p>
+                      Entregas: <strong>{item.entregas}</strong>
+                    </p>
+
+                    <p style={{ color: "#16a34a", fontWeight: "bold" }}>
+                      Debe entregar al dueño: ${item.totalDueno}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 12,
+                  background: "#ffffff",
+                  borderRadius: 12,
+                  border: "1px solid #e5e7eb"
+                }}
+              >
+                <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+                  📋 Detalle de entregas
+                </h2>
+
+                {duenoResumen.detalles?.length === 0 && (
+                  <p style={{ fontSize: 14, color: "#666" }}>
+                    No hay entregas registradas en esta fecha.
+                  </p>
+                )}
+
+                {duenoResumen.detalles?.map((entrega) => (
+                  <div
+                    key={entrega.pedidoId}
+                    style={{
+                      marginBottom: 8,
+                      padding: 10,
+                      background: "#f8fafc",
+                      borderRadius: 10,
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
+                    <p>
+                      <strong>🕒 Hora:</strong> {entrega.hora || "Sin hora"}
+                    </p>
+
+                    <p>
+                      <strong>🛵 Repartidor:</strong> {entrega.repartidorNombre}
+                    </p>
+
+                    <p>
+                      <strong>👤 Cliente:</strong> {entrega.clienteNombre || "No especificado"}
+                    </p>
+
+                    <p>
+                      <strong>📍 Zona:</strong> {entrega.zona || "No especificada"}
+                    </p>
+
+                    <p>
+                      <strong>💰 Envío:</strong> {entrega.costo || "No especificado"}
+                    </p>
+
+                    <p style={{ color: "#16a34a", fontWeight: "bold" }}>
+                      Comisión dueño: ${entrega.comisionDueno || 10}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
         </div>
       )}
