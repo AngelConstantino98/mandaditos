@@ -3242,7 +3242,7 @@ ${notaPedido.trim()}`
           <div
             style={{
               width: "100%",
-              maxWidth: 430,
+              maxWidth: 390,
               maxHeight: "calc(100dvh - 28px)",
               background: "white",
               borderRadius: 18,
@@ -3276,26 +3276,24 @@ ${notaPedido.trim()}`
               {productoParaGuisos.textoSelector || "Elige uno o varios guisos:"}
             </p>
 
-            <div style={{ display: "grid", gap: 9 }}>
+            <div style={{ display: "grid", gap: 8 }}>
               {productoParaGuisos.guisos.map((guiso) => (
                 <label
                   key={guiso}
                   style={{
                     display: "flex",
-                    alignItems: "flex-start",
+                    alignItems: "center",
                     gap: 10,
-                    padding: "12px 11px",
-                    minHeight: 48,
+                    padding: 10,
                     background: guisosSeleccionados.includes(guiso)
                       ? "#dcfce7"
                       : "#f8fafc",
                     border: guisosSeleccionados.includes(guiso)
                       ? "1px solid #22c55e"
                       : "1px solid #e5e7eb",
-                    borderRadius: 12,
+                    borderRadius: 10,
                     cursor: "pointer",
                     textTransform: "capitalize",
-                    lineHeight: 1.25,
                     boxSizing: "border-box"
                   }}
                 >
@@ -3304,8 +3302,12 @@ ${notaPedido.trim()}`
                     checked={guisosSeleccionados.includes(guiso)}
                     onChange={() => alternarGuiso(guiso)}
                     style={{
-                      flexShrink: 0,
-                      marginTop: 2
+                      width: 20,
+                      height: 20,
+                      minWidth: 20,
+                      maxWidth: 20,
+                      flex: "0 0 20px",
+                      margin: 0
                     }}
                   />
 
@@ -3314,11 +3316,11 @@ ${notaPedido.trim()}`
                       flex: 1,
                       minWidth: 0,
                       whiteSpace: "normal",
-                      overflowWrap: "anywhere",
-                      wordBreak: "normal",
-                      fontSize: 15,
+                      overflowWrap: "break-word",
+                      fontSize: 16,
                       fontWeight: 700,
-                      color: "#111827"
+                      color: "#111827",
+                      lineHeight: 1.25
                     }}
                   >
                     {guiso}
@@ -3492,10 +3494,9 @@ ${notaPedido.trim()}`
                           key={topping}
                           style={{
                             display: "flex",
-                            alignItems: "flex-start",
+                            alignItems: "center",
                             gap: 10,
-                            padding: "12px 11px",
-                            minHeight: 48,
+                            padding: 10,
                             background: seleccionado ? "#dcfce7" : "#f8fafc",
                             border: seleccionado
                               ? "1px solid #22c55e"
@@ -3509,8 +3510,12 @@ ${notaPedido.trim()}`
                             checked={seleccionado}
                             onChange={() => alternarTopping(topping)}
                             style={{
-                              flexShrink: 0,
-                              marginTop: 2
+                              width: 20,
+                              height: 20,
+                              minWidth: 20,
+                              maxWidth: 20,
+                              flex: "0 0 20px",
+                              margin: 0
                             }}
                           />
 
@@ -3590,8 +3595,12 @@ ${notaPedido.trim()}`
                               checked={seleccionado}
                               onChange={() => alternarJarabe(jarabe)}
                               style={{
-                                flexShrink: 0,
-                                marginTop: 2
+                                width: 20,
+                                height: 20,
+                                minWidth: 20,
+                                maxWidth: 20,
+                                flex: "0 0 20px",
+                                margin: 0
                               }}
                             />
 
