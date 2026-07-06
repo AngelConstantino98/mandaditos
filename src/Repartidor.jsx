@@ -15,7 +15,7 @@ export default function Repartidor() {
 
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
-  const [pestana, setPestana] = useState("nuevos");
+  const [pestana, setPestana] = useState("todos");
 
   const [repartidor, setRepartidor] = useState(null);
   const [usuarioRepartidor, setUsuarioRepartidor] = useState("");
@@ -125,7 +125,7 @@ export default function Repartidor() {
       setRepartidor(data.repartidor);
       setUsuarioRepartidor("");
       setPinRepartidor("");
-      setPestana("nuevos");
+      setPestana("todos");
     } catch (error) {
       console.log("Error login repartidor:", error);
       setErrorLogin("No se pudo conectar con el servidor.");
@@ -142,7 +142,7 @@ export default function Repartidor() {
     setUsuarioRepartidor("");
     setPinRepartidor("");
     setErrorLogin("");
-    setPestana("nuevos");
+    setPestana("todos");
   };
 
   // 🟢 GPS
@@ -412,8 +412,20 @@ export default function Repartidor() {
     return obtenerEstadoPedido(p) === "cancelado";
   });
 
+  const pedidosTomadosPorOtros = pedidos.filter((p) => {
+    const estado = obtenerEstadoPedido(p);
+
+    return (
+      pedidoEsDeOtro(p) &&
+      estado !== "cancelado" &&
+      estado !== "entregado"
+    );
+  });
+
   const obtenerPedidosPorPestana = () => {
+    if (pestana === "todos") return pedidos;
     if (pestana === "mis") return pedidosMios;
+    if (pestana === "otros") return pedidosTomadosPorOtros;
     if (pestana === "entregados") return pedidosEntregados;
     if (pestana === "cancelados") return pedidosCancelados;
     return pedidosNuevos;
@@ -422,6 +434,12 @@ export default function Repartidor() {
   const pedidosMostrados = obtenerPedidosPorPestana();
 
   const pestanas = [
+    {
+      id: "todos",
+      label: "📋 Todos",
+      cantidad: pedidos.length,
+      descripcion: "Muestra todos los pedidos, como antes.",
+    },
     {
       id: "nuevos",
       label: "📦 Nuevos",
@@ -433,6 +451,12 @@ export default function Repartidor() {
       label: "🛵 Mis pedidos",
       cantidad: pedidosMios.length,
       descripcion: "Pedidos aceptados por ti o en camino.",
+    },
+    {
+      id: "otros",
+      label: "🔒 Tomados",
+      cantidad: pedidosTomadosPorOtros.length,
+      descripcion: "Pedidos activos que ya tomó otro repartidor.",
     },
     {
       id: "entregados",
