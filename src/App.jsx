@@ -1705,92 +1705,394 @@ ${notaPedido.trim()}`
       )}
 
       {screen === "home" && (
-        <div className="card">
+        <div
+          className="card"
+          style={{
+            background:
+              "linear-gradient(180deg, #f8fafc 0%, #eef2ff 42%, #ffffff 100%)",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 16px 35px rgba(15, 23, 42, 0.12)",
+            gap: 12
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 24,
+              padding: "18px 18px 22px",
+              background:
+                "linear-gradient(135deg, #0f172a 0%, #1d4ed8 52%, #16a34a 100%)",
+              color: "white",
+              boxShadow: "0 14px 28px rgba(37, 99, 235, 0.28)"
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                width: 170,
+                height: 170,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.12)",
+                top: -70,
+                right: -65
+              }}
+            />
 
-          <div className="header">
-            <img src={logo} />
-            <h1>🏍️ MandaPlus</h1>
-            <h1>Tu app de mandados a domicilio</h1>
+            <div
+              style={{
+                position: "absolute",
+                width: 110,
+                height: 110,
+                borderRadius: "50%",
+                background: "rgba(250,204,21,0.18)",
+                bottom: -50,
+                left: -40
+              }}
+            />
 
-            {mostrarBotonInstalar && (
-              <button
-                type="button"
-                onClick={instalarApp}
-                style={estiloBotonInstalar}
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <img
+                  src={logo}
+                  alt="MandaPlus"
+                  style={{
+                    width: 76,
+                    height: 76,
+                    objectFit: "contain",
+                    borderRadius: 18,
+                    background: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    padding: 4
+                  }}
+                />
+
+                <div>
+                  <p
+                    style={{
+                      margin: "0 0 4px",
+                      fontSize: 13,
+                      opacity: 0.9,
+                      fontWeight: 700
+                    }}
+                  >
+                    🛵 Servicio de mandados
+                  </p>
+
+                  <h1
+                    style={{
+                      margin: 0,
+                      fontSize: 28,
+                      lineHeight: 1.05,
+                      letterSpacing: "-0.6px"
+                    }}
+                  >
+                    MandaPlus
+                  </h1>
+
+                  <p
+                    style={{
+                      margin: "5px 0 0",
+                      fontSize: 13,
+                      opacity: 0.95,
+                      fontWeight: 600
+                    }}
+                  >
+                    Rápido, seguro y hasta tu puerta
+                  </p>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginTop: 14,
+                  padding: "7px 11px",
+                  borderRadius: 999,
+                  background: servicio.activo
+                    ? "rgba(220, 252, 231, 0.95)"
+                    : "rgba(254, 226, 226, 0.95)",
+                  color: servicio.activo ? "#166534" : "#991b1b",
+                  fontSize: 13,
+                  fontWeight: 900,
+                  boxShadow: "0 6px 16px rgba(15,23,42,0.18)"
+                }}
               >
-                📲 Instalar app
-              </button>
-            )}
+                {servicio.activo ? "🟢 Servicio disponible" : "🔴 Fuera de servicio"}
+              </div>
+
+              <h2
+                style={{
+                  margin: "18px 0 0",
+                  fontSize: 21,
+                  lineHeight: 1.15,
+                  color: "white",
+                  textShadow: "0 2px 8px rgba(0,0,0,0.25)"
+                }}
+              >
+                Hola{cliente?.nombre ? `, ${cliente.nombre.split(" ")[0]}` : ""} 👋
+              </h2>
+
+              {mostrarBotonInstalar && (
+                <button
+                  type="button"
+                  onClick={instalarApp}
+                  style={{
+                    marginTop: 14,
+                    padding: "8px 13px",
+                    fontSize: 13,
+                    fontWeight: 900,
+                    border: "none",
+                    borderRadius: 999,
+                    background: "white",
+                    color: "#111827",
+                    cursor: "pointer",
+                    boxShadow: "0 8px 18px rgba(0,0,0,0.22)"
+                  }}
+                >
+                  📲 Instalar app
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "13px 15px",
+              background: "white",
+              borderRadius: 18,
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 8px 20px rgba(15, 23, 42, 0.06)"
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                fontSize: 15,
+                color: "#111827",
+                fontWeight: 900,
+                lineHeight: 1.25
+              }}
+            >
+              ¿Qué necesitas hoy?
+            </p>
+
+            <p
+              style={{
+                margin: "4px 0 0",
+                fontSize: 13,
+                color: "#64748b",
+                lineHeight: 1.35,
+                fontWeight: 600
+              }}
+            >
+              Pide comida, compras, farmacia o cualquier mandado.
+            </p>
           </div>
 
           {!servicio.activo && (
             <div
               style={{
-                marginTop: 10,
-                padding: 12,
-                background: "#fee2e2",
-                border: "1px solid #ef4444",
-                borderRadius: 12,
-                color: "#991b1b",
+                padding: 14,
+                background: "#fff1f2",
+                border: "1px solid #fb7185",
+                borderRadius: 18,
+                color: "#9f1239",
                 fontWeight: "bold",
-                textAlign: "center"
+                textAlign: "center",
+                boxShadow: "0 8px 18px rgba(244, 63, 94, 0.12)"
               }}
             >
               ⏰ Por el momento estamos fuera de servicio.
               <br />
-              Intenta más tarde.
+              <span style={{ fontSize: 13, fontWeight: 700 }}>
+                Intenta más tarde. Gracias por tu comprensión.
+              </span>
             </div>
           )}
 
           <div
             style={{
-              marginTop: 10,
-              padding: 10,
-              background: "#f8fafc",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb"
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 10
+            }}
+          >
+            <button
+              onClick={() => {
+                if (!servicio.activo) {
+                  mostrarAlerta(
+                    "Por el momento estamos fuera de servicio. Intenta más tarde.",
+                    "Fuera de servicio"
+                  );
+                  return;
+                }
+
+                setNegocioSeleccionado(null);
+                setScreen("negocios-locales");
+              }}
+              style={{
+                border: "none",
+                borderRadius: 18,
+                padding: 14,
+                textAlign: "left",
+                color: "white",
+                background: "linear-gradient(135deg, #f97316, #facc15)",
+                boxShadow: "0 10px 22px rgba(249, 115, 22, 0.28)",
+                cursor: "pointer",
+                minHeight: 112
+              }}
+            >
+              <div style={{ fontSize: 30, marginBottom: 8 }}>🍽️</div>
+              <strong style={{ display: "block", fontSize: 15 }}>
+                Negocios locales{totalProductosCarrito > 0 ? ` (${totalProductosCarrito})` : ""}
+              </strong>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  marginTop: 5,
+                  opacity: 0.95
+                }}
+              >
+                Menús, comida y antojos
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (!servicio.activo) {
+                  mostrarAlerta(
+                    "Por el momento estamos fuera de servicio. Intenta más tarde.",
+                    "Fuera de servicio"
+                  );
+                  return;
+                }
+
+                setScreen("form");
+              }}
+              style={{
+                border: "none",
+                borderRadius: 18,
+                padding: 14,
+                textAlign: "left",
+                color: "white",
+                background: "linear-gradient(135deg, #16a34a, #22c55e)",
+                boxShadow: "0 10px 22px rgba(34, 197, 94, 0.25)",
+                cursor: "pointer",
+                minHeight: 112
+              }}
+            >
+              <div style={{ fontSize: 30, marginBottom: 8 }}>📦</div>
+              <strong style={{ display: "block", fontSize: 15 }}>
+                Pedido personalizado
+              </strong>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  marginTop: 5,
+                  opacity: 0.95
+                }}
+              >
+                Pide lo que necesites
+              </span>
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: cliente ? "1fr auto" : "1fr",
+              gap: 10,
+              alignItems: "center",
+              padding: 13,
+              background: "rgba(255,255,255,0.96)",
+              borderRadius: 18,
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 8px 20px rgba(15, 23, 42, 0.06)"
             }}
           >
             {cliente ? (
               <>
-                <p style={{ fontSize: 14 }}>
-                  👤 <strong>{cliente.nombre}</strong>
-                </p>
+                <div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 15,
+                      fontWeight: 900,
+                      color: "#111827"
+                    }}
+                  >
+                    👤 {cliente.nombre}
+                  </p>
 
-                <p style={{ fontSize: 13, color: "#666" }}>
-                  📱 {cliente.telefono}
-                </p>
+                  <p
+                    style={{
+                      margin: "4px 0 0",
+                      fontSize: 13,
+                      color: "#64748b",
+                      fontWeight: 700
+                    }}
+                  >
+                    📱 {cliente.telefono}
+                  </p>
+                </div>
 
                 <button
                   onClick={cerrarSesion}
                   style={{
-                    marginTop: 8,
-                    padding: "6px 10px",
-                    borderRadius: 8,
+                    padding: "8px 10px",
+                    borderRadius: 12,
                     border: "none",
-                    background: "#e5e7eb",
-                    cursor: "pointer"
+                    background: "#f1f5f9",
+                    color: "#334155",
+                    cursor: "pointer",
+                    fontWeight: 800
                   }}
                 >
-                  Cambiar cuenta
+                  Cambiar
                 </button>
               </>
             ) : (
               <>
-                <p style={{ fontSize: 14, color: "#666" }}>
-                  No has iniciado sesión.
-                </p>
+                <div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 15,
+                      fontWeight: 900,
+                      color: "#111827"
+                    }}
+                  >
+                    👤 Cuenta de cliente
+                  </p>
+
+                  <p
+                    style={{
+                      margin: "4px 0 0",
+                      fontSize: 13,
+                      color: "#64748b"
+                    }}
+                  >
+                    Inicia sesión para conservar tus recompensas.
+                  </p>
+                </div>
 
                 <button
                   onClick={() => setScreen("auth")}
                   style={{
-                    marginTop: 8,
-                    padding: "6px 10px",
-                    borderRadius: 8,
+                    marginTop: 10,
+                    padding: "10px 12px",
+                    borderRadius: 12,
                     border: "none",
-                    background: "#22c55e",
+                    background: "#2563eb",
                     color: "white",
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    fontWeight: 900,
+                    width: "100%"
                   }}
                 >
                   Iniciar sesión
@@ -1799,50 +2101,106 @@ ${notaPedido.trim()}`
             )}
           </div>
 
-          <Mapa
-            setCoords={setCoords}
-            repartidor={repartidor}
-          />
-
-          <button
-            className="btn"
-            onClick={() => {
-              setNegocioSeleccionado(null);
-              setScreen("negocios-locales");
-            }}
+          <div
             style={{
-              marginTop: 10,
-              background: "linear-gradient(135deg, #f97316, #facc15)",
-              color: "white",
-              fontWeight: "bold",
-              boxShadow: "0 4px 10px rgba(249, 115, 22, 0.35)"
+              background: "white",
+              borderRadius: 20,
+              border: "1px solid #e5e7eb",
+              overflow: "hidden",
+              boxShadow: "0 10px 24px rgba(15, 23, 42, 0.08)"
             }}
           >
-            🍽️ Negocios locales{totalProductosCarrito > 0 ? ` (${totalProductosCarrito})` : ""}
-          </button>
+            <div style={{ padding: "12px 14px 10px" }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 18,
+                  color: "#111827"
+                }}
+              >
+                📍 Ubicación y repartidor
+              </h2>
 
-          <button
-            className="btn"
-            onClick={() => setScreen("form")}
-            style={{ marginTop: 8, background: "#16a34a" }}
-          >
-            📦 Hacer pedido personalizado
-          </button>
+              <p
+                style={{
+                  margin: "5px 0 0",
+                  fontSize: 13,
+                  color: "#64748b"
+                }}
+              >
+                Comparte tu ubicación y sigue al repartidor cuando inicie su GPS.
+              </p>
+            </div>
+
+            <div
+              className="cliente-mapa-card"
+              style={{
+                borderTop: "1px solid #e5e7eb"
+              }}
+            >
+              <style>
+                {`
+                  .cliente-mapa-card .leaflet-container {
+                    height: 260px !important;
+                    min-height: 260px !important;
+                    max-height: 260px !important;
+                  }
+
+                  .cliente-mapa-card {
+                    overflow: hidden;
+                  }
+                `}
+              </style>
+
+              <Mapa setCoords={setCoords} repartidor={repartidor} />
+            </div>
+          </div>
 
           <div
             style={{
-              marginTop: 10,
-              padding: 12,
-              background: recompensa.recompensaDisponible ? "#fef3c7" : "#f8fafc",
-              borderRadius: 12,
+              padding: 14,
+              background: recompensa.recompensaDisponible
+                ? "linear-gradient(135deg, #fff7ed, #fef3c7)"
+                : "white",
+              borderRadius: 20,
               border: recompensa.recompensaDisponible
                 ? "1px solid #f59e0b"
-                : "1px solid #e5e7eb"
+                : "1px solid #e5e7eb",
+              boxShadow: recompensa.recompensaDisponible
+                ? "0 10px 24px rgba(245, 158, 11, 0.16)"
+                : "0 10px 24px rgba(15, 23, 42, 0.07)"
             }}
           >
-            <h2 style={{ fontSize: 18, marginBottom: 6 }}>
-              ⭐ Recompensas
-            </h2>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                marginBottom: 8
+              }}
+            >
+              <h2 style={{ fontSize: 19, margin: 0, color: "#111827" }}>
+                ⭐ Recompensas
+              </h2>
+
+              <span
+                style={{
+                  padding: "5px 9px",
+                  borderRadius: 999,
+                  background: recompensa.recompensaDisponible
+                    ? "#f59e0b"
+                    : "#e2e8f0",
+                  color: recompensa.recompensaDisponible ? "white" : "#334155",
+                  fontSize: 12,
+                  fontWeight: 900
+                }}
+              >
+                {recompensa.recompensaDisponible
+                  ? "Cupón listo"
+                  : `${recompensa.pedidosCompletados}/${recompensa.meta}`}
+              </span>
+            </div>
 
             {recompensa.recompensaDisponible ? (
               <>
@@ -1850,26 +2208,37 @@ ${notaPedido.trim()}`
                   style={{
                     fontWeight: "bold",
                     color: "#92400e",
-                    marginBottom: 8
+                    marginBottom: 8,
+                    fontSize: 15
                   }}
                 >
                   🎁 ¡Tienes un cupón de $20 disponible!
                 </p>
 
-                <p style={{ fontSize: 13, color: "#78350f" }}>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#78350f",
+                    lineHeight: 1.35,
+                    margin: 0
+                  }}
+                >
                   Se aplicará automáticamente en tu próximo pedido. Si el envío cuesta $20, tu envío será GRATIS. Si el envío cuesta más, solo pagarás la diferencia. Después de usarlo, tu progreso volverá a 0/10.
                 </p>
               </>
             ) : (
               <>
                 <p style={{ fontSize: 14, marginBottom: 8 }}>
-                  Pedidos completados: <strong>{recompensa.pedidosCompletados}/{recompensa.meta}</strong>
+                  Pedidos completados:{" "}
+                  <strong>
+                    {recompensa.pedidosCompletados}/{recompensa.meta}
+                  </strong>
                 </p>
 
                 <div
                   style={{
                     width: "100%",
-                    height: 10,
+                    height: 11,
                     background: "#e5e7eb",
                     borderRadius: 999,
                     overflow: "hidden",
@@ -1883,12 +2252,12 @@ ${notaPedido.trim()}`
                         (recompensa.pedidosCompletados / recompensa.meta) * 100
                       )}%`,
                       height: "100%",
-                      background: "#22c55e"
+                      background: "linear-gradient(90deg, #22c55e, #16a34a)"
                     }}
                   />
                 </div>
 
-                <p style={{ fontSize: 13, color: "#555" }}>
+                <p style={{ fontSize: 13, color: "#555", margin: 0 }}>
                   Te faltan <strong>{recompensa.faltan}</strong> pedidos entregados para ganar un cupón de $20.
                 </p>
               </>
@@ -1896,16 +2265,104 @@ ${notaPedido.trim()}`
           </div>
 
           {pedidoActual && (
-            <div style={{ marginTop: 10, padding: 10, background: "#eee", borderRadius: 10 }}>
-              <p>👤 {pedidoActual.nombre}</p>
-              <p style={{ whiteSpace: "pre-line" }}>🛒 {pedidoActual.pedido}</p>
-              <p>📦 {pedidoActual.estado}</p>
+            <div
+              style={{
+                padding: 14,
+                background: "white",
+                borderRadius: 20,
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 10px 24px rgba(15, 23, 42, 0.08)"
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  marginBottom: 10
+                }}
+              >
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: 18,
+                    color: "#111827"
+                  }}
+                >
+                  📦 Pedido actual
+                </h2>
 
-              {pedidoActual.repartidorNombre && (
-                <p style={{ color: "#2563eb", fontWeight: "bold" }}>
-                  🛵 Repartidor asignado: {pedidoActual.repartidorNombre}
+                <span
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    fontSize: 12,
+                    fontWeight: 900,
+                    color:
+                      pedidoActual.estado === "entregado"
+                        ? "#166534"
+                        : pedidoActual.estado === "cancelado"
+                          ? "#991b1b"
+                          : pedidoActual.estado === "en camino"
+                            ? "#1d4ed8"
+                            : "#92400e",
+                    background:
+                      pedidoActual.estado === "entregado"
+                        ? "#dcfce7"
+                        : pedidoActual.estado === "cancelado"
+                          ? "#fee2e2"
+                          : pedidoActual.estado === "en camino"
+                            ? "#dbeafe"
+                            : "#fef3c7"
+                  }}
+                >
+                  {pedidoActual.estado === "entregado"
+                    ? "✅ Entregado"
+                    : pedidoActual.estado === "cancelado"
+                      ? "❌ Cancelado"
+                      : pedidoActual.estado === "en camino"
+                        ? "🚀 En camino"
+                        : `📦 ${pedidoActual.estado}`}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  padding: 12,
+                  background: "#f8fafc",
+                  borderRadius: 16,
+                  border: "1px solid #e2e8f0"
+                }}
+              >
+                <p style={{ margin: "0 0 7px", fontWeight: 800 }}>
+                  👤 {pedidoActual.nombre}
                 </p>
-              )}
+
+                <p
+                  style={{
+                    margin: "0 0 7px",
+                    whiteSpace: "pre-line",
+                    fontSize: 14,
+                    color: "#334155",
+                    lineHeight: 1.35
+                  }}
+                >
+                  🛒 {pedidoActual.pedido}
+                </p>
+
+                {pedidoActual.repartidorNombre && (
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#2563eb",
+                      fontWeight: 900
+                    }}
+                  >
+                    🛵 Repartidor asignado: {pedidoActual.repartidorNombre}
+                  </p>
+                )}
+              </div>
 
               {!pedidoActual.promocion?.participo &&
                 pedidoActual.estado !== "cancelado" && (
@@ -1913,7 +2370,12 @@ ${notaPedido.trim()}`
                     className="btn"
                     onClick={probarSuerte}
                     disabled={sorteando}
-                    style={{ marginTop: 10 }}
+                    style={{
+                      marginTop: 12,
+                      background: "linear-gradient(135deg, #22c55e, #16a34a)",
+                      borderRadius: 14,
+                      boxShadow: "0 8px 18px rgba(34,197,94,0.22)"
+                    }}
                   >
                     {sorteando ? "🎁 Revisando tu suerte..." : "🍀 Probar mi suerte"}
                   </button>
@@ -1922,9 +2384,9 @@ ${notaPedido.trim()}`
               {promoParaMostrar && !ocultarPromoInicio && (
                 <div
                   style={{
-                    marginTop: 10,
+                    marginTop: 12,
                     padding: 14,
-                    borderRadius: 12,
+                    borderRadius: 16,
                     background: "#fef3c7",
                     border: "1px solid #f59e0b",
                     color: "#78350f",
@@ -1943,13 +2405,18 @@ ${notaPedido.trim()}`
           <button
             className="btn"
             onClick={() => setScreen("historial")}
-            style={{ marginTop: 10, background: "#334155" }}
+            style={{
+              marginTop: 2,
+              background: "#0f172a",
+              borderRadius: 16,
+              boxShadow: "0 8px 18px rgba(15, 23, 42, 0.18)"
+            }}
           >
             📜 Historial de pedidos{pedidos.length > 0 ? ` (${pedidos.length})` : ""}
           </button>
-
         </div>
       )}
+
 
       {screen === "dueno-login" && (
         <div className="card">
