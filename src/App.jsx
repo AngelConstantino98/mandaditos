@@ -63,6 +63,13 @@ export default function App() {
   // 📋 Selector de opciones
   const [productoParaOpciones, setProductoParaOpciones] = useState(null);
 
+  // 🍓 Selector de toppings y jarabes
+  const [productoParaToppings, setProductoParaToppings] = useState(null);
+  const [toppingsSeleccionados, setToppingsSeleccionados] = useState([]);
+  const [jarabesSeleccionados, setJarabesSeleccionados] = useState([]);
+  const [cantidadProductoToppings, setCantidadProductoToppings] = useState(1);
+  const [mostrarSelectorJarabes, setMostrarSelectorJarabes] = useState(false);
+
   // 🍀 Estados de promoción
   const [sorteando, setSorteando] = useState(false);
   const [resultadoPromo, setResultadoPromo] = useState(null);
@@ -671,6 +678,20 @@ ${notaPedido.trim()}`
   const agregarProductoAlCarrito = (producto) => {
     if (!negocioSeleccionado) return;
 
+    // Si tiene toppings o jarabes, abrimos ventana especial.
+    // Esto se usa para Monsis Fresas.
+    if (
+      (Array.isArray(producto.toppings) && producto.toppings.length > 0) ||
+      (Array.isArray(producto.jarabes) && producto.jarabes.length > 0)
+    ) {
+      setProductoParaToppings(producto);
+      setToppingsSeleccionados([]);
+      setJarabesSeleccionados([]);
+      setCantidadProductoToppings(1);
+      setMostrarSelectorJarabes(false);
+      return;
+    }
+
     // Si tiene opciones, abrimos ventana para agregar una o varias opciones sin salir.
     if (Array.isArray(producto.opciones) && producto.opciones.length > 0) {
       setProductoParaOpciones(producto);
@@ -761,7 +782,7 @@ ${notaPedido.trim()}`
         {
           ...producto,
           id: carritoId,
-          productoId: producto.id,
+          productoId: producto.productoBaseId || producto.id,
           nombre: nombreFinal,
           precio: precioFinal,
           precioTexto:
@@ -854,6 +875,108 @@ ${notaPedido.trim()}`
     setProductoParaExtras(null);
     setExtrasSeleccionados([]);
     setCantidadProductoExtras(1);
+  };
+
+  // 🍓 Marcar/desmarcar toppings
+  const alternarTopping = (topping) => {
+    setToppingsSeleccionados((prev) => {
+      if (prev.includes(topping)) {
+        return prev.filter((item) => item !== topping);
+      }
+
+      const maxToppings = Number(productoParaToppings?.maxToppings || 0);
+
+      if (maxToppings > 0 && prev.length >= maxToppings) {
+        alert(
+          maxToppings === 1
+            ? "Solo puedes elegir 1 topping."
+            : `Solo puedes elegir ${maxToppings} toppings.`
+        );
+        return prev;
+      }
+
+      return [...prev, topping];
+    });
+  };
+
+  // 🍯 Marcar/desmarcar jarabes
+  // En Monsis Fresas solo se permite 1 jarabe.
+  const alternarJarabe = (jarabe) => {
+    setJarabesSeleccionados((prev) => {
+      if (prev.includes(jarabe)) {
+        return [];
+      }
+
+      return [jarabe];
+    });
+  };
+
+  // ✅ Confirmar producto con toppings y jarabes
+  const confirmarProductoConToppings = () => {
+    if (!productoParaToppings) return;
+
+    const maxToppings = Number(productoParaToppings.maxToppings || 0);
+
+    if (
+      Array.isArray(productoParaToppings.toppings) &&
+      productoParaToppings.toppings.length > 0 &&
+      toppingsSeleccionados.length === 0
+    ) {
+      alert(
+        maxToppings === 1
+          ? "Elige 1 topping."
+          : "Elige al menos 1 topping."
+      );
+      return;
+    }
+
+    const toppingsLimpios = toppingsSeleccionados.filter(Boolean);
+    const jarabesLimpios = jarabesSeleccionados.filter(Boolean);
+
+    const detalles = [];
+
+    if (toppingsLimpios.length > 0) {
+      detalles.push(
+        `${toppingsLimpios.length === 1 ? "Topping" : "Toppings"}: ${toppingsLimpios.join(", ")}`
+      );
+    }
+
+    if (jarabesLimpios.length > 0) {
+      detalles.push(`Jarabe: ${jarabesLimpios.join(", ")}`);
+    }
+
+    const detallesId = [...toppingsLimpios, ...jarabesLimpios]
+      .map(limpiarTextoId)
+      .join("-");
+
+    const productoConfigurado = {
+      ...productoParaToppings,
+      id: `${productoParaToppings.id}-${detallesId || "sin-detalles"}`,
+      productoBaseId: productoParaToppings.id,
+      nombre:
+        detalles.length > 0
+          ? `${productoParaToppings.nombre} (${detalles.join(" | ")})`
+          : productoParaToppings.nombre,
+      precio: productoParaToppings.precio,
+      precioTexto: productoParaToppings.precioTexto,
+      toppingsElegidos: toppingsLimpios,
+      jarabesElegidos: jarabesLimpios,
+      toppings: undefined,
+      jarabes: undefined,
+    };
+
+    agregarProductoConfiguradoAlCarrito(
+      productoConfigurado,
+      [],
+      cantidadProductoToppings,
+      []
+    );
+
+    setProductoParaToppings(null);
+    setToppingsSeleccionados([]);
+    setJarabesSeleccionados([]);
+    setCantidadProductoToppings(1);
+    setMostrarSelectorJarabes(false);
   };
 
   // ✅ Agregar una opción sin cerrar el selector
@@ -2055,6 +2178,259 @@ ${notaPedido.trim()}`
                   setProductoParaGuisos(null);
                   setGuisosSeleccionados([]);
                   setCantidadProductoGuisos(1);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#e5e7eb",
+                  cursor: "pointer"
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {productoParaToppings && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            zIndex: 9999
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 430,
+              background: "white",
+              borderRadius: 16,
+              padding: 16,
+              boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+              maxHeight: "90vh",
+              overflowY: "auto"
+            }}
+          >
+            <h2 style={{ fontSize: 20, marginBottom: 6 }}>
+              {productoParaToppings.nombre}
+            </h2>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              {productoParaToppings.descripcion}
+            </p>
+
+            {Array.isArray(productoParaToppings.toppings) &&
+              productoParaToppings.toppings.length > 0 && (
+                <>
+                  <p style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
+                    {productoParaToppings.textoToppings ||
+                      `Elige hasta ${productoParaToppings.maxToppings || 1} topping(s):`}
+                  </p>
+
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {productoParaToppings.toppings.map((topping) => {
+                      const seleccionado = toppingsSeleccionados.includes(topping);
+
+                      return (
+                        <label
+                          key={topping}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: 10,
+                            background: seleccionado ? "#dcfce7" : "#f8fafc",
+                            border: seleccionado
+                              ? "1px solid #22c55e"
+                              : "1px solid #e5e7eb",
+                            borderRadius: 10,
+                            cursor: "pointer"
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={seleccionado}
+                            onChange={() => alternarTopping(topping)}
+                          />
+
+                          <span style={{ flex: 1 }}>
+                            {topping}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <p style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
+                    Seleccionados: {toppingsSeleccionados.length}/
+                    {productoParaToppings.maxToppings || 1}
+                  </p>
+                </>
+              )}
+
+            {Array.isArray(productoParaToppings.jarabes) &&
+              productoParaToppings.jarabes.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarSelectorJarabes((prev) => !prev)}
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      borderRadius: 10,
+                      border: "none",
+                      background: "#f59e0b",
+                      color: "white",
+                      fontWeight: "bold",
+                      cursor: "pointer"
+                    }}
+                  >
+                    🍯 Seleccionar jarabe
+                    {jarabesSeleccionados.length > 0
+                      ? ` (${jarabesSeleccionados[0]})`
+                      : ""}
+                  </button>
+
+                  {mostrarSelectorJarabes && (
+                    <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                      <p style={{ fontSize: 14, color: "#666" }}>
+                        Elige solo 1 jarabe:
+                      </p>
+
+                      {productoParaToppings.jarabes.map((jarabe) => {
+                        const seleccionado = jarabesSeleccionados.includes(jarabe);
+
+                        return (
+                          <label
+                            key={jarabe}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              padding: 10,
+                              background: seleccionado ? "#dcfce7" : "#f8fafc",
+                              border: seleccionado
+                                ? "1px solid #22c55e"
+                                : "1px solid #e5e7eb",
+                              borderRadius: 10,
+                              cursor: "pointer"
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={seleccionado}
+                              onChange={() => alternarJarabe(jarabe)}
+                            />
+
+                            <span style={{ flex: 1 }}>
+                              {jarabe}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+            <p style={{ marginTop: 12, fontWeight: "bold" }}>
+              Precio unitario: {mostrarPrecioProducto(productoParaToppings)}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                marginTop: 12,
+                padding: 10,
+                background: "#f8fafc",
+                border: "1px solid #e5e7eb",
+                borderRadius: 10
+              }}
+            >
+              <strong>Cantidad</strong>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  onClick={() =>
+                    setCantidadProductoToppings((prev) => Math.max(prev - 1, 1))
+                  }
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#e5e7eb",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  -
+                </button>
+
+                <strong>{cantidadProductoToppings}</strong>
+
+                <button
+                  onClick={() => setCantidadProductoToppings((prev) => prev + 1)}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#22c55e",
+                    color: "white",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <p style={{ marginTop: 10, fontWeight: "bold" }}>
+              Total:{" "}
+              {productoTienePrecio(productoParaToppings)
+                ? `$${Number(productoParaToppings.precio || 0) * cantidadProductoToppings}`
+                : mostrarPrecioProducto(productoParaToppings)}
+            </p>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button
+                onClick={confirmarProductoConToppings}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#22c55e",
+                  color: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Agregar
+              </button>
+
+              <button
+                onClick={() => {
+                  setProductoParaToppings(null);
+                  setToppingsSeleccionados([]);
+                  setJarabesSeleccionados([]);
+                  setCantidadProductoToppings(1);
+                  setMostrarSelectorJarabes(false);
                 }}
                 style={{
                   flex: 1,

@@ -43,6 +43,29 @@ const EXTRAS_TORTAS_HAMBURGUESAS_EL_GUERO = [
   },
 ];
 
+
+// Toppings para Monsis Fresas
+const TOPPINGS_MONSIS_FRESAS = [
+  "Chispas de chocolate",
+  "Coco rayado",
+  "Bombón",
+  "Mazapán",
+  "Bubulubu",
+  "Oreo",
+  "Chocoletas",
+  "Granola",
+  "Cremino",
+  "Pastelito Hershey's",
+];
+
+// Jarabes para Monsis Fresas
+const JARABES_MONSIS_FRESAS = [
+  "Nutella",
+  "Cajeta",
+  "Hershey's",
+  "Lechera",
+];
+
 const negocios = [
   {
     id: "antojitos-la-bendicion-de-dios",
@@ -278,22 +301,32 @@ const negocios = [
   },
 
   {
-    id: "tacos-dona-lety",
-    nombre: "Tacos Doña Lety",
-    emoji: "🌮",
-    descripcion: "Tacos de cabeza de res",
-    imagen: "/negocios/tacos-dona-lety.jpg",
-    productos: [
-      {
-        id: "tacos-cabeza-dona-lety",
-        nombre: "Tacos de cabeza de res",
-        precio: null,
-        precioTexto: "Precio a consultar",
-        descripcion: "Tacos de cabeza de res preparados al momento",
-        imagen: "/productos/tacos-cabeza-dona-lety.jpg",
-      },
-    ],
-  },
+  id: "tacos-dona-lety",
+  nombre: "Tacos Doña Lety",
+  emoji: "🌮",
+  descripcion: "Tacos de cabeza de res",
+  imagen: "/negocios/tacos-dona-lety.jpg",
+  productos: [
+    {
+      id: "tacos-cabeza-dona-lety",
+      nombre: "Tacos de cabeza de res",
+      precio: null,
+      precioTexto: "Ver opciones",
+      descripcion: "Agrega tacos de cabeza de res al carrito",
+      imagen: "/productos/tacos-cabeza-dona-lety.jpg",
+      textoSelector: "Agrega la cantidad que quieres:",
+      opciones: [
+        {
+          id: "orden-tacos-cabeza-dona-lety",
+          nombre: "Tacos de cabeza de res",
+          precio: null,
+          precioTexto: "Precio a consultar",
+          descripcion: "Precio a consultar con el negocio",
+        },
+      ],
+    },
+  ],
+},
 
   {
     id: "el-carboncito",
@@ -553,7 +586,7 @@ const negocios = [
         ],
       },
     ],
-  },,
+  },
 
   {
     id: "cockteleria-la-almeja-2",
@@ -1082,7 +1115,83 @@ const negocios = [
         ],
       },
     ],
-  }
+  },
+
+
+  {
+    id: "monsis-fresas",
+    nombre: "Monsis Fresas",
+    emoji: "🍓",
+    descripcion: "Fresas con crema, toppings, jarabes y frappes",
+    imagen: "/negocios/monsis-fresas.jpg",
+    productos: [
+      {
+        id: "fresas-crema-chica-monsis",
+        nombre: "Fresas con crema chica",
+        precio: 50,
+        descripcion: "Incluye 1 topping. Puedes elegir jarabes.",
+        imagen: "/productos/monsis-fresas-chica.png",
+        toppings: TOPPINGS_MONSIS_FRESAS,
+        maxToppings: 1,
+        jarabes: JARABES_MONSIS_FRESAS,
+        textoToppings: "Elige 1 topping:",
+        textoJarabes: "Selecciona jarabes:",
+      },
+      {
+        id: "fresas-crema-mediana-monsis",
+        nombre: "Fresas con crema mediana",
+        precio: 80,
+        descripcion: "Incluye 1 topping. Puedes elegir jarabes.",
+        imagen: "/productos/monsis-fresas-mediana.png",
+        toppings: TOPPINGS_MONSIS_FRESAS,
+        maxToppings: 1,
+        jarabes: JARABES_MONSIS_FRESAS,
+        textoToppings: "Elige 1 topping:",
+        textoJarabes: "Selecciona jarabes:",
+      },
+      {
+        id: "fresas-crema-grande-monsis",
+        nombre: "Fresas con crema grande",
+        precio: 100,
+        descripcion: "Incluye 2 toppings. Puedes elegir jarabes.",
+        imagen: "/productos/monsis-fresas-grande.png",
+        toppings: TOPPINGS_MONSIS_FRESAS,
+        maxToppings: 2,
+        jarabes: JARABES_MONSIS_FRESAS,
+        textoToppings: "Elige hasta 2 toppings:",
+        textoJarabes: "Selecciona jarabes:",
+      },
+      {
+        id: "frappe-monsis",
+        nombre: "Frappe",
+        precio: null,
+        precioTexto: "Ver sabores",
+        descripcion: "Gansito, fresa u Oreo",
+        imagen: "/productos/monsis-fresas-frappe.png",
+        textoSelector: "Elige el sabor de frappe:",
+        opciones: [
+          {
+            id: "frappe-gansito-monsis",
+            nombre: "Gansito",
+            precio: 60,
+            descripcion: "Frappe sabor gansito",
+          },
+          {
+            id: "frappe-fresa-monsis",
+            nombre: "Fresa",
+            precio: 60,
+            descripcion: "Frappe sabor fresa",
+          },
+          {
+            id: "frappe-oreo-monsis",
+            nombre: "Oreo",
+            precio: 60,
+            descripcion: "Frappe sabor Oreo",
+          },
+        ],
+      },
+    ],
+  },
 
 ];
 
