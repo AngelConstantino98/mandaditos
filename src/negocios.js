@@ -74,6 +74,9 @@ const negocios = [
     descripcion:
       "Quesadillas, tostadas, empanadas, burritos, tacos, sopes y tlayudas",
     imagen: "/negocios/antojitos-la-bendicion-de-dios.jpg",
+    horarios: [
+          { dias: [0, 1, 2, 3, 4, 5, 6], abre: "17:00", cierra: "23:30" },
+        ],
     productos: [
       {
         id: "quesadillas-la-bendicion",
@@ -151,6 +154,9 @@ const negocios = [
     emoji: "🥪",
     descripcion: "Tortas, hot dogs y hamburguesas",
     imagen: "/negocios/tortas-el-guero.jpg",
+    horarios: [
+          { dias: [0, 1, 2, 3, 4, 5, 6], abre: "07:30", cierra: "23:00" },
+        ],
     productos: [
       {
         id: "torta-combinada-el-guero",
@@ -595,6 +601,9 @@ const negocios = [
     descripcion:
       "Cockteles, ensaladas, camarones, pescado, tostadas, caldos y bebidas",
     imagen: "/negocios/cockteleria-la-almeja-2.jpg",
+    horarios: [
+          { dias: [0, 1, 3, 4, 5, 6], abre: "12:00", cierra: "18:00" },
+        ],
     productos: [
       {
         id: "cocktel-la-almeja-2",
@@ -1124,6 +1133,9 @@ const negocios = [
     emoji: "🍓",
     descripcion: "Fresas con crema, toppings, jarabes y frappes",
     imagen: "/negocios/monsis-fresas.jpg",
+    horarios: [
+          { dias: [0, 2, 3, 4, 5, 6], abre: "16:00", cierra: "21:00" },
+        ],
     productos: [
       {
         id: "fresas-crema-chica-monsis",
@@ -1200,6 +1212,9 @@ const negocios = [
     emoji: "🎂",
     descripcion: "Pasteles tres leches y tradicionales de 15 a 20 porciones",
     imagen: "/negocios/pasteleria-oscarin.jpg",
+    horarios: [
+          { dias: [0, 1, 2, 3, 4, 5, 6], abre: "08:00", cierra: "20:00" },
+        ],
     productos: [
       {
         id: "pastel-vainilla-oscarin",
@@ -1299,6 +1314,10 @@ const negocios = [
     emoji: "📚",
     descripcion: "Papelería, regalos, material escolar, peluches, copias e impresiones",
     imagen: "/negocios/papeleria-las-gueras.jpg",
+    horarios: [
+          { dias: [1, 2, 3, 4, 5], abre: "08:00", cierra: "20:00" },
+          { dias: [0, 6], abre: "08:00", cierra: "16:00" },
+        ],
     productos: [
       {
         id: "libretas-cuadernos-las-gueras",

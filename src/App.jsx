@@ -19,6 +19,111 @@ const MENSAJE_PERDEDOR = `😔 Esta vez no ganaste
 Gracias por participar.
 ¡Te deseamos suerte en tu próximo pedido!`;
 
+const ZONA_HORARIA_NEGOCIOS = "America/Mexico_City";
+
+function horaAMinutos(hora = "00:00") {
+  const [horas, minutos] = String(hora).split(":").map(Number);
+  return (horas || 0) * 60 + (minutos || 0);
+}
+
+function formatearHora(hora = "00:00") {
+  const [hh, mm] = String(hora).split(":").map(Number);
+  const periodo = hh >= 12 ? "PM" : "AM";
+  const hora12 = hh % 12 || 12;
+  return `${hora12}:${String(mm || 0).padStart(2, "0")} ${periodo}`;
+}
+
+function obtenerAhoraMexico() {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: ZONA_HORARIA_NEGOCIOS,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+
+  const mapa = {};
+  partes.forEach((parte) => {
+    mapa[parte.type] = parte.value;
+  });
+
+  const dias = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+
+  return {
+    dia: dias[mapa.weekday] ?? new Date().getDay(),
+    minutos: Number(mapa.hour || 0) * 60 + Number(mapa.minute || 0),
+  };
+}
+
+function textoDiasHorario(dias = []) {
+  const normalizados = [...new Set(dias)].sort((a, b) => a - b).join(",");
+
+  if (normalizados === "0,1,2,3,4,5,6") return "Todos los días";
+  if (normalizados === "1,2,3,4,5") return "Lun a Vie";
+  if (normalizados === "0,6") return "Sáb y Dom";
+  if (normalizados === "0,1,3,4,5,6") return "Mié a Lun";
+  if (normalizados === "0,2,3,4,5,6") return "Mar a Dom";
+
+  const nombres = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  return dias.map((dia) => nombres[dia]).filter(Boolean).join(", ");
+}
+
+function obtenerTextoHorarioNegocio(negocio) {
+  if (!Array.isArray(negocio?.horarios) || negocio.horarios.length === 0) {
+    return "Horario no definido";
+  }
+
+  return negocio.horarios
+    .map((horario) => `${textoDiasHorario(horario.dias)} ${formatearHora(horario.abre)} - ${formatearHora(horario.cierra)}`)
+    .join(" · ");
+}
+
+function calcularEstadoPorHorario(negocio) {
+  const horarios = Array.isArray(negocio?.horarios) ? negocio.horarios : [];
+
+  if (horarios.length === 0) {
+    return {
+      abierto: true,
+      textoEstado: "Sin horario automático",
+      detalleHorario: "Horario no definido",
+    };
+  }
+
+  const ahora = obtenerAhoraMexico();
+  const horariosHoy = horarios.filter((horario) =>
+    Array.isArray(horario.dias) && horario.dias.includes(ahora.dia)
+  );
+
+  let abierto = false;
+
+  horariosHoy.forEach((horario) => {
+    const abre = horaAMinutos(horario.abre);
+    const cierra = horaAMinutos(horario.cierra);
+
+    if (cierra < abre) {
+      if (ahora.minutos >= abre || ahora.minutos < cierra) abierto = true;
+      return;
+    }
+
+    if (ahora.minutos >= abre && ahora.minutos < cierra) abierto = true;
+  });
+
+  return {
+    abierto,
+    textoEstado: abierto ? "Abierto por horario" : "Cerrado por horario",
+    detalleHorario: obtenerTextoHorarioNegocio(negocio),
+  };
+}
+
+
 export default function App() {
   const socketRef = useRef(null);
   const pedidoActualRef = useRef(null);
@@ -52,18 +157,45 @@ export default function App() {
     setNegociosEstado(mapa);
   };
 
-  const negocioEstaAbierto = (negocioId) => {
-    return negociosEstado[negocioId]?.abierto !== false;
-  };
-
   const obtenerEstadoNegocio = (negocio) => {
-    return (
-      negociosEstado[negocio.id] || {
+    relojHorarios;
+    const estadoServidor = negociosEstado[negocio.id] || {};
+    const estadoHorario = calcularEstadoPorHorario(negocio);
+    const modo = estadoServidor.modo || "auto";
+
+    if (modo === "manual") {
+      const abiertoManual = estadoServidor.abierto !== false;
+
+      return {
         negocioId: negocio.id,
         negocioNombre: negocio.nombre,
-        abierto: true,
-      }
-    );
+        abierto: abiertoManual,
+        modo: "manual",
+        textoEstado: abiertoManual ? "Abierto manualmente" : "Cerrado manualmente",
+        detalleHorario: estadoHorario.detalleHorario,
+        fechaActualizacion: estadoServidor.fechaActualizacion || null,
+      };
+    }
+
+    return {
+      negocioId: negocio.id,
+      negocioNombre: negocio.nombre,
+      abierto: estadoHorario.abierto,
+      modo: "auto",
+      textoEstado: estadoHorario.textoEstado,
+      detalleHorario: estadoHorario.detalleHorario,
+      fechaActualizacion: estadoServidor.fechaActualizacion || null,
+    };
+  };
+
+  const negocioEstaAbierto = (negocioId) => {
+    const negocio = negocios.find((item) => item.id === negocioId);
+
+    if (!negocio) {
+      return negociosEstado[negocioId]?.abierto !== false;
+    }
+
+    return obtenerEstadoNegocio(negocio).abierto;
   };
 
   // 📱 Navegación interna para que el botón "atrás" del teléfono funcione dentro de la app.
@@ -169,9 +301,19 @@ export default function App() {
 
   // 🏪 Negocios abiertos/cerrados desde el panel dueño
   const [negociosEstado, setNegociosEstado] = useState({});
+  const [relojHorarios, setRelojHorarios] = useState(Date.now());
   const [duenoNegociosCargando, setDuenoNegociosCargando] = useState(false);
   const [duenoNegociosMensaje, setDuenoNegociosMensaje] = useState("");
   const [negociosPedidoActual, setNegociosPedidoActual] = useState([]);
+
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      setRelojHorarios(Date.now());
+    }, 60000);
+
+    return () => clearInterval(intervalo);
+  }, []);
+
 
   // 👤 Cliente con cuenta opcional: teléfono + PIN
   const [cliente, setCliente] = useState(() => {
@@ -779,7 +921,7 @@ export default function App() {
     }
   };
 
-  const cambiarEstadoNegocioDueno = async (negocio, abierto) => {
+  const cambiarEstadoNegocioDueno = async (negocio, abierto, modo = "manual") => {
     try {
       if (!dueno?.usuario || !dueno?.pin) {
         setScreen("dueno-login", { reemplazar: true });
@@ -799,7 +941,8 @@ export default function App() {
           pin: dueno.pin,
           negocioId: negocio.id,
           negocioNombre: negocio.nombre,
-          abierto
+          abierto,
+          modo
         })
       });
 
@@ -813,9 +956,11 @@ export default function App() {
       actualizarEstadoNegociosApp(data.estado);
 
       setDuenoNegociosMensaje(
-        abierto
-          ? `${negocio.nombre} está abierto.`
-          : `${negocio.nombre} está cerrado.`
+        modo === "auto"
+          ? `${negocio.nombre} volvió a modo automático.`
+          : abierto
+            ? `${negocio.nombre} quedó abierto manualmente.`
+            : `${negocio.nombre} quedó cerrado manualmente.`
       );
     } catch (error) {
       console.log("Error actualizando negocio:", error);
@@ -2728,7 +2873,7 @@ ${notaPedido.trim()}`
             </h2>
 
             <p style={{ fontSize: 14, color: "#666", marginBottom: 10 }}>
-              Cuando un negocio esté cerrado, los clientes podrán verlo, pero no podrán hacer pedidos ahí.
+              En modo automático se abre y cierra según su horario. Si hay un problema, puedes abrirlo o cerrarlo manualmente.
             </p>
 
             {duenoNegociosMensaje && (
@@ -2750,15 +2895,12 @@ ${notaPedido.trim()}`
             {negocios.map((negocio) => {
               const estadoNegocio = obtenerEstadoNegocio(negocio);
               const abierto = estadoNegocio.abierto !== false;
+              const automatico = estadoNegocio.modo !== "manual";
 
               return (
                 <div
                   key={negocio.id}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 10,
                     padding: 10,
                     marginBottom: 8,
                     borderRadius: 12,
@@ -2766,38 +2908,109 @@ ${notaPedido.trim()}`
                     background: abierto ? "#f0fdf4" : "#fff1f2"
                   }}
                 >
-                  <div>
-                    <strong>
-                      {negocio.emoji} {negocio.nombre}
-                    </strong>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      marginBottom: 8
+                    }}
+                  >
+                    <div>
+                      <strong>
+                        {negocio.emoji} {negocio.nombre}
+                      </strong>
 
-                    <p
+                      <p
+                        style={{
+                          margin: "3px 0 0",
+                          fontSize: 12,
+                          color: abierto ? "#166534" : "#991b1b",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        {abierto ? "🟢 Abierto" : "🔴 Cerrado"} · {automatico ? "🤖 Automático" : "✋ Manual"}
+                      </p>
+
+                      <p
+                        style={{
+                          margin: "3px 0 0",
+                          fontSize: 12,
+                          color: "#475569"
+                        }}
+                      >
+                        {estadoNegocio.textoEstado}
+                      </p>
+
+                      <p
+                        style={{
+                          margin: "3px 0 0",
+                          fontSize: 11,
+                          color: "#64748b"
+                        }}
+                      >
+                        {estadoNegocio.detalleHorario}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 8
+                    }}
+                  >
+                    <button
+                      onClick={() => cambiarEstadoNegocioDueno(negocio, false, "manual")}
+                      disabled={duenoNegociosCargando}
                       style={{
-                        margin: "3px 0 0",
-                        fontSize: 12,
-                        color: abierto ? "#166534" : "#991b1b",
-                        fontWeight: "bold"
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        border: "none",
+                        background: "#dc2626",
+                        color: "white",
+                        fontWeight: "bold",
+                        cursor: "pointer"
                       }}
                     >
-                      {abierto ? "🟢 Abierto" : "🔴 Cerrado"}
-                    </p>
+                      Cerrar manual
+                    </button>
+
+                    <button
+                      onClick={() => cambiarEstadoNegocioDueno(negocio, true, "manual")}
+                      disabled={duenoNegociosCargando}
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        border: "none",
+                        background: "#16a34a",
+                        color: "white",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Abrir manual
+                    </button>
                   </div>
 
                   <button
-                    onClick={() => cambiarEstadoNegocioDueno(negocio, !abierto)}
+                    onClick={() => cambiarEstadoNegocioDueno(negocio, true, "auto")}
                     disabled={duenoNegociosCargando}
                     style={{
+                      width: "100%",
+                      marginTop: 8,
                       padding: "8px 10px",
                       borderRadius: 10,
-                      border: "none",
-                      background: abierto ? "#dc2626" : "#16a34a",
-                      color: "white",
+                      border: "1px solid #cbd5e1",
+                      background: automatico ? "#e0f2fe" : "#ffffff",
+                      color: "#0f172a",
                       fontWeight: "bold",
-                      cursor: "pointer",
-                      minWidth: 95
+                      cursor: "pointer"
                     }}
                   >
-                    {abierto ? "Cerrar" : "Abrir"}
+                    🤖 Volver automático
                   </button>
                 </div>
               );
@@ -3156,7 +3369,8 @@ ${notaPedido.trim()}`
             </p>
 
             {negocios.map((negocio) => {
-              const abierto = negocioEstaAbierto(negocio.id);
+              const estadoNegocio = obtenerEstadoNegocio(negocio);
+              const abierto = estadoNegocio.abierto;
 
               return (
                 <button
@@ -3249,6 +3463,10 @@ ${notaPedido.trim()}`
                     <span style={{ fontSize: 13, color: "#666" }}>
                       {negocio.descripcion}
                     </span>
+
+                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>
+                      {estadoNegocio.textoEstado} · {estadoNegocio.detalleHorario}
+                    </div>
                   </div>
                 </button>
               );
@@ -3292,6 +3510,10 @@ ${notaPedido.trim()}`
 
             <p style={{ fontSize: 14, color: "#666", marginTop: 5 }}>
               {negocioSeleccionado.descripcion}
+            </p>
+
+            <p style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+              {obtenerEstadoNegocio(negocioSeleccionado).textoEstado} · {obtenerEstadoNegocio(negocioSeleccionado).detalleHorario}
             </p>
           </div>
 
