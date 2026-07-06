@@ -1067,23 +1067,32 @@ ${notaPedido.trim()}`
       return;
     }
 
-    const negociosEnCarrito = [
-      ...new Set(carrito.map((item) => item.negocioNombre))
-    ];
+    const carritoPorNegocio = carrito.reduce((grupos, item) => {
+      const negocio = item.negocioNombre || "Negocio no especificado";
 
-    const textoNegocios =
-      negociosEnCarrito.length === 1
-        ? `Negocio: ${negociosEnCarrito[0]}`
-        : `Negocios:\n${negociosEnCarrito.map((n) => `- ${n}`).join("\n")}`;
+      if (!grupos[negocio]) {
+        grupos[negocio] = [];
+      }
 
-    const detalleProductos = carrito
-      .map((item) => {
-        const precioLinea = mostrarPrecioLineaCarrito(item);
-        return `- ${item.cantidad} x ${item.nombre} — ${precioLinea}`;
+      grupos[negocio].push(item);
+
+      return grupos;
+    }, {});
+
+    const detallePorNegocio = Object.entries(carritoPorNegocio)
+      .map(([negocio, productos]) => {
+        const productosTexto = productos
+          .map((item) => {
+            const precioLinea = mostrarPrecioLineaCarrito(item);
+            return `- ${item.cantidad} x ${item.nombre} — ${precioLinea}`;
+          })
+          .join("\n");
+
+        return `🏪 ${negocio}\n${productosTexto}`;
       })
-      .join("\n");
+      .join("\n\n");
 
-    const pedidoArmado = `${textoNegocios}\n\nPedido:\n${detalleProductos}\n\nTotal productos: ${textoTotalCarrito}`;
+    const pedidoArmado = `Pedido de negocios locales:\n\n${detallePorNegocio}\n\nTotal productos: ${textoTotalCarrito}`;
 
     setPedido(pedidoArmado);
     setNotaPedido("");
