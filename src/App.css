@@ -324,3 +324,65 @@ p {
     zoom: 2.25;
   }
 }
+/* 📱 Agrandar ventanas de guisos, extras, opciones y toppings
+   SOLO cuando el teléfono está en "Sitio de computadora" */
+@media (hover: none) and (pointer: coarse) and (min-width: 700px) and (max-width: 1200px) {
+  .app > div[style*="z-index: 9999"],
+  .app > div[style*="z-index:9999"] {
+    padding: 18px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .app > div[style*="z-index: 9999"] > div,
+  .app > div[style*="z-index:9999"] > div {
+    width: 430px !important;
+    max-width: 430px !important;
+    min-width: 430px !important;
+
+    max-height: 82dvh !important;
+    overflow-y: auto !important;
+
+    border-radius: 18px !important;
+    padding: 18px !important;
+
+    zoom: 1.65;
+
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .app > div[style*="z-index: 9999"] h2,
+  .app > div[style*="z-index:9999"] h2 {
+    font-size: 22px !important;
+  }
+
+  .app > div[style*="z-index: 9999"] p,
+  .app > div[style*="z-index:9999"] p {
+    font-size: 15px !important;
+  }
+
+  .app > div[style*="z-index: 9999"] button,
+  .app > div[style*="z-index:9999"] button {
+    font-size: 15px !important;
+    min-height: 42px !important;
+  }
+
+  .app > div[style*="z-index: 9999"] label,
+  .app > div[style*="z-index:9999"] label {
+    font-size: 15px !important;
+  }
+
+  .app > div[style*="z-index: 9999"] input[type="checkbox"],
+  .app > div[style*="z-index:9999"] input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* Ajuste más fuerte si el navegador simula pantalla todavía más ancha */
+@media (hover: none) and (pointer: coarse) and (min-width: 900px) and (max-width: 1200px) {
+  .app > div[style*="z-index: 9999"] > div,
+  .app > div[style*="z-index:9999"] > div {
+    zoom: 1.9;
+  }
+}
