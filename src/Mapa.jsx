@@ -79,10 +79,33 @@ export default function Mapa({ setCoords, repartidor }) {
   const [position, setPosition] = useState([16.75, -93.12]);
   const [marker, setMarker] = useState(null);
   const [seguirRepartidor, setSeguirRepartidor] = useState(false);
+  const [avisoMapa, setAvisoMapa] = useState(null);
+
+  const mostrarAvisoMapa = (
+    titulo,
+    mensaje,
+    icono = "📍",
+    colorFondoIcono = "#ecfdf5"
+  ) => {
+    setAvisoMapa({
+      titulo,
+      mensaje,
+      icono,
+      colorFondoIcono,
+    });
+  };
+
+  const cerrarAvisoMapa = () => {
+    setAvisoMapa(null);
+  };
 
   const obtenerUbicacion = () => {
     if (!navigator.geolocation) {
-      alert("Tu navegador no soporta GPS");
+      mostrarAvisoMapa(
+        "GPS no disponible",
+        "Tu navegador no soporta GPS. Escribe tu ubicación manualmente.",
+        "📍"
+      );
       return;
     }
 
@@ -98,7 +121,11 @@ export default function Mapa({ setCoords, repartidor }) {
         setCoords({ lat, lng });
       },
       (err) => {
-        alert("No se pudo obtener ubicación");
+        mostrarAvisoMapa(
+          "Ubicación no disponible",
+          "No se pudo obtener tu ubicación. Revisa que el permiso de ubicación esté activado e intenta nuevamente.",
+          "📍"
+        );
         console.log(err);
       },
       {
@@ -111,7 +138,11 @@ export default function Mapa({ setCoords, repartidor }) {
 
   const activarSeguimientoRepartidor = () => {
     if (!repartidor?.lat || !repartidor?.lng) {
-      alert("Aún no hay ubicación del repartidor.");
+      mostrarAvisoMapa(
+        "Ubicación no disponible",
+        "Aún no hay ubicación del repartidor. Intenta nuevamente cuando el repartidor inicie su GPS.",
+        "🛵"
+      );
       return;
     }
 
@@ -120,6 +151,90 @@ export default function Mapa({ setCoords, repartidor }) {
 
   return (
     <div style={{ marginBottom: "10px" }}>
+      {avisoMapa && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.55)",
+            zIndex: 999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 390,
+              background: "white",
+              borderRadius: 22,
+              padding: 22,
+              boxShadow: "0 20px 45px rgba(0,0,0,0.25)",
+              border: "1px solid #e5e7eb",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: avisoMapa.colorFondoIcono || "#ecfdf5",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 12px",
+                fontSize: 32,
+              }}
+            >
+              {avisoMapa.icono || "📍"}
+            </div>
+
+            <h2
+              style={{
+                fontSize: 22,
+                marginBottom: 10,
+                color: "#111827",
+                lineHeight: 1.15,
+              }}
+            >
+              {avisoMapa.titulo}
+            </h2>
+
+            <p
+              style={{
+                fontSize: 16,
+                color: "#374151",
+                whiteSpace: "pre-line",
+                lineHeight: 1.45,
+                marginBottom: 18,
+              }}
+            >
+              {avisoMapa.mensaje}
+            </p>
+
+            <button
+              type="button"
+              className="btn"
+              onClick={cerrarAvisoMapa}
+              style={{
+                background: "#16a34a",
+                color: "white",
+                marginTop: 0,
+                width: "100%",
+                borderRadius: 14,
+                padding: 13,
+                fontSize: 16,
+              }}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={obtenerUbicacion}
         style={{
