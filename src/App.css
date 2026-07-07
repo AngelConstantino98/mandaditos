@@ -231,3 +231,35 @@ p {
     overflow: hidden;
   }
 }
+/* 📱 Evita que la app se vea chiquita cuando el usuario activa
+   "Sitio de computadora" en el navegador del celular */
+@media (hover: none) and (pointer: coarse) and (min-width: 700px) {
+  html,
+  body,
+  #root {
+    width: 100vw !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  .app {
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .card,
+  .splash {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    min-height: 100dvh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+}
