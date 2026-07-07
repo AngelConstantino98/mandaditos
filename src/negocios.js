@@ -1615,6 +1615,225 @@ const negocios = [
     ],
   },
 
+
+  {
+    id: "liamdi-hamburguesas-y-mas",
+    nombre: "🔥 LIAMDI Hamburguesas y Más",
+    emoji: "🔥",
+    descripcion:
+      "Hamburguesas, hot dogs jumbo, alitas, papas, aros de cebolla, bebidas y combos",
+    imagen: "/negocios/liamdi-hamburguesas-y-mas.jpg",
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "18:00", cierra: "22:00" },
+    ],
+    productos: [
+      {
+        id: "hamburguesa-clasica-liamdi",
+        nombre: "Hamburguesa clásica",
+        precio: 85,
+        descripcion: "Pan, carne, quesillo, jamón y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-tocino-liamdi",
+        nombre: "Hamburguesa tocino",
+        precio: 100,
+        descripcion: "Pan, carne, quesillo, jamón, tocino y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-tocino.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-hawaiana-liamdi",
+        nombre: "Hamburguesa hawaiana",
+        precio: 100,
+        descripcion: "Pan, carne, quesillo, jamón, tocino, piña y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-hawaiana.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-bbq-liamdi",
+        nombre: "Hamburguesa BBQ",
+        precio: 100,
+        descripcion: "Pan, carne, quesillo, jamón, tocino, BBQ y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-bbq.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-salchiburger-liamdi",
+        nombre: "Salchiburger",
+        precio: 100,
+        descripcion:
+          "Pan, carne, quesillo, jamón, salchicha para asar y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-salchi.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-chistorra-liamdi",
+        nombre: "Hamburguesa chistorra",
+        precio: 100,
+        descripcion: "Pan, carne, quesillo, jamón, chistorra y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-chistor.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-doble-carne-liamdi",
+        nombre: "Hamburguesa doble carne",
+        precio: 120,
+        descripcion:
+          "Pan, doble porción de carne, quesillo, jamón y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-doblec.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hamburguesa-especial-liamdi",
+        nombre: "Hamburguesa especial",
+        precio: 130,
+        descripcion:
+          "Pan, carne, quesillo, jamón, tocino, piña, salchicha para asar y verduras. Puedes agregar extras.",
+        imagen: "/productos/liamdi-hamburguesas-especial.jpg",
+        extras: [
+          { id: "ingrediente-extra-liamdi", nombre: "Ingrediente extra", precio: 20 },
+          { id: "carne-adicional-liamdi", nombre: "Carne adicional", precio: 35 },
+        ],
+      },
+      {
+        id: "hot-dogs-jumbo-liamdi",
+        nombre: "Hot dogs jumbo",
+        precio: null,
+        precioTexto: "Desde $60",
+        descripcion: "Elige clásico o hawaiano.",
+        imagen: "/productos/liamdi-hotdogs.jpg",
+        textoSelector: "Elige tu hot dog jumbo:",
+        opciones: [
+          {
+            id: "hot-dog-clasico-liamdi",
+            nombre: "Clásico",
+            precio: 60,
+            descripcion: "Pan, salchicha, quesillo fundido y cebolla caramelizada.",
+          },
+          {
+            id: "hot-dog-hawaiano-liamdi",
+            nombre: "Hawaiano",
+            precio: 80,
+            descripcion:
+              "Pan, salchicha, quesillo fundido, tocino, piña y cebolla caramelizada.",
+          },
+        ],
+      },
+      {
+        id: "alitas-liamdi",
+        nombre: "Alitas",
+        precio: null,
+        precioTexto: "$95",
+        descripcion: "6 piezas acompañadas con porción de papas y aderezo ranch.",
+        imagen: "/productos/liamdi-alitas.jpg",
+        textoSelector: "Elige el sabor de tus alitas:",
+        opciones: [
+          { id: "alitas-bbq-liamdi", nombre: "BBQ", precio: 95, descripcion: "6 piezas con papas y aderezo ranch." },
+          { id: "alitas-bufalo-liamdi", nombre: "Búfalo", precio: 95, descripcion: "6 piezas con papas y aderezo ranch." },
+          { id: "alitas-mango-habanero-liamdi", nombre: "Mango habanero", precio: 95, descripcion: "6 piezas con papas y aderezo ranch." },
+        ],
+      },
+      {
+        id: "papas-liamdi",
+        nombre: "Papas",
+        precio: null,
+        precioTexto: "Desde $10",
+        descripcion: "Porción, papas a la francesa, salchipapas y papa rellena.",
+        imagen: "/productos/liamdi-papas.jpg",
+        textoSelector: "Elige tus papas:",
+        opciones: [
+          { id: "porcion-papas-liamdi", nombre: "Porción", precio: 10, descripcion: "Porción de papas." },
+          { id: "papas-a-la-francesa-liamdi", nombre: "A la francesa", precio: 50, descripcion: "Papas a la francesa." },
+          { id: "salchipapas-liamdi", nombre: "Salchipapas", precio: 80, descripcion: "Salchipapas." },
+          { id: "papa-rellena-arrachera-liamdi", nombre: "Papa rellena con arrachera", precio: 100, descripcion: "Disponible fines de semana." },
+        ],
+      },
+      {
+        id: "aros-cebolla-liamdi",
+        nombre: "Aros de cebolla",
+        precio: 70,
+        descripcion: "Orden de 10 piezas.",
+        imagen: "/productos/liamdi-aros-cebolla.jpg",
+      },
+      {
+        id: "bebidas-liamdi",
+        nombre: "Bebidas",
+        precio: null,
+        precioTexto: "$30",
+        descripcion: "Agua natural y refresco embotellado.",
+        imagen: "/productos/liamdi-bebidas.jpg",
+        textoSelector: "Elige tu bebida:",
+        opciones: [
+          { id: "agua-natural-liamdi", nombre: "Agua natural", precio: 30, descripcion: "Agua natural." },
+          { id: "refresco-embotellado-liamdi", nombre: "Refresco embotellado", precio: 30, descripcion: "Refresco embotellado." },
+        ],
+      },
+      {
+        id: "combo-individual-liamdi",
+        nombre: "Combo individual",
+        precio: 130,
+        descripcion:
+          "1 hamburguesa de especialidad, 1 porción de papas y 1 agua o refresco.",
+        imagen: "/productos/liamdi-combo-individual.jpg",
+      },
+      {
+        id: "combo-pareja-liamdi",
+        nombre: "Combo pareja",
+        precio: 430,
+        descripcion:
+          "2 hamburguesas de especialidad, 2 órdenes de alitas, 1 porción de papas y 2 aguas o refrescos.",
+        imagen: "/productos/liamdi-combo-pareja.jpg",
+      },
+      {
+        id: "combo-mix-liamdi",
+        nombre: "Combo mix",
+        precio: 170,
+        descripcion:
+          "1 hamburguesa de especialidad, 1/2 orden de alitas, 1 porción de papas y 1 agua o refresco.",
+        imagen: "/productos/liamdi-combo-mix.jpg",
+      },
+      {
+        id: "combo-dogos-liamdi",
+        nombre: "Combo dogos",
+        precio: 180,
+        descripcion:
+          "2 hot dogs clásicos, 1/2 orden de aros de cebolla, 1 porción de papas y 1 agua o refresco.",
+        imagen: "/productos/liamdi-combo-dogos.jpg",
+      },
+      {
+        id: "combo-pro-liamdi",
+        nombre: "Combo pro",
+        precio: 240,
+        descripcion:
+          "2 hot dogs hawaianos, 1 orden de alas y 1 agua o refresco.",
+        imagen: "/productos/liamdi-combo-pro.jpg",
+      },
+    ],
+  },
+
 ];
 
 export default negocios;
