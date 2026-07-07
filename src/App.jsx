@@ -135,6 +135,10 @@ export default function App() {
   // 💬 Alerta formal dentro de la app para no mostrar el nombre del dominio del navegador.
   const [alertaApp, setAlertaApp] = useState(null);
 
+  // 📲 En iPhone/Safari a veces WhatsApp no se abre automático después de esperar al servidor.
+  // Android se queda igual: abre WhatsApp directo como antes.
+  const [whatsappPendiente, setWhatsappPendiente] = useState(null);
+
   const mostrarAlerta = (mensaje, titulo = "MandaPlus") => {
     setAlertaApp({
       titulo,
@@ -144,6 +148,16 @@ export default function App() {
 
   const cerrarAlerta = () => {
     setAlertaApp(null);
+  };
+
+  const abrirWhatsAppPendiente = () => {
+    if (!whatsappPendiente?.url) return;
+
+    const url = whatsappPendiente.url;
+    setWhatsappPendiente(null);
+
+    // En iPhone conviene usar el mismo tab desde un botón tocado por el usuario.
+    window.location.href = url;
   };
 
   const actualizarEstadoNegociosApp = (estado) => {
@@ -1106,12 +1120,24 @@ ${notaPedido.trim()}`
     : "No compartida"
 }`;
 
-        setTimeout(() => {
-          window.open(
-            `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`,
-            "_blank"
-          );
-        }, 200);
+        const whatsappUrl = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+
+        if (isIOS) {
+          // iPhone/Safari puede bloquear la apertura automática.
+          // Mostramos un botón para abrir WhatsApp con un toque real del usuario.
+          setWhatsappPendiente({
+            url: whatsappUrl,
+            mensaje: "Tu pedido ya fue enviado al repartidor. Ahora toca el botón para mandarlo también por WhatsApp."
+          });
+        } else {
+          // Android se queda igual que antes.
+          setTimeout(() => {
+            window.open(
+              whatsappUrl,
+              "_blank"
+            );
+          }, 200);
+        }
 
         setNombre("");
         setPedido("");
@@ -1954,6 +1980,104 @@ ${notaPedido.trim()}`
               }}
             >
               Entendido
+            </button>
+          </div>
+        </div>
+      )}
+
+      {whatsappPendiente && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.55)",
+            zIndex: 999998,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 390,
+              background: "white",
+              borderRadius: 18,
+              padding: 18,
+              boxShadow: "0 20px 45px rgba(0,0,0,0.25)",
+              border: "1px solid #e5e7eb",
+              textAlign: "center"
+            }}
+          >
+            <div
+              style={{
+                width: 58,
+                height: 58,
+                borderRadius: "50%",
+                background: "#dcfce7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 10px",
+                fontSize: 30
+              }}
+            >
+              ✅
+            </div>
+
+            <h2
+              style={{
+                fontSize: 20,
+                marginBottom: 8,
+                color: "#111827"
+              }}
+            >
+              Pedido enviado
+            </h2>
+
+            <p
+              style={{
+                fontSize: 15,
+                color: "#374151",
+                whiteSpace: "pre-line",
+                lineHeight: 1.4,
+                marginBottom: 16
+              }}
+            >
+              {whatsappPendiente.mensaje ||
+                "Tu pedido ya fue enviado al repartidor. Ahora puedes mandarlo también por WhatsApp."}
+            </p>
+
+            <button
+              className="btn"
+              onClick={abrirWhatsAppPendiente}
+              style={{
+                background: "#25D366",
+                color: "white",
+                marginTop: 0,
+                fontWeight: 900
+              }}
+            >
+              📲 Abrir WhatsApp para enviar pedido
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setWhatsappPendiente(null)}
+              style={{
+                marginTop: 10,
+                padding: "9px 12px",
+                borderRadius: 10,
+                border: "none",
+                background: "#e5e7eb",
+                color: "#111827",
+                cursor: "pointer",
+                width: "100%",
+                fontWeight: 800
+              }}
+            >
+              Cerrar
             </button>
           </div>
         </div>
