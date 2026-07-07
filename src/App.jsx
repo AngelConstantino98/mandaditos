@@ -1070,10 +1070,84 @@ ${notaPedido.trim()}`
       totalProductosNegocios: esPedidoNegocioLocal ? textoTotalCarrito : null,
     };
 
+    const numero = "529621816603";
+
+    const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
+
+👤 ${nombre}
+🛒 ${pedidoFinal}
+📍 ${ubicacion}
+📌 Zona: ${zona}
+💰 Costo envío: ${costo}
+📍 GPS: ${
+  coords
+    ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+    : "No compartida"
+}`;
+
+    const whatsappUrl = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+
+    // 📱 iPhone/Safari bloquea ventanas que se abren después de esperar al servidor.
+    // Por eso abrimos una ventana vacía justo con el toque del botón y la mandamos
+    // a WhatsApp solo cuando el servidor confirma que el pedido sí se guardó.
+    let ventanaWhatsApp = null;
+
+    try {
+      ventanaWhatsApp = window.open("about:blank", "_blank");
+
+      if (ventanaWhatsApp) {
+        ventanaWhatsApp.document.write(`
+          <!doctype html>
+          <html>
+            <head>
+              <title>Abriendo WhatsApp...</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            </head>
+            <body style="font-family: Arial, sans-serif; padding: 24px;">
+              <h2>Preparando WhatsApp...</h2>
+              <p>Espera un momento mientras confirmamos tu pedido.</p>
+            </body>
+          </html>
+        `);
+        ventanaWhatsApp.document.close();
+      }
+    } catch (error) {
+      ventanaWhatsApp = null;
+    }
+
+    const cerrarVentanaWhatsApp = () => {
+      try {
+        if (ventanaWhatsApp && !ventanaWhatsApp.closed) {
+          ventanaWhatsApp.close();
+        }
+      } catch {
+        // No hacemos nada.
+      }
+    };
+
+    const abrirWhatsAppConfirmado = () => {
+      try {
+        if (ventanaWhatsApp && !ventanaWhatsApp.closed) {
+          ventanaWhatsApp.location.href = whatsappUrl;
+          return;
+        }
+      } catch {
+        // Si falla, usamos el respaldo de abajo.
+      }
+
+      const nuevaVentana = window.open(whatsappUrl, "_blank");
+
+      if (!nuevaVentana) {
+        window.location.href = whatsappUrl;
+      }
+    };
+
     socketRef.current
       .timeout(7000)
       .emit("nuevo-pedido", pedidoData, (err, respuesta) => {
         if (err || !respuesta?.ok) {
+          cerrarVentanaWhatsApp();
+
           mostrarAlerta(
             respuesta?.mensaje ||
               "No se pudo enviar el pedido. Intenta nuevamente.",
@@ -1091,27 +1165,7 @@ ${notaPedido.trim()}`
         setSorteando(false);
         setOcultarPromoInicio(false);
 
-        const numero = "529621816603";
-
-        const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
-
-👤 ${nombre}
-🛒 ${pedidoFinal}
-📍 ${ubicacion}
-📌 Zona: ${zona}
-💰 Costo envío: ${costo}
-📍 GPS: ${
-  coords
-    ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
-    : "No compartida"
-}`;
-
-        setTimeout(() => {
-          window.open(
-            `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`,
-            "_blank"
-          );
-        }, 200);
+        abrirWhatsAppConfirmado();
 
         setNombre("");
         setPedido("");
