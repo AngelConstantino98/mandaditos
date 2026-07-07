@@ -983,7 +983,24 @@ export default function App() {
 
   // ENVIAR
   const enviar = () => {
-    if (!nombre || !pedido || !ubicacion || !zona) {
+    const esPedidoNegocioLocal = negociosPedidoActual.length > 0;
+    const pedidoSeguroNegocio = esPedidoNegocioLocal
+      ? construirPedidoNegociosLocales(carrito)
+      : "";
+
+    const pedidoBase = esPedidoNegocioLocal
+      ? pedidoSeguroNegocio
+      : pedido.trim();
+
+    if (esPedidoNegocioLocal && carrito.length === 0) {
+      mostrarAlerta(
+        "Tu carrito de negocio local está vacío. Regresa a negocios locales y agrega productos.",
+        "Carrito vacío"
+      );
+      return;
+    }
+
+    if (!nombre || !pedidoBase || !ubicacion || !zona) {
       mostrarAlerta("Completa todos los campos");
       return;
     }
@@ -1011,11 +1028,11 @@ export default function App() {
     }
 
     const pedidoFinal = notaPedido.trim()
-      ? `${pedido}
+      ? `${pedidoBase}
 
 Notas del pedido:
 ${notaPedido.trim()}`
-      : pedido;
+      : pedidoBase;
 
     const info = zonas[zona];
 
@@ -1044,7 +1061,13 @@ ${notaPedido.trim()}`
       repartidorId: "",
       repartidorNombre: "",
       fecha: new Date().toISOString(),
-      negociosIds: negociosPedidoActual
+      negociosIds: esPedidoNegocioLocal
+        ? obtenerNegociosIdsCarrito(carrito)
+        : negociosPedidoActual,
+      carritoNegocios: esPedidoNegocioLocal
+        ? obtenerCarritoProtegidoParaPedido()
+        : [],
+      totalProductosNegocios: esPedidoNegocioLocal ? textoTotalCarrito : null,
     };
 
     socketRef.current
@@ -1677,28 +1700,27 @@ ${notaPedido.trim()}`
       : "Precio a consultar"
     : `$${totalCarrito}`;
 
-  const limpiarCarrito = () => {
-    setCarrito([]);
-  };
+  // 🔒 Arma el resumen del pedido de negocios locales usando el carrito real.
+  // Importante: este texto NO se toma del campo editable del formulario.
+  const construirPedidoNegociosLocales = (carritoActual = carrito) => {
+    const carritoSeguro = Array.isArray(carritoActual) ? carritoActual : [];
 
-  // 🛒 CONFIRMAR CARRITO Y PASARLO AL FORMULARIO
-  const confirmarCarrito = () => {
-    if (carrito.length === 0) {
-      mostrarAlerta("Agrega al menos un producto al carrito.");
-      return;
-    }
+    const totalSeguro = carritoSeguro.reduce((total, item) => {
+      if (!productoTienePrecio(item)) return total;
+      return total + Number(item.precio || 0) * Number(item.cantidad || 1);
+    }, 0);
 
-    const negocioCerrado = carrito.find((item) => !negocioEstaAbierto(item.negocioId));
+    const tienePrecioConsulta = carritoSeguro.some(
+      (item) => !productoTienePrecio(item)
+    );
 
-    if (negocioCerrado) {
-      mostrarAlerta(
-        `${negocioCerrado.negocioNombre || "Este negocio"} está cerrado por el momento. Elimina ese producto del carrito o espera a que abra.`,
-        "Negocio cerrado"
-      );
-      return;
-    }
+    const textoTotalSeguro = tienePrecioConsulta
+      ? totalSeguro > 0
+        ? `$${totalSeguro} + precio a consultar`
+        : "Precio a consultar"
+      : `$${totalSeguro}`;
 
-    const carritoPorNegocio = carrito.reduce((grupos, item) => {
+    const carritoPorNegocio = carritoSeguro.reduce((grupos, item) => {
       const negocio = item.negocioNombre || "Negocio no especificado";
 
       if (!grupos[negocio]) {
@@ -1723,12 +1745,59 @@ ${notaPedido.trim()}`
       })
       .join("\n\n");
 
-    const pedidoArmado = `Pedido de negocios locales:\n\n${detallePorNegocio}\n\nTotal productos: ${textoTotalCarrito}`;
+    return `Pedido de negocios locales:\n\n${detallePorNegocio}\n\nTotal productos: ${textoTotalSeguro}`;
+  };
+
+  const obtenerNegociosIdsCarrito = (carritoActual = carrito) => [
+    ...new Set(
+      carritoActual
+        .map((item) => item.negocioId)
+        .filter(Boolean)
+    )
+  ];
+
+  const obtenerCarritoProtegidoParaPedido = () =>
+    carrito.map((item) => ({
+      id: item.id,
+      productoId: item.productoId || item.id,
+      nombre: item.nombre,
+      cantidad: Number(item.cantidad || 1),
+      precio: productoTienePrecio(item) ? Number(item.precio || 0) : null,
+      precioTexto: productoTienePrecio(item)
+        ? `$${Number(item.precio || 0)}`
+        : item.precioTexto || "Precio a consultar",
+      negocioId: item.negocioId,
+      negocioNombre: item.negocioNombre,
+      guisos: item.guisos || [],
+      extras: item.extras || [],
+      opcion: item.opcion || null,
+    }));
+
+  const limpiarCarrito = () => {
+    setCarrito([]);
+  };
+
+  // 🛒 CONFIRMAR CARRITO Y PASARLO AL FORMULARIO
+  const confirmarCarrito = () => {
+    if (carrito.length === 0) {
+      mostrarAlerta("Agrega al menos un producto al carrito.");
+      return;
+    }
+
+    const negocioCerrado = carrito.find((item) => !negocioEstaAbierto(item.negocioId));
+
+    if (negocioCerrado) {
+      mostrarAlerta(
+        `${negocioCerrado.negocioNombre || "Este negocio"} está cerrado por el momento. Elimina ese producto del carrito o espera a que abra.`,
+        "Negocio cerrado"
+      );
+      return;
+    }
+
+    const pedidoArmado = construirPedidoNegociosLocales(carrito);
 
     setPedido(pedidoArmado);
-    setNegociosPedidoActual([
-      ...new Set(carrito.map((item) => item.negocioId).filter(Boolean))
-    ]);
+    setNegociosPedidoActual(obtenerNegociosIdsCarrito(carrito));
     setNotaPedido("");
     setScreen("form");
   };
@@ -1793,6 +1862,8 @@ ${notaPedido.trim()}`
     display: "block",
     boxShadow: "0 2px 6px rgba(0,0,0,0.18)"
   };
+
+  const pedidoDeNegocioLocal = negociosPedidoActual.length > 0;
 
   // 👑 Si el dueño entra directo con #dueno y ya tiene sesión, cargamos el resumen.
   useEffect(() => {
@@ -2278,6 +2349,10 @@ ${notaPedido.trim()}`
                 }
 
                 setNegociosPedidoActual([]);
+                setPedido("");
+                setNotaPedido("");
+                setCarrito([]);
+                setNegocioSeleccionado(null);
                 setScreen("form");
               }}
               style={{
@@ -4632,7 +4707,7 @@ ${notaPedido.trim()}`
             ← Volver
           </button>
 
-          <h1>📦 Pedido personalizado</h1>
+          <h1>{pedidoDeNegocioLocal ? "🍽️ Pedido de negocio local" : "📦 Pedido personalizado"}</h1>
 
           <input
             value={nombre}
@@ -4640,21 +4715,55 @@ ${notaPedido.trim()}`
             placeholder="Nombre"
           />
 
-          <textarea
-            value={pedido}
-            onChange={(e) => setPedido(e.target.value)}
-            placeholder="Escribe lo que necesitas: comida, compras, farmacia, mandado especial, etc."
-            rows={6}
-            style={{
-              width: "100%",
-              resize: "vertical",
-              minHeight: 110,
-              padding: 10,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-              fontFamily: "Arial, sans-serif"
-            }}
-          />
+          {pedidoDeNegocioLocal ? (
+            <div
+              style={{
+                width: "100%",
+                minHeight: 120,
+                padding: 12,
+                borderRadius: 10,
+                border: "2px solid #111827",
+                background: "#f8fafc",
+                color: "#111827",
+                fontFamily: "Arial, sans-serif",
+                whiteSpace: "pre-wrap",
+                lineHeight: 1.35,
+                fontSize: 15
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: 10,
+                  padding: "7px 9px",
+                  borderRadius: 8,
+                  background: "#dcfce7",
+                  color: "#166534",
+                  fontWeight: 900,
+                  fontSize: 13
+                }}
+              >
+                🔒 Pedido protegido. El cliente no puede modificar productos ni precios.
+              </div>
+
+              {pedido}
+            </div>
+          ) : (
+            <textarea
+              value={pedido}
+              onChange={(e) => setPedido(e.target.value)}
+              placeholder="Escribe lo que necesitas: comida, compras, farmacia, mandado especial, etc."
+              rows={6}
+              style={{
+                width: "100%",
+                resize: "vertical",
+                minHeight: 110,
+                padding: 10,
+                borderRadius: 8,
+                border: "1px solid #ccc",
+                fontFamily: "Arial, sans-serif"
+              }}
+            />
+          )}
 
           <textarea
             value={notaPedido}
