@@ -2141,7 +2141,7 @@ ${notaPedido.trim()}`
             position: "fixed",
             inset: 0,
             background: "rgba(15, 23, 42, 0.55)",
-            zIndex: 999999,
+            zIndex: 1000005,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -4191,7 +4191,7 @@ ${notaPedido.trim()}`
             alignItems: "flex-start",
             justifyContent: "center",
             padding: "14px 12px",
-            zIndex: 999999,
+            zIndex: 9999,
             overflowY: "auto",
             WebkitOverflowScrolling: "touch"
           }}
