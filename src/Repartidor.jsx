@@ -9,10 +9,17 @@ const GPS_STORAGE_KEY = "gpsRepartidorActivo";
 const REPARTIDOR_STORAGE_KEY = "repartidorActivo";
 const SONIDO_PEDIDOS_STORAGE_KEY = "sonidoPedidosActivo";
 
+// 🛰️ Refuerzo seguro del GPS mientras la app está abierta.
+// No reemplaza el tiempo real; solo ayuda a que el backend siempre tenga una ubicación reciente.
+const GPS_REFORZAR_MS = 8000;
+const GPS_UBICACION_RECIENTE_MS = 2 * 60 * 1000;
+
 export default function Repartidor() {
   const socketRef = useRef(null);
   const watchId = useRef(null);
   const repartidorRef = useRef(null);
+  const ultimaUbicacionRef = useRef(null);
+  const intervaloGPSRef = useRef(null);
 
   const [activo, setActivo] = useState(false);
   const [pedidos, setPedidos] = useState([]);
@@ -117,6 +124,115 @@ export default function Repartidor() {
       return guardado ? JSON.parse(guardado) : null;
     } catch {
       return null;
+    }
+  };
+
+  const emitirUbicacionRepartidor = (pos, origen = "gps") => {
+    const repartidorGPS = obtenerRepartidorActivo();
+
+    if (!repartidorGPS?.id || !pos?.coords) {
+      return null;
+    }
+
+    const data = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      accuracy: pos.coords.accuracy,
+      fecha: new Date().toISOString(),
+      repartidorId: repartidorGPS.id,
+      repartidorNombre: repartidorGPS.nombre,
+      origen,
+    };
+
+    ultimaUbicacionRef.current = data;
+
+    console.log(
+      "📍 Precisión GPS repartidor:",
+      pos.coords.accuracy,
+      "metros"
+    );
+
+    socketRef.current?.emit("repartidor-ubicacion", data);
+
+    return data;
+  };
+
+  const ultimaUbicacionEstaReciente = () => {
+    const ultima = ultimaUbicacionRef.current;
+
+    if (!ultima?.fecha) {
+      return false;
+    }
+
+    const tiempo = new Date(ultima.fecha).getTime();
+
+    if (Number.isNaN(tiempo)) {
+      return false;
+    }
+
+    return Date.now() - tiempo <= GPS_UBICACION_RECIENTE_MS;
+  };
+
+  const reenviarUltimaUbicacionReciente = () => {
+    if (!ultimaUbicacionEstaReciente()) {
+      return false;
+    }
+
+    const ultima = {
+      ...ultimaUbicacionRef.current,
+      fecha: new Date().toISOString(),
+      origen: "ultima-reciente",
+    };
+
+    ultimaUbicacionRef.current = ultima;
+    socketRef.current?.emit("repartidor-ubicacion", ultima);
+
+    return true;
+  };
+
+  const solicitarUbicacionActual = (origen = "solicitud") => {
+    const repartidorActivo = obtenerRepartidorActivo();
+
+    if (!repartidorActivo?.id || !navigator.geolocation) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        emitirUbicacionRepartidor(pos, origen);
+      },
+      (error) => {
+        console.log("No se pudo reforzar GPS repartidor:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const iniciarRefuerzoGPS = () => {
+    if (intervaloGPSRef.current !== null) {
+      return;
+    }
+
+    intervaloGPSRef.current = setInterval(() => {
+      const gpsActivo = localStorage.getItem(GPS_STORAGE_KEY) === "true";
+      const repartidorActivo = obtenerRepartidorActivo();
+
+      if (!gpsActivo || !repartidorActivo?.id) {
+        return;
+      }
+
+      solicitarUbicacionActual("refuerzo-8s");
+    }, GPS_REFORZAR_MS);
+  };
+
+  const detenerRefuerzoGPS = () => {
+    if (intervaloGPSRef.current !== null) {
+      clearInterval(intervaloGPSRef.current);
+      intervaloGPSRef.current = null;
     }
   };
 
@@ -354,38 +470,19 @@ export default function Repartidor() {
     if (watchId.current !== null) {
       setActivo(true);
       localStorage.setItem(GPS_STORAGE_KEY, "true");
+      iniciarRefuerzoGPS();
+      solicitarUbicacionActual("gps-ya-activo");
       return;
     }
 
     setActivo(true);
     localStorage.setItem(GPS_STORAGE_KEY, "true");
+    iniciarRefuerzoGPS();
+    solicitarUbicacionActual("inicio-gps");
 
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const repartidorGPS = obtenerRepartidorActivo();
-
-        if (!repartidorGPS?.id) {
-          return;
-        }
-
-        const data = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          fecha: new Date().toISOString(),
-          repartidorId: repartidorGPS.id,
-          repartidorNombre: repartidorGPS.nombre,
-        };
-
-        console.log(
-          "📍 Precisión GPS repartidor:",
-          pos.coords.accuracy,
-          "metros"
-        );
-
-        if (socketRef.current) {
-          socketRef.current.emit("repartidor-ubicacion", data);
-        }
+        emitirUbicacionRepartidor(pos, "watch-position");
       },
       (error) => {
         console.log("Error GPS repartidor:", error);
@@ -404,6 +501,9 @@ export default function Repartidor() {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
     }
+
+    detenerRefuerzoGPS();
+    ultimaUbicacionRef.current = null;
 
     setActivo(false);
     localStorage.setItem(GPS_STORAGE_KEY, "false");
@@ -515,6 +615,7 @@ export default function Repartidor() {
         watchId.current = null;
       }
 
+      detenerRefuerzoGPS();
       socketRef.current?.disconnect();
     };
   }, []);
@@ -559,6 +660,13 @@ export default function Repartidor() {
         );
         return;
       }
+    }
+
+    if (["aceptado", "en camino"].includes(estado)) {
+      // Si el GPS ya estaba activo, reenviamos una ubicación en ese momento.
+      // Así el cliente puede ver al repartidor apenas se acepta el pedido.
+      reenviarUltimaUbicacionReciente();
+      solicitarUbicacionActual(`estado-${estado}`);
     }
 
     socketRef.current.emit("cambiar-estado", {
