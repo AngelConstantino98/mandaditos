@@ -1928,6 +1928,7 @@ const negocios = [
     productos: [
       {
         id: "licuados-gaes",
+        imagen: "/productos/gaes-licuados.jpg",
         nombre: "Licuados",
         precio: null,
         precioTexto: "Desde $32",
@@ -1943,6 +1944,7 @@ const negocios = [
       },
       {
         id: "frappes-gaes",
+        imagen: "/productos/gaes-frappes.jpg",
         nombre: "Frappes",
         precio: null,
         precioTexto: "Desde $40",
@@ -1965,6 +1967,7 @@ const negocios = [
       },
       {
         id: "cocteles-gaes",
+        imagen: "/productos/gaes-cocteles.jpg",
         nombre: "Cocteles",
         precio: null,
         precioTexto: "Desde $50",
@@ -1980,6 +1983,7 @@ const negocios = [
       },
       {
         id: "cervezas-micheladas-gaes",
+        imagen: "/productos/gaes-cervezas-micheladas.jpg",
         nombre: "Cervezas y micheladas",
         precio: null,
         precioTexto: "Desde $30",
@@ -2019,6 +2023,7 @@ const negocios = [
       },
       {
         id: "snacks-gaes",
+        imagen: "/productos/gaes-snacks.jpg",
         nombre: "Snacks",
         precio: null,
         precioTexto: "Desde $58",
@@ -2034,6 +2039,7 @@ const negocios = [
       },
       {
         id: "nachos-gaes",
+        imagen: "/productos/gaes-nachos.jpg",
         nombre: "Nachos",
         precio: null,
         precioTexto: "Desde $45",
@@ -2047,6 +2053,7 @@ const negocios = [
       },
       {
         id: "hamburguesas-gaes",
+        imagen: "/productos/gaes-hamburguesas.jpg",
         nombre: "Hamburguesas",
         precio: null,
         precioTexto: "Desde $60",
@@ -2068,6 +2075,7 @@ const negocios = [
       },
       {
         id: "burritos-sincronizadas-gaes",
+        imagen: "/productos/gaes-burritos-sincronizadas.jpg",
         nombre: "Burritos y sincronizadas",
         precio: null,
         precioTexto: "Desde $45",
@@ -2083,6 +2091,7 @@ const negocios = [
       },
       {
         id: "orden-waffles-gaes",
+        imagen: "/productos/gaes-postres.jpg",
         nombre: "Orden de waffles",
         precio: 50,
         precioTexto: "$50",
@@ -2097,6 +2106,7 @@ const negocios = [
       },
       {
         id: "hotcakes-gaes",
+        imagen: "/productos/gaes-hotcakes.jpg",
         nombre: "Hotcakes",
         precio: 50,
         precioTexto: "$50",
@@ -2111,6 +2121,7 @@ const negocios = [
       },
       {
         id: "alitas-pieza-gaes",
+        imagen: "/productos/gaes-alitas.jpg",
         nombre: "Alitas por pieza",
         precio: 15,
         descripcion: "Alitas por pieza. Elige 1 salsa.",
@@ -2121,6 +2132,7 @@ const negocios = [
       },
       {
         id: "paquete-alitas-personal-gaes",
+        imagen: "/productos/gaes-alitas.jpg",
         nombre: "Paquete alitas personal",
         precio: 86,
         descripcion: "6 piezas, papas gajo, nachos y aderezo. Elige 1 salsa.",
@@ -2131,6 +2143,7 @@ const negocios = [
       },
       {
         id: "boneless-gaes",
+        imagen: "/productos/gaes-boneless.jpg",
         nombre: "Boneless",
         precio: 90,
         descripcion: "7 piezas, nachos y ranch. Elige 1 salsa.",
@@ -2141,6 +2154,7 @@ const negocios = [
       },
       {
         id: "paquetazo-alitas-gaes",
+        imagen: "/productos/gaes-paquetes.jpg",
         nombre: "Paquetazo alitas",
         precio: 358,
         descripcion: "12 alitas, papas gajo, 8 aros de cebolla, 6 dedos de queso, nachos y aderezos. Elige 2 salsas.",
@@ -2151,6 +2165,7 @@ const negocios = [
       },
       {
         id: "paquete-mix-alitas-gaes",
+        imagen: "/productos/gaes-paquetes.jpg",
         nombre: "Paquete mix alitas",
         precio: 230,
         descripcion: "16 piezas, papas gajo, nachos y aderezo. Elige 2 salsas.",
@@ -2161,6 +2176,7 @@ const negocios = [
       },
       {
         id: "platon-gaes",
+        imagen: "/productos/gaes-paquetes.jpg",
         nombre: "Platón GAES",
         precio: 370,
         descripcion: "4 boneless, 8 alitas, 4 dedos de queso, 6 aros de cebolla, papas gajo y club sandwich. Elige 2 salsas.",
@@ -2171,6 +2187,7 @@ const negocios = [
       },
       {
         id: "paquete-amigos-gaes",
+        imagen: "/productos/gaes-paquetes.jpg",
         nombre: "Paquete amigos",
         precio: 235,
         descripcion: "8 alitas, 8 boneless, papas gajo y aderezos. Elige 2 salsas.",

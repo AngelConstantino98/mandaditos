@@ -1487,7 +1487,10 @@ ${notaPedido.trim()}`
       }
 
       if (productoParaGuisos?.maxGuisos && prev.length >= productoParaGuisos.maxGuisos) {
-        mostrarAlerta(`Solo puedes elegir ${productoParaGuisos.maxGuisos} guisos extra.`);
+        mostrarAlerta(
+          productoParaGuisos.textoMaximoGuisos ||
+            `Solo puedes elegir ${productoParaGuisos.maxGuisos} opción(es).`
+        );
         return prev;
       }
 
@@ -1659,25 +1662,64 @@ ${notaPedido.trim()}`
   };
 
   // ✅ Agregar una opción sin cerrar el selector
-  const agregarOpcionAlCarrito = (productoBase, opcion, cantidad = 1) => {
+  // También soporta extras dentro de una opción, por ejemplo:
+  // Hamburguesas GAES -> elegir hamburguesa -> agregar extras antes de añadir.
+  const agregarOpcionAlCarrito = (productoBase, opcion, cantidad = 1, opcionesAgregar = {}) => {
     if (!productoBase || !opcion) return;
+
+    const cantidadFinal = Math.max(Number(cantidad) || 1, 1);
+    const opcionTieneExtras =
+      Array.isArray(opcion.extras) && opcion.extras.length > 0;
+
+    const opcionTieneGuisos =
+      Array.isArray(opcion.guisos) && opcion.guisos.length > 0;
 
     const productoConOpcion = {
       ...productoBase,
       id: opcion.id,
+      productoBaseId: opcion.id,
       nombre: `${productoBase.nombre} - ${opcion.nombre}`,
       precio: opcion.precio,
       precioTexto: opcion.precioTexto,
       descripcion: opcion.descripcion || productoBase.descripcion,
-      imagen: productoBase.imagen,
+      imagen: opcion.imagen || productoBase.imagen,
       opcion,
-      opciones: undefined
+      opciones: undefined,
+      extras: opcionTieneExtras ? opcion.extras : undefined,
+      textoExtras:
+        opcion.textoExtras ||
+        productoBase.textoExtras ||
+        "Agrega extras para tu hamburguesa:",
+      guisos: opcionTieneGuisos ? opcion.guisos : undefined,
+      maxGuisos: opcion.maxGuisos,
+      cantidadExactaGuisosExtra: opcion.cantidadExactaGuisosExtra,
+      permitirSinGuisos: opcion.permitirSinGuisos,
+      textoSelector:
+        opcion.textoSelector ||
+        productoBase.textoSelector ||
+        "Elige una opción:",
     };
+
+    if (opcionTieneGuisos) {
+      setProductoParaGuisos(productoConOpcion);
+      setGuisosSeleccionados(
+        productoConOpcion.guisos.length === 1 ? productoConOpcion.guisos : []
+      );
+      setCantidadProductoGuisos(cantidadFinal);
+      return;
+    }
+
+    if (opcionTieneExtras && !opcionesAgregar.sinExtras) {
+      setProductoParaExtras(productoConOpcion);
+      setExtrasSeleccionados([]);
+      setCantidadProductoExtras(cantidadFinal);
+      return;
+    }
 
     agregarProductoConfiguradoAlCarrito(
       productoConOpcion,
       [],
-      cantidad,
+      cantidadFinal,
       []
     );
   };
@@ -4507,6 +4549,9 @@ ${notaPedido.trim()}`
                   negocioSeleccionado.id
                 );
 
+                const opcionTieneExtras =
+                  Array.isArray(opcion.extras) && opcion.extras.length > 0;
+
                 return (
                   <div
                     key={opcion.id}
@@ -4584,7 +4629,8 @@ ${notaPedido.trim()}`
                             agregarOpcionAlCarrito(
                               productoParaOpciones,
                               opcion,
-                              1
+                              1,
+                              { sinExtras: true }
                             )
                           }
                           style={{
@@ -4601,6 +4647,31 @@ ${notaPedido.trim()}`
                         >
                           + Agregar
                         </button>
+
+                        {opcionTieneExtras && (
+                          <button
+                            onClick={() =>
+                              agregarOpcionAlCarrito(
+                                productoParaOpciones,
+                                opcion,
+                                1
+                              )
+                            }
+                            style={{
+                              minWidth: 90,
+                              height: 34,
+                              padding: "0 10px",
+                              borderRadius: 10,
+                              border: "none",
+                              background: "#f59e0b",
+                              color: "white",
+                              cursor: "pointer",
+                              fontWeight: "bold"
+                            }}
+                          >
+                            + Extras
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -4680,7 +4751,7 @@ ${notaPedido.trim()}`
             </h2>
 
             <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
-              Puedes agregar extras si lo deseas:
+              {productoParaExtras.textoExtras || "Puedes agregar extras si lo deseas:"}
             </p>
 
             <div style={{ display: "grid", gap: 8 }}>
@@ -4715,7 +4786,11 @@ ${notaPedido.trim()}`
                       {extra.nombre}
                     </span>
 
-                    <strong>+${extra.precio}</strong>
+                    <strong>
+                      {productoTienePrecio(extra)
+                        ? `+$${Number(extra.precio || 0)}`
+                        : extra.precioTexto || "Precio a consultar"}
+                    </strong>
                   </label>
                 );
               })}
