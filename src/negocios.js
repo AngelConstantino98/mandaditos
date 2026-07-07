@@ -2201,6 +2201,182 @@ const negocios = [
 
 
 
+  {
+    id: "mi-ranchito",
+    nombre: "Mi Ranchito",
+    emoji: "🌮",
+    descripcion: "Cochinita pibil, barbacoa de res, tacos, tortas, birria y quesabirria",
+    imagen: "/negocios/mi-ranchito.jpg",
+    horarios: [
+      { dias: [0, 2, 3, 4, 5, 6], abre: "09:00", cierra: "15:00" },
+    ],
+    productos: [
+      {
+        id: "tacos-mi-ranchito",
+        nombre: "Tacos",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Tacos de cochinita pibil, barbacoa o carne asada",
+        imagen: "/productos/mi-ranchito-tacos.jpg",
+        textoSelector: "Elige tus tacos:",
+        opciones: [
+          {
+            id: "taco-cochinita-mi-ranchito",
+            nombre: "Cochinita pibil",
+            precio: 18,
+            descripcion: "Taco de cochinita pibil.",
+          },
+          {
+            id: "taco-barbacoa-mi-ranchito",
+            nombre: "Barbacoa",
+            precio: 18,
+            descripcion: "Taco de barbacoa.",
+          },
+          {
+            id: "taco-carne-asada-mi-ranchito",
+            nombre: "Carne asada",
+            precio: 18,
+            descripcion: "Taco de carne asada.",
+          },
+        ],
+      },
+      {
+        id: "tortas-mi-ranchito",
+        nombre: "Tortas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Tortas de cochinita pibil, barbacoa de res, carne asada o mixta",
+        imagen: "/productos/mi-ranchito-tortas.jpg",
+        textoSelector: "Elige tu torta:",
+        opciones: [
+          {
+            id: "torta-cochinita-mi-ranchito",
+            nombre: "Cochinita pibil",
+            precio: 50,
+            descripcion: "Torta de cochinita pibil.",
+          },
+          {
+            id: "torta-barbacoa-mi-ranchito",
+            nombre: "Barbacoa de res",
+            precio: 50,
+            descripcion: "Torta de barbacoa de res.",
+          },
+          {
+            id: "torta-carne-asada-mi-ranchito",
+            nombre: "Carne asada",
+            precio: 50,
+            descripcion: "Torta de carne asada.",
+          },
+          {
+            id: "torta-mixta-mi-ranchito",
+            nombre: "Mixta",
+            precio: 60,
+            descripcion: "Torta mixta.",
+          },
+        ],
+      },
+      {
+        id: "cochinita-pibil-mi-ranchito",
+        nombre: "Cochinita pibil",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Cochinita pibil por kilo, medio kilo o cuarto de kilo",
+        imagen: "/productos/mi-ranchito-cochinita.jpg",
+        textoSelector: "Elige la cantidad de cochinita pibil:",
+        opciones: [
+          {
+            id: "cochinita-1-kilo-mi-ranchito",
+            nombre: "1 kilo",
+            precio: 360,
+            descripcion: "1 kilo de cochinita pibil.",
+          },
+          {
+            id: "cochinita-medio-kilo-mi-ranchito",
+            nombre: "1/2 kilo",
+            precio: 190,
+            descripcion: "1/2 kilo de cochinita pibil.",
+          },
+          {
+            id: "cochinita-cuarto-kilo-mi-ranchito",
+            nombre: "1/4 kilo",
+            precio: 100,
+            descripcion: "1/4 kilo de cochinita pibil.",
+          },
+        ],
+      },
+      {
+        id: "barbacoa-res-mi-ranchito",
+        nombre: "Barbacoa de res",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Barbacoa de res por kilo, medio kilo o cuarto de kilo",
+        imagen: "/productos/mi-ranchito-barbacoa.jpg",
+        textoSelector: "Elige la cantidad de barbacoa de res:",
+        opciones: [
+          {
+            id: "barbacoa-1-kilo-mi-ranchito",
+            nombre: "1 kilo",
+            precio: 480,
+            descripcion: "1 kilo de barbacoa de res.",
+          },
+          {
+            id: "barbacoa-medio-kilo-mi-ranchito",
+            nombre: "1/2 kilo",
+            precio: 240,
+            descripcion: "1/2 kilo de barbacoa de res.",
+          },
+          {
+            id: "barbacoa-cuarto-kilo-mi-ranchito",
+            nombre: "1/4 kilo",
+            precio: 120,
+            descripcion: "1/4 kilo de barbacoa de res.",
+          },
+        ],
+      },
+      {
+        id: "birria-quesabirria-mi-ranchito",
+        nombre: "Birria y quesabirria",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Nissin birria, quesabirria y birria por porción o litro",
+        imagen: "/productos/mi-ranchito-birria-quesabirria.jpg",
+        textoSelector: "Elige una opción:",
+        opciones: [
+          {
+            id: "nissin-birria-mi-ranchito",
+            nombre: "Nissin birria",
+            precio: 60,
+            descripcion: "Nissin birria.",
+          },
+          {
+            id: "nissin-birria-quesabirria-mi-ranchito",
+            nombre: "Nissin birria + quesabirria",
+            precio: 85,
+            descripcion: "Nissin birria con quesabirria.",
+          },
+          {
+            id: "quesabirria-mi-ranchito",
+            nombre: "Quesabirria",
+            precio: 35,
+            descripcion: "Quesabirria.",
+          },
+          {
+            id: "birria-porcion-mi-ranchito",
+            nombre: "Birria porción",
+            precio: 85,
+            descripcion: "Porción de birria.",
+          },
+          {
+            id: "birria-litro-mi-ranchito",
+            nombre: "Birria por litro",
+            precio: 150,
+            descripcion: "Birria por litro.",
+          },
+        ],
+      },
+    ],
+  },
+
 ];
 
 export default negocios;
