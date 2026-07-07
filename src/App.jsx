@@ -129,6 +129,8 @@ export default function App() {
   const pedidoActualRef = useRef(null);
   const screenRef = useRef("splash");
   const navegandoConBotonAtrasRef = useRef(false);
+  const modalSuperiorRef = useRef(null);
+  const modalHistorialRef = useRef(null);
 
   const [screen, setScreenBase] = useState("splash");
 
@@ -414,6 +416,110 @@ export default function App() {
     screenRef.current = screen;
   }, [screen]);
 
+  const cerrarModalSuperiorActual = () => {
+    const modalActual = modalSuperiorRef.current;
+
+    if (!modalActual) return false;
+
+    if (modalActual === "alerta") {
+      setAlertaApp(null);
+      return true;
+    }
+
+    if (modalActual === "whatsapp") {
+      setWhatsappPendiente(null);
+      return true;
+    }
+
+    if (modalActual === "cancelar") {
+      setShowCancel(null);
+      return true;
+    }
+
+    if (modalActual === "extras") {
+      setProductoParaExtras(null);
+      setExtrasSeleccionados([]);
+      setCantidadProductoExtras(1);
+      return true;
+    }
+
+    if (modalActual === "toppings") {
+      setProductoParaToppings(null);
+      setToppingsSeleccionados([]);
+      setJarabesSeleccionados([]);
+      setGuisosSeleccionados([]);
+      setCantidadProductoToppings(1);
+      setMostrarSelectorJarabes(false);
+      return true;
+    }
+
+    if (modalActual === "guisos") {
+      setProductoParaGuisos(null);
+      setGuisosSeleccionados([]);
+      setCantidadProductoGuisos(1);
+      return true;
+    }
+
+    if (modalActual === "opciones") {
+      setProductoParaOpciones(null);
+      return true;
+    }
+
+    return false;
+  };
+
+  // 📱 Si hay una ventana flotante abierta, el botón atrás debe cerrar esa ventana,
+  // no regresar a la pantalla anterior ni cerrar el negocio.
+  useEffect(() => {
+    const modalActual =
+      alertaApp
+        ? "alerta"
+        : whatsappPendiente
+          ? "whatsapp"
+          : showCancel
+            ? "cancelar"
+            : productoParaExtras
+              ? "extras"
+              : productoParaToppings
+                ? "toppings"
+                : productoParaGuisos
+                  ? "guisos"
+                  : productoParaOpciones
+                    ? "opciones"
+                    : null;
+
+    modalSuperiorRef.current = modalActual;
+
+    if (!modalActual) {
+      modalHistorialRef.current = null;
+      return;
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      modalHistorialRef.current !== modalActual
+    ) {
+      window.history.pushState(
+        {
+          mandaPlusScreen: screenRef.current,
+          mandaPlusModal: modalActual,
+        },
+        "",
+        window.location.href
+      );
+
+      modalHistorialRef.current = modalActual;
+    }
+  }, [
+    alertaApp,
+    whatsappPendiente,
+    showCancel,
+    productoParaExtras,
+    productoParaToppings,
+    productoParaGuisos,
+    productoParaOpciones,
+  ]);
+
   // 📱 Botón físico "atrás" de Android / botón atrás del navegador
   useEffect(() => {
     window.history.replaceState(
@@ -423,6 +529,18 @@ export default function App() {
     );
 
     const manejarBotonAtras = (event) => {
+      if (modalSuperiorRef.current) {
+        navegandoConBotonAtrasRef.current = true;
+        cerrarModalSuperiorActual();
+        modalHistorialRef.current = null;
+
+        setTimeout(() => {
+          navegandoConBotonAtrasRef.current = false;
+        }, 0);
+
+        return;
+      }
+
       const pantallaAnterior = event.state?.mandaPlusScreen;
 
       if (!pantallaAnterior) {
@@ -436,6 +554,7 @@ export default function App() {
       setProductoParaExtras(null);
       setProductoParaOpciones(null);
       setProductoParaToppings(null);
+      setGuisosSeleccionados([]);
 
       screenRef.current = pantallaAnterior;
       setScreenBase(pantallaAnterior);
@@ -1366,6 +1485,11 @@ ${notaPedido.trim()}`
       setProductoParaToppings(producto);
       setToppingsSeleccionados([]);
       setJarabesSeleccionados([]);
+      setGuisosSeleccionados(
+        Array.isArray(producto.guisos) && producto.guisos.length === 1
+          ? producto.guisos
+          : []
+      );
       setCantidadProductoToppings(1);
       setMostrarSelectorJarabes(false);
       return;
@@ -1481,15 +1605,17 @@ ${notaPedido.trim()}`
 
   // 🌮 Marcar/desmarcar guisos
   const alternarGuiso = (guiso) => {
+    const selectorActivo = productoParaGuisos || productoParaToppings;
+
     setGuisosSeleccionados((prev) => {
       if (prev.includes(guiso)) {
         return prev.filter((g) => g !== guiso);
       }
 
-      if (productoParaGuisos?.maxGuisos && prev.length >= productoParaGuisos.maxGuisos) {
+      if (selectorActivo?.maxGuisos && prev.length >= selectorActivo.maxGuisos) {
         mostrarAlerta(
-          productoParaGuisos.textoMaximoGuisos ||
-            `Solo puedes elegir ${productoParaGuisos.maxGuisos} opción(es).`
+          selectorActivo.textoMaximoGuisos ||
+            `Solo puedes elegir ${selectorActivo.maxGuisos} opción(es).`
         );
         return prev;
       }
@@ -1593,33 +1719,81 @@ ${notaPedido.trim()}`
     });
   };
 
-  // ✅ Confirmar producto con toppings y jarabes
+  // ✅ Confirmar producto con toppings, jarabes y frutas/guisos
   const confirmarProductoConToppings = () => {
     if (!productoParaToppings) return;
 
     const maxToppings = Number(productoParaToppings.maxToppings || 0);
+    const cantidadExactaToppings = Number(
+      productoParaToppings.cantidadExactaToppings ||
+        (String(productoParaToppings.textoToppings || "")
+          .toLowerCase()
+          .includes("elige 2")
+          ? 2
+          : 0)
+    );
 
-    if (
-      Array.isArray(productoParaToppings.toppings) &&
-      productoParaToppings.toppings.length > 0 &&
-      toppingsSeleccionados.length === 0
-    ) {
+    const toppingsLimpios = toppingsSeleccionados.filter(Boolean);
+    const jarabesLimpios = jarabesSeleccionados.filter(Boolean);
+    const guisosLimpios = guisosSeleccionados.filter(Boolean);
+
+    const requiereGuisos =
+      Array.isArray(productoParaToppings.guisos) &&
+      productoParaToppings.guisos.length > 0 &&
+      !productoParaToppings.permitirSinGuisos;
+
+    if (requiereGuisos && guisosLimpios.length === 0) {
       mostrarAlerta(
-        maxToppings === 1
-          ? "Elige 1 topping."
-          : "Elige al menos 1 topping."
+        productoParaToppings.textoSelector || "Elige una opción."
       );
       return;
     }
 
-    const toppingsLimpios = toppingsSeleccionados.filter(Boolean);
-    const jarabesLimpios = jarabesSeleccionados.filter(Boolean);
+    if (
+      productoParaToppings.cantidadExactaGuisosExtra &&
+      guisosLimpios.length !== productoParaToppings.cantidadExactaGuisosExtra
+    ) {
+      mostrarAlerta(
+        productoParaToppings.textoSelector ||
+          `Elige ${productoParaToppings.cantidadExactaGuisosExtra} opción(es).`
+      );
+      return;
+    }
+
+    if (
+      Array.isArray(productoParaToppings.toppings) &&
+      productoParaToppings.toppings.length > 0
+    ) {
+      if (cantidadExactaToppings > 0 && toppingsLimpios.length !== cantidadExactaToppings) {
+        mostrarAlerta(`Elige ${cantidadExactaToppings} dulce(s).`);
+        return;
+      }
+
+      if (cantidadExactaToppings === 0 && toppingsLimpios.length === 0) {
+        mostrarAlerta(
+          maxToppings === 1
+            ? "Elige 1 topping."
+            : "Elige al menos 1 topping."
+        );
+        return;
+      }
+    }
 
     const detalles = [];
 
+    if (guisosLimpios.length > 0) {
+      const etiquetaGuisos = String(productoParaToppings.textoSelector || "")
+        .toLowerCase()
+        .includes("fruta")
+        ? "Fruta"
+        : "Opción";
+
+      detalles.push(`${etiquetaGuisos}: ${guisosLimpios.join(", ")}`);
+    }
+
     if (toppingsLimpios.length > 0) {
       detalles.push(
-        `${toppingsLimpios.length === 1 ? "Topping" : "Toppings"}: ${toppingsLimpios.join(", ")}`
+        `${toppingsLimpios.length === 1 ? "Dulce" : "Dulces"}: ${toppingsLimpios.join(", ")}`
       );
     }
 
@@ -1627,7 +1801,7 @@ ${notaPedido.trim()}`
       detalles.push(`Jarabe: ${jarabesLimpios.join(", ")}`);
     }
 
-    const detallesId = [...toppingsLimpios, ...jarabesLimpios]
+    const detallesId = [...guisosLimpios, ...toppingsLimpios, ...jarabesLimpios]
       .map(limpiarTextoId)
       .join("-");
 
@@ -1641,8 +1815,10 @@ ${notaPedido.trim()}`
           : productoParaToppings.nombre,
       precio: productoParaToppings.precio,
       precioTexto: productoParaToppings.precioTexto,
+      guisosElegidos: guisosLimpios,
       toppingsElegidos: toppingsLimpios,
       jarabesElegidos: jarabesLimpios,
+      guisos: undefined,
       toppings: undefined,
       jarabes: undefined,
     };
@@ -1657,6 +1833,7 @@ ${notaPedido.trim()}`
     setProductoParaToppings(null);
     setToppingsSeleccionados([]);
     setJarabesSeleccionados([]);
+    setGuisosSeleccionados([]);
     setCantidadProductoToppings(1);
     setMostrarSelectorJarabes(false);
   };
@@ -4257,6 +4434,67 @@ ${notaPedido.trim()}`
               {productoParaToppings.descripcion}
             </p>
 
+            {Array.isArray(productoParaToppings.guisos) &&
+              productoParaToppings.guisos.length > 0 && (
+                <>
+                  <p style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
+                    {productoParaToppings.textoSelector || "Elige una opción:"}
+                  </p>
+
+                  <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+                    {productoParaToppings.guisos.map((guiso) => {
+                      const seleccionado = guisosSeleccionados.includes(guiso);
+                      const selectorUnico = Number(productoParaToppings.maxGuisos || 0) === 1;
+
+                      return (
+                        <label
+                          key={guiso}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: 10,
+                            background: seleccionado ? "#dcfce7" : "#f8fafc",
+                            border: seleccionado
+                              ? "1px solid #22c55e"
+                              : "1px solid #e5e7eb",
+                            borderRadius: 10,
+                            cursor: "pointer"
+                          }}
+                        >
+                          <input
+                            type={selectorUnico ? "radio" : "checkbox"}
+                            name={`guisos-${productoParaToppings.id}`}
+                            checked={seleccionado}
+                            onChange={() => alternarGuiso(guiso)}
+                            style={{
+                              width: 20,
+                              height: 20,
+                              minWidth: 20,
+                              maxWidth: 20,
+                              flex: "0 0 20px",
+                              margin: 0
+                            }}
+                          />
+
+                          <span
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              whiteSpace: "normal",
+                              overflowWrap: "anywhere",
+                              fontWeight: 700
+                            }}
+                          >
+                            {guiso}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
             {Array.isArray(productoParaToppings.toppings) &&
               productoParaToppings.toppings.length > 0 && (
                 <>
@@ -4489,6 +4727,7 @@ ${notaPedido.trim()}`
                   setProductoParaToppings(null);
                   setToppingsSeleccionados([]);
                   setJarabesSeleccionados([]);
+                  setGuisosSeleccionados([]);
                   setCantidadProductoToppings(1);
                   setMostrarSelectorJarabes(false);
                 }}
