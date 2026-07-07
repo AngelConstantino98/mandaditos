@@ -1123,11 +1123,20 @@ ${notaPedido.trim()}`
         const whatsappUrl = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 
         if (isIOS) {
-          // iPhone/Safari puede bloquear la apertura automática.
-          // Mostramos un botón para abrir WhatsApp con un toque real del usuario.
+          // iPhone/Safari a veces permite abrir WhatsApp automático y a veces lo bloquea.
+          // Primero intentamos abrirlo automático. Si no se abre, queda el botón de respaldo.
+          setTimeout(() => {
+            try {
+              window.open(whatsappUrl, "_blank");
+            } catch {
+              // Si iPhone lo bloquea, el botón de respaldo queda disponible.
+            }
+          }, 200);
+
           setWhatsappPendiente({
             url: whatsappUrl,
-            mensaje: "Tu pedido ya fue enviado al repartidor. Ahora toca el botón para mandarlo también por WhatsApp."
+            mensaje:
+              "Tu pedido ya fue enviado al repartidor. Si WhatsApp no se abrió automáticamente, toca el botón para mandarlo también por WhatsApp."
           });
         } else {
           // Android se queda igual que antes.
