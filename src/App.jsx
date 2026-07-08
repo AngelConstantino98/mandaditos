@@ -262,6 +262,8 @@ export default function App() {
   const [zona, setZona] = useState("");
 
   const [coords, setCoords] = useState(null);
+  const [gpsClienteBuscando, setGpsClienteBuscando] = useState(false);
+  const [gpsClienteMensaje, setGpsClienteMensaje] = useState("");
   const [repartidor, setRepartidor] = useState(null);
 
   const [pedidoActual, setPedidoActual] = useState(null);
@@ -705,18 +707,185 @@ export default function App() {
     pedidoActualRef.current = pedidoActual;
   }, [pedidoActual]);
 
-  // 📍 MandaPlus fix GPS cliente v1:
-  // Si el cliente comparte GPS después de haber enviado el pedido,
-  // se actualiza solo la ubicación del pedido sin cambiar estado ni repartidor.
-  const actualizarGPSCliente = (nuevasCoords) => {
-    setCoords(nuevasCoords);
-
-    const lat = Number(nuevasCoords?.lat);
-    const lng = Number(nuevasCoords?.lng);
+  // 📍 MandaPlus fix GPS cliente v2:
+  // El celular a veces entrega una primera ubicación aproximada.
+  // Ahora tomamos varias lecturas por unos segundos y guardamos la más precisa.
+  const normalizarCoordsCliente = (valor) => {
+    const coordsBase = valor?.coords || valor || {};
+    const lat = Number(coordsBase.latitude ?? coordsBase.lat);
+    const lng = Number(coordsBase.longitude ?? coordsBase.lng);
+    const accuracy = Number(coordsBase.accuracy);
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+
+    return {
+      lat,
+      lng,
+      accuracy: Number.isFinite(accuracy) ? accuracy : null,
+      fecha: new Date().toISOString(),
+    };
+  };
+
+  const obtenerMejorUbicacionCliente = (ubicacionInicial = null) => {
+    const inicial = normalizarCoordsCliente(ubicacionInicial);
+
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(inicial);
+        return;
+      }
+
+      const inicio = Date.now();
+      const TIEMPO_BUSQUEDA_MS = 7500;
+      const PRECISION_OBJETIVO_METROS = 45;
+
+      let mejor = inicial;
+      let terminado = false;
+      let watchId = null;
+
+      const guardarSiMejora = (ubicacion) => {
+        const normalizada = normalizarCoordsCliente(ubicacion);
+
+        if (!normalizada) return;
+
+        if (!mejor) {
+          mejor = normalizada;
+          return;
+        }
+
+        const precisionNueva = Number(normalizada.accuracy);
+        const precisionActual = Number(mejor.accuracy);
+
+        if (!Number.isFinite(precisionActual)) {
+          mejor = normalizada;
+          return;
+        }
+
+        if (Number.isFinite(precisionNueva) && precisionNueva < precisionActual) {
+          mejor = normalizada;
+        }
+      };
+
+      const terminar = () => {
+        if (terminado) return;
+
+        terminado = true;
+
+        if (watchId !== null) {
+          try {
+            navigator.geolocation.clearWatch(watchId);
+          } catch {
+            // No afecta si el navegador ya cerró el seguimiento.
+          }
+        }
+
+        resolve(mejor);
+      };
+
+      const revisarPrecision = () => {
+        const precision = Number(mejor?.accuracy);
+
+        if (
+          Number.isFinite(precision) &&
+          precision <= PRECISION_OBJETIVO_METROS &&
+          Date.now() - inicio >= 2000
+        ) {
+          terminar();
+        }
+      };
+
+      try {
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            guardarSiMejora(pos);
+            revisarPrecision();
+          },
+          () => {
+            // Si falla, usamos la mejor lectura disponible.
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 0,
+          }
+        );
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            guardarSiMejora(pos);
+            revisarPrecision();
+          },
+          () => {
+            // Si falla, usamos la mejor lectura disponible.
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 0,
+          }
+        );
+
+        setTimeout(terminar, TIEMPO_BUSQUEDA_MS);
+      } catch {
+        resolve(inicial);
+      }
+    });
+  };
+
+  // Si el cliente comparte GPS después de haber enviado el pedido,
+  // se actualiza solo la ubicación del pedido sin cambiar estado ni repartidor.
+  const actualizarGPSCliente = async (nuevasCoords) => {
+    if (gpsClienteBuscando) {
       return;
     }
+
+    setGpsClienteBuscando(true);
+    setGpsClienteMensaje("📍 Buscando ubicación precisa... espera unos segundos.");
+
+    const mejorUbicacion = await obtenerMejorUbicacionCliente(nuevasCoords);
+
+    setGpsClienteBuscando(false);
+
+    const lat = Number(mejorUbicacion?.lat);
+    const lng = Number(mejorUbicacion?.lng);
+    const accuracy = Number(mejorUbicacion?.accuracy);
+    const tienePrecision = Number.isFinite(accuracy);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setGpsClienteMensaje("⚠️ No se pudo obtener tu ubicación. Intenta de nuevo.");
+      mostrarAlerta(
+        "No se pudo obtener tu ubicación. Revisa que el GPS esté activado e intenta de nuevo.",
+        "GPS no disponible"
+      );
+      return;
+    }
+
+    if (tienePrecision && accuracy > 90) {
+      setGpsClienteMensaje(
+        `⚠️ Ubicación poco precisa (${Math.round(accuracy)} m). Toca “Usar mi ubicación” otra vez o escribe una referencia.`
+      );
+      mostrarAlerta(
+        `Tu ubicación salió poco precisa, aproximadamente ${Math.round(accuracy)} metros.\n\nPor seguridad no la actualicé todavía. Toca “Usar mi ubicación” otra vez o escribe una referencia clara.`,
+        "GPS poco preciso"
+      );
+      return;
+    }
+
+    const gpsSeguro = {
+      lat,
+      lng,
+      accuracy: tienePrecision ? accuracy : null,
+      fecha: new Date().toISOString(),
+    };
+
+    setCoords(gpsSeguro);
+    setGpsClienteMensaje(
+      tienePrecision
+        ? `✅ Ubicación lista. Precisión aproximada: ${Math.round(accuracy)} m.`
+        : "✅ Ubicación lista."
+    );
 
     const pedidoVigente = pedidoActualRef.current;
 
@@ -737,15 +906,23 @@ export default function App() {
         {
           pedidoId: pedidoVigente.id,
           clienteId,
-          gps: { lat, lng },
+          gps: gpsSeguro,
         },
         (err, respuesta) => {
           if (err || !respuesta?.ok || !respuesta?.pedido) {
+            setGpsClienteMensaje(
+              "⚠️ Tu GPS se guardó en este teléfono, pero no se pudo actualizar al repartidor. Intenta otra vez."
+            );
             return;
           }
 
           setPedidoActual(respuesta.pedido);
           localStorage.setItem("pedidoActual", JSON.stringify(respuesta.pedido));
+          setGpsClienteMensaje(
+            tienePrecision
+              ? `✅ GPS actualizado para el repartidor. Precisión aproximada: ${Math.round(accuracy)} m.`
+              : "✅ GPS actualizado para el repartidor."
+          );
         }
       );
   };
@@ -3053,6 +3230,22 @@ ${notaPedido.trim()}`
 
               <Mapa setCoords={actualizarGPSCliente} repartidor={repartidor} />
             </div>
+
+            {(gpsClienteBuscando || gpsClienteMensaje) && (
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderTop: "1px solid #e5e7eb",
+                  background: gpsClienteBuscando ? "#eff6ff" : "#f8fafc",
+                  color: gpsClienteBuscando ? "#1d4ed8" : "#334155",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  lineHeight: 1.35
+                }}
+              >
+                {gpsClienteMensaje}
+              </div>
+            )}
           </div>
 
           <div
