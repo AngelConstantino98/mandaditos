@@ -705,6 +705,51 @@ export default function App() {
     pedidoActualRef.current = pedidoActual;
   }, [pedidoActual]);
 
+  // 📍 MandaPlus fix GPS cliente v1:
+  // Si el cliente comparte GPS después de haber enviado el pedido,
+  // se actualiza solo la ubicación del pedido sin cambiar estado ni repartidor.
+  const actualizarGPSCliente = (nuevasCoords) => {
+    setCoords(nuevasCoords);
+
+    const lat = Number(nuevasCoords?.lat);
+    const lng = Number(nuevasCoords?.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return;
+    }
+
+    const pedidoVigente = pedidoActualRef.current;
+
+    if (!pedidoVigente?.id) {
+      return;
+    }
+
+    const estadoPedido = String(pedidoVigente.estado || "").toLowerCase();
+
+    if (estadoPedido === "cancelado" || estadoPedido === "entregado") {
+      return;
+    }
+
+    socketRef.current
+      ?.timeout(7000)
+      .emit(
+        "actualizar-gps-cliente",
+        {
+          pedidoId: pedidoVigente.id,
+          clienteId,
+          gps: { lat, lng },
+        },
+        (err, respuesta) => {
+          if (err || !respuesta?.ok || !respuesta?.pedido) {
+            return;
+          }
+
+          setPedidoActual(respuesta.pedido);
+          localStorage.setItem("pedidoActual", JSON.stringify(respuesta.pedido));
+        }
+      );
+  };
+
   // SOCKET
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
@@ -3006,7 +3051,7 @@ ${notaPedido.trim()}`
                 `}
               </style>
 
-              <Mapa setCoords={setCoords} repartidor={repartidor} />
+              <Mapa setCoords={actualizarGPSCliente} repartidor={repartidor} />
             </div>
           </div>
 
