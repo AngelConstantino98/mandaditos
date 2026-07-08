@@ -2392,6 +2392,9 @@ const negocios = [
     emoji: "🍗",
     descripcion: "Snack y Más: alitas, nachos, papas, cenas, frappes, bebidas y paquetes",
     imagen: "/negocios/la-choza.jpg",
+    horarios: [
+      { dias: [1, 2, 3, 4, 5, 6], abre: "18:00", cierra: "22:00" },
+    ],
     productos: [
       {
         id: "paquetes-la-choza",
@@ -2607,6 +2610,9 @@ const negocios = [
     emoji: "🌮",
     descripcion: "Tacos al pastor, tortas, antojitos, quesos, papas, platillos y parrillas",
     imagen: "/negocios/tacos-juquilita.jpg",
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "13:00", cierra: "23:30" },
+    ],
     productos: [
       {
         id: "tacos-juquilita",
