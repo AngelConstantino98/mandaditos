@@ -416,6 +416,34 @@ export default function App() {
     screenRef.current = screen;
   }, [screen]);
 
+  // 🔝 MandaPlus fix scroll menus v2: cada pantalla y cada negocio empiezan desde arriba.
+  useEffect(() => {
+    if (screen === "splash") return;
+
+    const subirAlInicio = () => {
+      try {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+
+        document.querySelectorAll(".card").forEach((elemento) => {
+          elemento.scrollTop = 0;
+        });
+      } catch {
+        // No afecta el funcionamiento si algún navegador no permite mover el scroll.
+      }
+    };
+
+    subirAlInicio();
+    const frame = requestAnimationFrame(subirAlInicio);
+    const timer = setTimeout(subirAlInicio, 80);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [screen, negocioSeleccionado?.id]);
+
   const cerrarModalSuperiorActual = () => {
     const modalActual = modalSuperiorRef.current;
 
@@ -1378,8 +1406,7 @@ ${notaPedido.trim()}`
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-");
 
-  // 🌮 Tacos Juquilita: "Mixta" solo significa pastor, chuleta y chorizo.
-  // No debe decir ni manejarse como "todas las carnes".
+  // 🌮 MandaPlus fix mixta Juquilita v2: Mixta solo incluye pastor, chuleta y chorizo.
   const CARNES_MIXTA_JUQUILITA = ["Pastor", "Chuleta", "Chorizo"];
 
   const esSelectorMixtaJuquilita = (producto) =>
@@ -3943,7 +3970,7 @@ ${notaPedido.trim()}`
       )}
 
       {screen === "menu-negocio" && negocioSeleccionado && (
-        <div className="card">
+        <div key={`menu-negocio-${negocioSeleccionado.id}`} className="card">
 
           <button
             onClick={() => {
