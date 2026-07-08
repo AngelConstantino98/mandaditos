@@ -1378,6 +1378,41 @@ ${notaPedido.trim()}`
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-");
 
+  // 🌮 Tacos Juquilita: "Mixta" solo significa pastor, chuleta y chorizo.
+  // No debe decir ni manejarse como "todas las carnes".
+  const CARNES_MIXTA_JUQUILITA = ["Pastor", "Chuleta", "Chorizo"];
+
+  const esSelectorMixtaJuquilita = (producto) =>
+    negocioSeleccionado?.id === "tacos-juquilita" &&
+    Array.isArray(producto?.guisos) &&
+    producto.guisos.some((guiso) => limpiarTextoId(guiso) === "mixta");
+
+  const obtenerTextoSelectorGuisos = (producto) => {
+    const texto = producto?.textoSelector || "Elige uno o varios guisos:";
+
+    if (!esSelectorMixtaJuquilita(producto)) {
+      return texto;
+    }
+
+    return String(texto)
+      .replace(/Mixta incluye todas las carnes/gi, "Mixta incluye pastor, chuleta y chorizo")
+      .replace(/todas las carnes/gi, "pastor, chuleta y chorizo");
+  };
+
+  const prepararGuisosParaCarrito = (producto, guisos = []) => {
+    const guisosLimpios = guisos.filter(Boolean);
+
+    if (!esSelectorMixtaJuquilita(producto)) {
+      return guisosLimpios;
+    }
+
+    return guisosLimpios.map((guiso) =>
+      limpiarTextoId(guiso) === "mixta"
+        ? `Mixta: ${CARNES_MIXTA_JUQUILITA.join(", ")}`
+        : guiso
+    );
+  };
+
   // 💵 Revisa si un producto tiene precio visible.
   // Si precio es null, mostramos precioTexto como "Precio a consultar" o "Ver opciones".
   const productoTienePrecio = (producto) =>
@@ -1531,7 +1566,7 @@ ${notaPedido.trim()}`
     if (!negocioSeleccionado) return;
 
     const cantidadFinal = Math.max(Number(cantidad) || 1, 1);
-    const guisosLimpios = guisos.filter(Boolean);
+    const guisosLimpios = prepararGuisosParaCarrito(producto, guisos);
     const extrasLimpios = extras.filter(Boolean);
 
     const guisosBase = Array.isArray(producto.guisosBase)
@@ -1610,6 +1645,10 @@ ${notaPedido.trim()}`
     setGuisosSeleccionados((prev) => {
       if (prev.includes(guiso)) {
         return prev.filter((g) => g !== guiso);
+      }
+
+      if (esSelectorMixtaJuquilita(selectorActivo)) {
+        return [guiso];
       }
 
       if (selectorActivo?.maxGuisos && prev.length >= selectorActivo.maxGuisos) {
@@ -4230,7 +4269,7 @@ ${notaPedido.trim()}`
             )}
 
             <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
-              {productoParaGuisos.textoSelector || "Elige uno o varios guisos:"}
+              {obtenerTextoSelectorGuisos(productoParaGuisos)}
             </p>
 
             <div style={{ display: "grid", gap: 8 }}>
