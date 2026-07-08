@@ -1299,7 +1299,7 @@ const negocios = [
 
   {
     id: "pasteleria-oscarin",
-    nombre: "Pastelería Oscarín",
+    nombre: "Oscarín Pastelería",
     emoji: "🎂",
     descripcion: "Pasteles tres leches y tradicionales de 15 a 20 porciones",
     imagen: "/negocios/pasteleria-oscarin.jpg",
@@ -2577,14 +2577,41 @@ const negocios = [
         nombre: "Bebidas calientes",
         precio: null,
         precioTexto: "Desde $25",
-        descripcion: "Café americano, capuchino, chocolate y chocobom.",
+        descripcion: "Café americano, capuchino, chocolate y chocobom. Solo disponible en establecimiento.",
+        avisoSoloEstablecimiento:
+          "☕ Solo disponible en establecimiento. Estas bebidas se muestran solo para consultar el menú; no se pueden pedir a domicilio.",
+        soloEstablecimiento: true,
         imagen: "/productos/la-choza-bebidas-calientes.jpg",
-        textoSelector: "Elige tu bebida caliente:",
+        textoSelector: "Menú de bebidas calientes:",
         opciones: [
-          { id: "cafe-americano-la-choza", nombre: "Café americano", precio: 25, descripcion: "Café americano." },
-          { id: "cafe-capuchino-la-choza", nombre: "Café capuchino", precio: 45, descripcion: "Café capuchino." },
-          { id: "chocolate-la-choza", nombre: "Chocolate", precio: 35, descripcion: "Chocolate caliente." },
-          { id: "chocobom-la-choza", nombre: "Chocobom", precio: 42, descripcion: "Chocobom." },
+          {
+            id: "cafe-americano-la-choza",
+            nombre: "Café americano",
+            precio: 25,
+            descripcion: "Café americano. Solo disponible en establecimiento.",
+            soloEstablecimiento: true,
+          },
+          {
+            id: "cafe-capuchino-la-choza",
+            nombre: "Café capuchino",
+            precio: 45,
+            descripcion: "Café capuchino. Solo disponible en establecimiento.",
+            soloEstablecimiento: true,
+          },
+          {
+            id: "chocolate-la-choza",
+            nombre: "Chocolate",
+            precio: 35,
+            descripcion: "Chocolate caliente. Solo disponible en establecimiento.",
+            soloEstablecimiento: true,
+          },
+          {
+            id: "chocobom-la-choza",
+            nombre: "Chocobom",
+            precio: 42,
+            descripcion: "Chocobom. Solo disponible en establecimiento.",
+            soloEstablecimiento: true,
+          },
         ],
       },
       {

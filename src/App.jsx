@@ -1464,6 +1464,15 @@ ${notaPedido.trim()}`
     return `$${Number(item.precio || 0) * Number(item.cantidad || 1)}`;
   };
 
+  // 🏪 Productos solo para consultar menú dentro del establecimiento.
+  const esSoloEstablecimiento = (producto, productoBase = null) =>
+    producto?.soloEstablecimiento === true ||
+    productoBase?.soloEstablecimiento === true;
+
+  const obtenerAvisoSoloEstablecimiento = (producto) =>
+    producto?.avisoSoloEstablecimiento ||
+    "Solo disponible en establecimiento. Este producto se muestra solo para consultar el menú; no se puede pedir a domicilio.";
+
   // 💰 Calcula precio del producto según guisos y extras.
   const calcularPrecioProducto = (producto, guisos = [], extras = []) => {
     let precioBase = productoTienePrecio(producto)
@@ -1534,6 +1543,18 @@ ${notaPedido.trim()}`
       mostrarAlerta(
         `${negocioSeleccionado.nombre} está cerrado por el momento.`,
         "Negocio cerrado"
+      );
+      return;
+    }
+
+    const productoSoloEstablecimiento = esSoloEstablecimiento(producto);
+    const productoTieneOpcionesParaVer =
+      Array.isArray(producto.opciones) && producto.opciones.length > 0;
+
+    if (productoSoloEstablecimiento && !productoTieneOpcionesParaVer) {
+      mostrarAlerta(
+        obtenerAvisoSoloEstablecimiento(producto),
+        "Solo en establecimiento"
       );
       return;
     }
@@ -1910,6 +1931,14 @@ ${notaPedido.trim()}`
   const agregarOpcionAlCarrito = (productoBase, opcion, cantidad = 1, opcionesAgregar = {}) => {
     if (!productoBase || !opcion) return;
 
+    if (esSoloEstablecimiento(opcion, productoBase)) {
+      mostrarAlerta(
+        obtenerAvisoSoloEstablecimiento(productoBase),
+        "Solo en establecimiento"
+      );
+      return;
+    }
+
     const cantidadFinal = Math.max(Number(cantidad) || 1, 1);
     const opcionTieneExtras =
       Array.isArray(opcion.extras) && opcion.extras.length > 0;
@@ -2184,6 +2213,24 @@ ${notaPedido.trim()}`
   };
 
   const pedidoDeNegocioLocal = negociosPedidoActual.length > 0;
+
+  // 🟢 En la lista de clientes, los negocios abiertos van primero y los cerrados abajo.
+  const negociosOrdenadosParaClientes = [...negocios]
+    .map((negocio, indiceOriginal) => ({
+      negocio,
+      indiceOriginal,
+      estadoNegocio: obtenerEstadoNegocio(negocio),
+    }))
+    .sort((a, b) => {
+      const abiertoA = a.estadoNegocio.abierto !== false;
+      const abiertoB = b.estadoNegocio.abierto !== false;
+
+      if (abiertoA !== abiertoB) {
+        return abiertoA ? -1 : 1;
+      }
+
+      return a.indiceOriginal - b.indiceOriginal;
+    });
 
   // 👑 Si el dueño entra directo con #dueno y ya tiene sesión, cargamos el resumen.
   useEffect(() => {
@@ -3861,8 +3908,7 @@ ${notaPedido.trim()}`
               Elige un negocio para ver su menú.
             </p>
 
-            {negocios.map((negocio) => {
-              const estadoNegocio = obtenerEstadoNegocio(negocio);
+            {negociosOrdenadosParaClientes.map(({ negocio, estadoNegocio }) => {
               const abierto = estadoNegocio.abierto;
 
               return (
@@ -4119,6 +4165,9 @@ ${notaPedido.trim()}`
                 producto.id,
                 negocioSeleccionado.id
               );
+              const productoSoloEstablecimiento = esSoloEstablecimiento(producto);
+              const productoTieneOpcionesParaVer =
+                Array.isArray(producto.opciones) && producto.opciones.length > 0;
 
               return (
                 <div
@@ -4171,24 +4220,49 @@ ${notaPedido.trim()}`
                       {producto.descripcion}
                     </p>
 
+                    {productoSoloEstablecimiento && (
+                      <div
+                        style={{
+                          marginBottom: 7,
+                          padding: "7px 9px",
+                          borderRadius: 9,
+                          background: "#fef3c7",
+                          color: "#92400e",
+                          border: "1px solid #f59e0b",
+                          fontSize: 12,
+                          fontWeight: 900,
+                        }}
+                      >
+                        {obtenerAvisoSoloEstablecimiento(producto)}
+                      </div>
+                    )}
+
                     <strong>{mostrarPrecioProducto(producto)}</strong>
 
                     {cantidad === 0 ? (
                       <button
                         onClick={() => agregarProductoAlCarrito(producto)}
+                        disabled={productoSoloEstablecimiento && !productoTieneOpcionesParaVer}
                         style={{
                           width: "100%",
                           marginTop: 8,
                           padding: "8px 10px",
                           borderRadius: 10,
                           border: "none",
-                          background: "#22c55e",
+                          background: productoSoloEstablecimiento ? "#f59e0b" : "#22c55e",
                           color: "white",
                           fontWeight: "bold",
-                          cursor: "pointer"
+                          cursor:
+                            productoSoloEstablecimiento && !productoTieneOpcionesParaVer
+                              ? "not-allowed"
+                              : "pointer"
                         }}
                       >
-                        Agregar al pedido
+                        {productoSoloEstablecimiento
+                          ? productoTieneOpcionesParaVer
+                            ? "Ver menú"
+                            : "Solo en establecimiento"
+                          : "Agregar al pedido"}
                       </button>
                     ) : (
                       <div
@@ -4847,6 +4921,23 @@ ${notaPedido.trim()}`
               {productoParaOpciones.textoSelector || "Agrega una o varias opciones:"}
             </p>
 
+            {esSoloEstablecimiento(productoParaOpciones) && (
+              <div
+                style={{
+                  marginBottom: 12,
+                  padding: "9px 10px",
+                  borderRadius: 10,
+                  background: "#fef3c7",
+                  border: "1px solid #f59e0b",
+                  color: "#92400e",
+                  fontSize: 13,
+                  fontWeight: 900,
+                }}
+              >
+                {obtenerAvisoSoloEstablecimiento(productoParaOpciones)}
+              </div>
+            )}
+
             <div style={{ display: "grid", gap: 8 }}>
               {productoParaOpciones.opciones.map((opcion) => {
                 const cantidadOpcion = obtenerCantidadProducto(
@@ -4857,15 +4948,26 @@ ${notaPedido.trim()}`
                 const opcionTieneExtras =
                   Array.isArray(opcion.extras) && opcion.extras.length > 0;
 
+                const opcionSoloEstablecimiento = esSoloEstablecimiento(
+                  opcion,
+                  productoParaOpciones
+                );
+
                 return (
                   <div
                     key={opcion.id}
                     style={{
                       padding: 10,
-                      background: cantidadOpcion > 0 ? "#dcfce7" : "#f8fafc",
-                      border: cantidadOpcion > 0
-                        ? "1px solid #22c55e"
-                        : "1px solid #e5e7eb",
+                      background: opcionSoloEstablecimiento
+                        ? "#fffbeb"
+                        : cantidadOpcion > 0
+                          ? "#dcfce7"
+                          : "#f8fafc",
+                      border: opcionSoloEstablecimiento
+                        ? "1px solid #f59e0b"
+                        : cantidadOpcion > 0
+                          ? "1px solid #22c55e"
+                          : "1px solid #e5e7eb",
                       borderRadius: 10
                     }}
                   >
@@ -4884,6 +4986,19 @@ ${notaPedido.trim()}`
                             {opcion.descripcion}
                           </p>
                         )}
+
+                        {opcionSoloEstablecimiento && (
+                          <p
+                            style={{
+                              fontSize: 12,
+                              color: "#92400e",
+                              marginTop: 4,
+                              fontWeight: 900,
+                            }}
+                          >
+                            ☕ Solo disponible en establecimiento
+                          </p>
+                        )}
                       </div>
 
                       <strong>{mostrarPrecioProducto(opcion)}</strong>
@@ -4898,10 +5013,18 @@ ${notaPedido.trim()}`
                         marginTop: 10
                       }}
                     >
-                      <span style={{ fontSize: 13, color: "#166534" }}>
-                        {cantidadOpcion > 0
-                          ? `En carrito: ${cantidadOpcion}`
-                          : "Aún no agregado"}
+                      <span
+                        style={{
+                          fontSize: 13,
+                          color: opcionSoloEstablecimiento ? "#92400e" : "#166534",
+                          fontWeight: opcionSoloEstablecimiento ? 900 : 400,
+                        }}
+                      >
+                        {opcionSoloEstablecimiento
+                          ? "Solo para ver en establecimiento"
+                          : cantidadOpcion > 0
+                            ? `En carrito: ${cantidadOpcion}`
+                            : "Aún no agregado"}
                       </span>
 
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -4912,15 +5035,24 @@ ${notaPedido.trim()}`
                               negocioSeleccionado.id
                             )
                           }
-                          disabled={cantidadOpcion === 0}
+                          disabled={cantidadOpcion === 0 || opcionSoloEstablecimiento}
                           style={{
                             width: 34,
                             height: 34,
                             borderRadius: 10,
                             border: "none",
-                            background: cantidadOpcion === 0 ? "#f3f4f6" : "#e5e7eb",
-                            color: cantidadOpcion === 0 ? "#9ca3af" : "#111827",
-                            cursor: cantidadOpcion === 0 ? "not-allowed" : "pointer",
+                            background:
+                              cantidadOpcion === 0 || opcionSoloEstablecimiento
+                                ? "#f3f4f6"
+                                : "#e5e7eb",
+                            color:
+                              cantidadOpcion === 0 || opcionSoloEstablecimiento
+                                ? "#9ca3af"
+                                : "#111827",
+                            cursor:
+                              cantidadOpcion === 0 || opcionSoloEstablecimiento
+                                ? "not-allowed"
+                                : "pointer",
                             fontWeight: "bold"
                           }}
                         >
@@ -4938,22 +5070,23 @@ ${notaPedido.trim()}`
                               { sinExtras: true }
                             )
                           }
+                          disabled={opcionSoloEstablecimiento}
                           style={{
                             minWidth: 90,
                             height: 34,
                             padding: "0 10px",
                             borderRadius: 10,
                             border: "none",
-                            background: "#22c55e",
-                            color: "white",
-                            cursor: "pointer",
+                            background: opcionSoloEstablecimiento ? "#d1d5db" : "#22c55e",
+                            color: opcionSoloEstablecimiento ? "#6b7280" : "white",
+                            cursor: opcionSoloEstablecimiento ? "not-allowed" : "pointer",
                             fontWeight: "bold"
                           }}
                         >
-                          + Agregar
+                          {opcionSoloEstablecimiento ? "Solo ver" : "+ Agregar"}
                         </button>
 
-                        {opcionTieneExtras && (
+                        {opcionTieneExtras && !opcionSoloEstablecimiento && (
                           <button
                             onClick={() =>
                               agregarOpcionAlCarrito(
@@ -5020,8 +5153,16 @@ ${notaPedido.trim()}`
               </button>
             </div>
 
-            <p style={{ fontSize: 12, color: "#166534", marginTop: 8 }}>
-              Puedes agregar varias opciones sin salir de esta ventana.
+            <p
+              style={{
+                fontSize: 12,
+                color: esSoloEstablecimiento(productoParaOpciones) ? "#92400e" : "#166534",
+                marginTop: 8,
+              }}
+            >
+              {esSoloEstablecimiento(productoParaOpciones)
+                ? "Este menú solo es informativo para consumo en establecimiento."
+                : "Puedes agregar varias opciones sin salir de esta ventana."}
             </p>
           </div>
         </div>
