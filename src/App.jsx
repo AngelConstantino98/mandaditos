@@ -4191,7 +4191,7 @@ ${notaPedido.trim()}`
             alignItems: "flex-start",
             justifyContent: "center",
             padding: "14px 12px",
-            zIndex: 9999,
+            zIndex: 1000000,
             overflowY: "auto",
             WebkitOverflowScrolling: "touch"
           }}
