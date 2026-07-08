@@ -1699,6 +1699,13 @@ ${notaPedido.trim()}`
         return [guiso];
       }
 
+      // ✅ MandaPlus fix iPhone/GAES v1:
+      // Si el selector permite solo 1 opción, tocar otra reemplaza la anterior
+      // en vez de mostrar alerta. Ejemplo: Manzana ↔ Guineo en waffles/hotcakes.
+      if (Number(selectorActivo?.maxGuisos || 0) === 1) {
+        return [guiso];
+      }
+
       if (selectorActivo?.maxGuisos && prev.length >= selectorActivo.maxGuisos) {
         mostrarAlerta(
           selectorActivo.textoMaximoGuisos ||
@@ -5185,10 +5192,14 @@ ${notaPedido.trim()}`
           <div
             style={{
               width: "100%",
-              maxWidth: 380,
+              maxWidth: 390,
+              maxHeight: "calc(100dvh - 32px)",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
               background: "white",
               borderRadius: 16,
               padding: 16,
+              boxSizing: "border-box",
               boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
             }}
           >
@@ -5212,27 +5223,56 @@ ${notaPedido.trim()}`
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 8,
+                      gap: 10,
                       padding: 10,
                       background: seleccionado ? "#dcfce7" : "#f8fafc",
                       border: seleccionado
                         ? "1px solid #22c55e"
                         : "1px solid #e5e7eb",
                       borderRadius: 10,
-                      cursor: "pointer"
+                      cursor: "pointer",
+                      boxSizing: "border-box",
+                      width: "100%",
+                      minWidth: 0,
+                      overflow: "hidden"
                     }}
                   >
                     <input
                       type="checkbox"
                       checked={seleccionado}
                       onChange={() => alternarExtra(extra)}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        minWidth: 20,
+                        maxWidth: 20,
+                        flex: "0 0 20px",
+                        margin: 0
+                      }}
                     />
 
-                    <span style={{ flex: 1 }}>
+                    <span
+                      style={{
+                        flex: "1 1 auto",
+                        minWidth: 0,
+                        whiteSpace: "normal",
+                        overflowWrap: "anywhere",
+                        wordBreak: "break-word",
+                        fontWeight: 700,
+                        lineHeight: 1.25
+                      }}
+                    >
                       {extra.nombre}
                     </span>
 
-                    <strong>
+                    <strong
+                      style={{
+                        flex: "0 0 auto",
+                        marginLeft: "auto",
+                        whiteSpace: "nowrap",
+                        fontWeight: 800
+                      }}
+                    >
                       {productoTienePrecio(extra)
                         ? `+$${Number(extra.precio || 0)}`
                         : extra.precioTexto || "Precio a consultar"}

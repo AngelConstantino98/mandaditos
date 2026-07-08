@@ -388,3 +388,12 @@ p {
     zoom: 1 !important;
   }
 }
+
+/* ✅ MandaPlus fix iPhone extras v1:
+   ayuda a Safari/iPhone a no sacar textos largos o precios fuera del modal. */
+@supports (-webkit-touch-callout: none) {
+  .app input[type="checkbox"],
+  .app input[type="radio"] {
+    flex-shrink: 0;
+  }
+}
