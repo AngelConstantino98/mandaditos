@@ -927,6 +927,107 @@ export default function App() {
       );
   };
 
+  // 🔄 MandaPlus fix sincronización cliente v1:
+  // Si el cliente salió de la app y el repartidor cambió el estado,
+  // al volver se consulta el pedido real del servidor para no quedarse con datos viejos.
+  const obtenerTiempoPedidoCliente = (pedido) => {
+    const fechaPedido =
+      pedido?.fecha ||
+      pedido?.fechaCreacion ||
+      pedido?.createdAt ||
+      pedido?.fecha_creacion ||
+      null;
+
+    const tiempoPorFecha = fechaPedido ? new Date(fechaPedido).getTime() : NaN;
+
+    if (!Number.isNaN(tiempoPorFecha)) {
+      return tiempoPorFecha;
+    }
+
+    const tiempoPorId = Number(pedido?.id);
+
+    if (Number.isFinite(tiempoPorId)) {
+      return tiempoPorId;
+    }
+
+    return 0;
+  };
+
+  const obtenerPedidoActualGuardado = () => {
+    try {
+      const guardado = localStorage.getItem("pedidoActual");
+      return guardado ? JSON.parse(guardado) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const aplicarPedidoActualCliente = (pedidoServidor) => {
+    if (!pedidoServidor?.id) return;
+
+    setPedidoActual(pedidoServidor);
+    localStorage.setItem("pedidoActual", JSON.stringify(pedidoServidor));
+
+    const estadoPedido = String(pedidoServidor.estado || "").toLowerCase();
+
+    if (estadoPedido === "cancelado" || estadoPedido === "entregado") {
+      setRepartidor(null);
+    }
+  };
+
+  const aplicarPedidosCliente = (data = []) => {
+    const lista = Array.isArray(data) ? data : [];
+
+    const filtrados = lista
+      .filter((p) => String(p?.clienteId) === String(clienteId))
+      .sort((a, b) => obtenerTiempoPedidoCliente(b) - obtenerTiempoPedidoCliente(a));
+
+    setPedidos(filtrados.slice(0, 10));
+
+    const pedidoLocal = pedidoActualRef.current || obtenerPedidoActualGuardado();
+
+    const pedidoCoincidente = pedidoLocal?.id
+      ? filtrados.find((p) => String(p.id) === String(pedidoLocal.id))
+      : null;
+
+    if (pedidoCoincidente) {
+      aplicarPedidoActualCliente(pedidoCoincidente);
+      return;
+    }
+
+    const pedidoActivo = filtrados.find((p) => {
+      const estado = String(p.estado || "").toLowerCase();
+      return estado !== "cancelado" && estado !== "entregado";
+    });
+
+    if (pedidoActivo) {
+      aplicarPedidoActualCliente(pedidoActivo);
+    }
+  };
+
+  const sincronizarPedidoActualCliente = (origen = "manual") => {
+    if (!socketRef.current?.connected) {
+      return;
+    }
+
+    socketRef.current
+      .timeout(7000)
+      .emit(
+        "obtener-pedidos-cliente",
+        {
+          clienteId,
+          origen,
+        },
+        (err, respuesta) => {
+          if (err || !respuesta?.ok) {
+            return;
+          }
+
+          aplicarPedidosCliente(respuesta.pedidos || []);
+        }
+      );
+  };
+
   // SOCKET
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
@@ -953,6 +1054,8 @@ export default function App() {
           actualizarEstadoNegociosApp(data);
         }
       });
+
+      sincronizarPedidoActualCliente("connect");
     });
 
     socketRef.current.on("connect_error", (err) => {
@@ -1063,11 +1166,31 @@ export default function App() {
     });
 
     socketRef.current.on("pedidos-iniciales", (data) => {
-      const filtrados = data.filter((p) => p.clienteId === clienteId);
-      setPedidos(filtrados.slice(0, 10));
+      aplicarPedidosCliente(data);
     });
 
     return () => socketRef.current?.disconnect();
+  }, [clienteId]);
+
+
+  // 🔄 Al volver a la app, sincroniza el pedido por si el repartidor lo aceptó
+  // mientras el cliente estaba fuera o con la app en segundo plano.
+  useEffect(() => {
+    const sincronizarSiRegresa = () => {
+      if (typeof document === "undefined" || document.visibilityState === "visible") {
+        sincronizarPedidoActualCliente("cliente-regreso-app");
+      }
+    };
+
+    window.addEventListener("focus", sincronizarSiRegresa);
+    window.addEventListener("pageshow", sincronizarSiRegresa);
+    document.addEventListener("visibilitychange", sincronizarSiRegresa);
+
+    return () => {
+      window.removeEventListener("focus", sincronizarSiRegresa);
+      window.removeEventListener("pageshow", sincronizarSiRegresa);
+      document.removeEventListener("visibilitychange", sincronizarSiRegresa);
+    };
   }, [clienteId]);
 
   // RECUPERAR PEDIDO
