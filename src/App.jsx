@@ -2096,6 +2096,10 @@ ${notaPedido.trim()}`
   };
 
   // 🧀 Marcar/desmarcar extras
+  const esExtraExclusivo = (extra) =>
+    extra?.exclusivoConExtras === true ||
+    limpiarTextoId(extra?.nombre).includes("todo-por-aparte");
+
   const alternarExtra = (extra) => {
     setExtrasSeleccionados((prev) => {
       const existe = prev.some((item) => item.id === extra.id);
@@ -2104,13 +2108,25 @@ ${notaPedido.trim()}`
         return prev.filter((item) => item.id !== extra.id);
       }
 
-      return [...prev, extra];
+      if (esExtraExclusivo(extra)) {
+        return [extra];
+      }
+
+      return [...prev.filter((item) => !esExtraExclusivo(item)), extra];
     });
   };
 
   // ✅ Confirmar producto con extras
   const confirmarProductoConExtras = () => {
     if (!productoParaExtras) return;
+
+    if (
+      productoParaExtras.extrasRequeridos === true &&
+      extrasSeleccionados.length === 0
+    ) {
+      mostrarAlerta("Elige al menos una opción de aderezos.");
+      return;
+    }
 
     agregarProductoConfiguradoAlCarrito(
       productoParaExtras,
@@ -2310,6 +2326,10 @@ ${notaPedido.trim()}`
       opcion,
       opciones: undefined,
       extras: opcionTieneExtras ? opcion.extras : undefined,
+      extrasRequeridos:
+        opcion.extrasRequeridos === true ||
+        opcion.obligarElegirExtras === true ||
+        productoBase.extrasRequeridos === true,
       textoExtras:
         opcion.textoExtras ||
         productoBase.textoExtras ||
@@ -2333,7 +2353,10 @@ ${notaPedido.trim()}`
       return;
     }
 
-    if (opcionTieneExtras && !opcionesAgregar.sinExtras) {
+    if (
+      opcionTieneExtras &&
+      (!opcionesAgregar.sinExtras || opcion.obligarElegirExtras === true)
+    ) {
       setProductoParaExtras(productoConOpcion);
       setExtrasSeleccionados([]);
       setCantidadProductoExtras(cantidadFinal);
@@ -5435,7 +5458,7 @@ ${notaPedido.trim()}`
                               productoParaOpciones,
                               opcion,
                               1,
-                              { sinExtras: true }
+                              { sinExtras: opcion.obligarElegirExtras !== true }
                             )
                           }
                           disabled={opcionSoloEstablecimiento}
@@ -5451,10 +5474,16 @@ ${notaPedido.trim()}`
                             fontWeight: "bold"
                           }}
                         >
-                          {opcionSoloEstablecimiento ? "Solo ver" : "+ Agregar"}
+                          {opcionSoloEstablecimiento
+                            ? "Solo ver"
+                            : opcionTieneExtras && opcion.obligarElegirExtras === true
+                              ? "Elegir aderezos"
+                              : "+ Agregar"}
                         </button>
 
-                        {opcionTieneExtras && !opcionSoloEstablecimiento && (
+                        {opcionTieneExtras &&
+                          !opcionSoloEstablecimiento &&
+                          opcion.obligarElegirExtras !== true && (
                           <button
                             onClick={() =>
                               agregarOpcionAlCarrito(

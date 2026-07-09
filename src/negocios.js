@@ -152,7 +152,202 @@ const CARNES_JUQUILITA = [
   "Mixta",
 ];
 
+const ADEREZOS_HOTDOGS_CONSGALI = [
+  {
+    id: "catsup-hotdogs-consgali",
+    nombre: "Catsup",
+    precio: null,
+    precioTexto: "Incluido",
+  },
+  {
+    id: "mayonesa-hotdogs-consgali",
+    nombre: "Mayonesa",
+    precio: null,
+    precioTexto: "Incluido",
+  },
+  {
+    id: "mostaza-hotdogs-consgali",
+    nombre: "Mostaza",
+    precio: null,
+    precioTexto: "Incluido",
+  },
+  {
+    id: "chile-jalapeno-trozos-hotdogs-consgali",
+    nombre: "Chile jalapeño en trozos",
+    precio: null,
+    precioTexto: "Incluido",
+  },
+  {
+    id: "todo-por-aparte-hotdogs-consgali",
+    nombre: "Todo por aparte",
+    precio: null,
+    precioTexto: "Incluido",
+    exclusivoConExtras: true,
+  },
+];
+
 const negocios = [
+  {
+    id: "consgali",
+    nombre: "CONSGALI",
+    emoji: "🍔",
+    descripcion: "Hamburguesas, hot dogs jumbo, papas, salchipapas y bebidas",
+    imagen: "/negocios/consgali.jpg",
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "18:00", cierra: "23:30" },
+    ],
+    productos: [
+      {
+        id: "hamburguesas-consgali",
+        nombre: "Hamburguesas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "La clásica, salchicha, tocino, quesillo, triple queso, BBQ, hawaiana y especial",
+        imagen: "/productos/consgali-hamburguesas.jpg",
+        textoSelector: "Elige tu hamburguesa:",
+        opciones: [
+          {
+            id: "hamburguesa-clasica-consgali",
+            nombre: "La clásica",
+            precio: 60,
+            descripcion: "Carne de res, queso amarillo, jamón, lechuga, tomate y cebolla.",
+          },
+          {
+            id: "hamburguesa-salchicha-consgali",
+            nombre: "Salchicha",
+            precio: 70,
+            descripcion: "Carne de res, queso amarillo, salchicha, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+          {
+            id: "hamburguesa-tocino-consgali",
+            nombre: "Tocino",
+            precio: 75,
+            descripcion: "Carne de res, queso amarillo, tocino, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+          {
+            id: "hamburguesa-quesillo-consgali",
+            nombre: "Quesillo",
+            precio: 75,
+            descripcion: "Carne de res, queso amarillo, quesillo, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+          {
+            id: "hamburguesa-triple-queso-consgali",
+            nombre: "Triple queso",
+            precio: 80,
+            descripcion: "Carne de res, queso amarillo, queso manchego, quesillo, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+          {
+            id: "hamburguesa-bbq-consgali",
+            nombre: "BBQ",
+            precio: 80,
+            descripcion: "Carne de res, queso amarillo, salsa BBQ, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+          {
+            id: "hamburguesa-hawaiana-consgali",
+            nombre: "Hawaiana",
+            precio: 80,
+            descripcion: "Carne de res, queso amarillo, piña caramelizada, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+          {
+            id: "hamburguesa-especial-consgali",
+            nombre: "Especial",
+            precio: 95,
+            descripcion: "Carne de res, queso amarillo, queso manchego, quesillo, salchicha, tocino, jamón, lechuga, tomate, cebolla y porción de papas.",
+          },
+        ],
+      },
+      {
+        id: "hot-dogs-jumbo-consgali",
+        nombre: "Hot Dogs Jumbo",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Hot dogs jumbo clásico y especial",
+        imagen: "/productos/consgali-hotdogs.jpg",
+        textoSelector: "Elige tu hot dog jumbo:",
+        opciones: [
+          {
+            id: "hot-dog-clasico-consgali",
+            nombre: "Clásico",
+            precio: 40,
+            descripcion: "Pan de 20 cm, salchicha jumbo, cebolla caramelizada, tomate y aderezos.",
+            extras: ADEREZOS_HOTDOGS_CONSGALI,
+            textoExtras: "Elige los aderezos para tu hot dog:",
+            extrasRequeridos: true,
+            obligarElegirExtras: true,
+          },
+          {
+            id: "hot-dog-especial-consgali",
+            nombre: "Especial",
+            precio: 55,
+            descripcion: "Pan de 20 cm, salchicha jumbo envuelta en tocino, quesillo, cebolla caramelizada, tomate, aderezos y queso americano fundido.",
+            extras: ADEREZOS_HOTDOGS_CONSGALI,
+            textoExtras: "Elige los aderezos para tu hot dog:",
+            extrasRequeridos: true,
+            obligarElegirExtras: true,
+          },
+        ],
+      },
+      {
+        id: "extras-consgali",
+        nombre: "Extras",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Papas y salchipapas",
+        imagen: "/productos/consgali-extras.jpg",
+        textoSelector: "Elige tu extra:",
+        opciones: [
+          {
+            id: "papas-consgali",
+            nombre: "Papas",
+            precio: 40,
+            descripcion: "Orden de papas.",
+          },
+          {
+            id: "salchipapas-consgali",
+            nombre: "Salchipapas",
+            precio: 55,
+            descripcion: "Orden de salchipapas.",
+          },
+        ],
+      },
+      {
+        id: "bebidas-consgali",
+        nombre: "Bebidas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Coca Cola, Fanta, Sprite y agua de horchata",
+        imagen: "/productos/consgali-bebidas.jpg",
+        textoSelector: "Elige tu bebida:",
+        opciones: [
+          {
+            id: "coca-cola-600ml-consgali",
+            nombre: "Coca Cola 600ml",
+            precio: 25,
+            descripcion: "Coca Cola 600ml.",
+          },
+          {
+            id: "fanta-600ml-consgali",
+            nombre: "Fanta 600ml",
+            precio: 25,
+            descripcion: "Fanta 600ml.",
+          },
+          {
+            id: "sprite-600ml-consgali",
+            nombre: "Sprite 600ml",
+            precio: 25,
+            descripcion: "Sprite 600ml.",
+          },
+          {
+            id: "agua-horchata-consgali",
+            nombre: "Agua de horchata",
+            precio: 25,
+            descripcion: "Agua de horchata.",
+          },
+        ],
+      },
+    ],
+  },
+
   {
     id: "antojitos-la-bendicion-de-dios",
     nombre: "ANTOJITOS La Bendición de Dios",
