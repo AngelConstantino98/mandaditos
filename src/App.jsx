@@ -131,6 +131,7 @@ export default function App() {
   const navegandoConBotonAtrasRef = useRef(false);
   const modalSuperiorRef = useRef(null);
   const modalHistorialRef = useRef(null);
+  const enviandoPedidoRef = useRef(false);
 
   const [screen, setScreenBase] = useState("splash");
 
@@ -268,6 +269,7 @@ export default function App() {
 
   const [pedidoActual, setPedidoActual] = useState(null);
   const [pedidos, setPedidos] = useState([]);
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
 
   const [showCancel, setShowCancel] = useState(null);
 
@@ -1028,6 +1030,43 @@ export default function App() {
       );
   };
 
+  const obtenerPedidoActualServidor = (pedidoId, origen = "consulta-pedido") => {
+    return new Promise((resolve) => {
+      if (!socketRef.current?.connected) {
+        resolve(null);
+        return;
+      }
+
+      socketRef.current
+        .timeout(7000)
+        .emit(
+          "obtener-pedidos-cliente",
+          {
+            clienteId,
+            origen,
+          },
+          (err, respuesta) => {
+            if (err || !respuesta?.ok) {
+              resolve(null);
+              return;
+            }
+
+            const pedidosServidor = Array.isArray(respuesta.pedidos)
+              ? respuesta.pedidos
+              : [];
+
+            aplicarPedidosCliente(pedidosServidor);
+
+            const pedidoEncontrado = pedidoId
+              ? pedidosServidor.find((p) => String(p.id) === String(pedidoId))
+              : pedidosServidor[0];
+
+            resolve(pedidoEncontrado || null);
+          }
+        );
+    });
+  };
+
   // SOCKET
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
@@ -1487,8 +1526,56 @@ export default function App() {
     setScreen("home", { reemplazar: true });
   };
 
+  const normalizarTextoClavePedido = (valor) =>
+    String(valor ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+
+  const crearClavePedidoCliente = (pedidoData) => {
+    const carritoSeguro = Array.isArray(pedidoData.carritoNegocios)
+      ? pedidoData.carritoNegocios.map((item) => ({
+          id: item?.id || item?.productoId || "",
+          nombre: item?.nombre || "",
+          cantidad: item?.cantidad || 1,
+          precio: item?.precio ?? null,
+          negocioId: item?.negocioId || "",
+        }))
+      : [];
+
+    return [
+      "cliente",
+      pedidoData.clienteId,
+      "nombre",
+      pedidoData.nombre,
+      "pedido",
+      pedidoData.pedido,
+      "ubicacion",
+      pedidoData.ubicacion,
+      "zona",
+      pedidoData.zona,
+      "costo",
+      pedidoData.costo,
+      "negocios",
+      (pedidoData.negociosIds || []).join(","),
+      "carrito",
+      JSON.stringify(carritoSeguro),
+    ]
+      .map(normalizarTextoClavePedido)
+      .join("|")
+      .slice(0, 3000);
+  };
+
   // ENVIAR
   const enviar = () => {
+    if (enviandoPedidoRef.current) {
+      mostrarAlerta(
+        "Tu pedido ya se está enviando. Espera unos segundos para evitar que se duplique.",
+        "Enviando pedido"
+      );
+      return;
+    }
+
     const esPedidoNegocioLocal = negociosPedidoActual.length > 0;
     const pedidoSeguroNegocio = esPedidoNegocioLocal
       ? construirPedidoNegociosLocales(carrito)
@@ -1576,14 +1663,27 @@ ${notaPedido.trim()}`
       totalProductosNegocios: esPedidoNegocioLocal ? textoTotalCarrito : null,
     };
 
+    pedidoData.clientePedidoClave = crearClavePedidoCliente(pedidoData);
+
+    enviandoPedidoRef.current = true;
+    setEnviandoPedido(true);
+
     socketRef.current
       .timeout(7000)
       .emit("nuevo-pedido", pedidoData, (err, respuesta) => {
+        enviandoPedidoRef.current = false;
+        setEnviandoPedido(false);
+
         if (err || !respuesta?.ok) {
+          sincronizarPedidoActualCliente("envio-sin-confirmacion");
+          setTimeout(() => {
+            sincronizarPedidoActualCliente("envio-sin-confirmacion-reintento");
+          }, 1500);
+
           mostrarAlerta(
             respuesta?.mensaje ||
-              "No se pudo enviar el pedido. Intenta nuevamente.",
-            "Pedido no enviado"
+              "No recibimos confirmación del servidor. Si había mala señal, puede que el pedido sí se haya enviado. Estoy revisando para evitar duplicarlo; espera unos segundos antes de intentar otra vez.",
+            "Pedido sin confirmación"
           );
           return;
         }
@@ -1597,9 +1697,15 @@ ${notaPedido.trim()}`
         setSorteando(false);
         setOcultarPromoInicio(false);
 
-        const numero = "529621816603";
+        if (respuesta.duplicado) {
+          mostrarAlerta(
+            "Este pedido ya estaba enviado. No lo dupliqué.",
+            "Pedido ya enviado"
+          );
+        } else {
+          const numero = "529621816603";
 
-        const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
+          const mensaje = `🏍️ NUEVO PEDIDO DESDE MANDAPLUS
 
 👤 ${nombre}
 🛒 ${pedidoFinal}
@@ -1639,6 +1745,7 @@ ${notaPedido.trim()}`
             );
           }, 200);
         }
+        }
 
         setNombre("");
         setPedido("");
@@ -1655,13 +1762,35 @@ ${notaPedido.trim()}`
   };
 
   // 🍀 PROBAR SUERTE
-  const probarSuerte = () => {
+  const probarSuerte = async () => {
     if (!pedidoActual?.id) {
       mostrarAlerta("Primero realiza un pedido.");
       return;
     }
 
-    const estadoPedidoActual = String(pedidoActual.estado || "").toLowerCase();
+    let pedidoParaPromo = pedidoActual;
+    let estadoPedidoActual = String(pedidoParaPromo.estado || "").toLowerCase();
+
+    if (estadoPedidoActual !== "entregado" && estadoPedidoActual !== "cancelado") {
+      setSorteando(true);
+      setOcultarPromoInicio(false);
+      setResultadoPromo({
+        tipo: "info",
+        mensaje: "🔄 Revisando el estado real del pedido..."
+      });
+
+      const pedidoServidor = await obtenerPedidoActualServidor(
+        pedidoParaPromo.id,
+        "antes-probar-suerte"
+      );
+
+      setSorteando(false);
+
+      if (pedidoServidor?.id) {
+        pedidoParaPromo = pedidoServidor;
+        estadoPedidoActual = String(pedidoParaPromo.estado || "").toLowerCase();
+      }
+    }
 
     if (estadoPedidoActual === "cancelado") {
       setResultadoPromo({
@@ -1674,15 +1803,15 @@ ${notaPedido.trim()}`
     if (estadoPedidoActual !== "entregado") {
       setResultadoPromo({
         tipo: "error",
-        mensaje: "🍀 Podrás probar tu suerte cuando el repartidor marque tu pedido como entregado.\n\nSi ganas, no se te cobra el envío."
+        mensaje: "🍀 Podrás probar tu suerte cuando el repartidor marque tu pedido como entregado.\n\nSi el repartidor ya lo entregó y no te aparece, cierra y vuelve a abrir la app o intenta de nuevo en unos segundos."
       });
       return;
     }
 
-    if (pedidoActual.promocion?.participo) {
+    if (pedidoParaPromo.promocion?.participo) {
       setResultadoPromo({
-        tipo: pedidoActual.promocion.ganador ? "ganador" : "perdedor",
-        mensaje: pedidoActual.promocion.ganador
+        tipo: pedidoParaPromo.promocion.ganador ? "ganador" : "perdedor",
+        mensaje: pedidoParaPromo.promocion.ganador
           ? MENSAJE_GANADOR
           : MENSAJE_PERDEDOR
       });
@@ -1695,14 +1824,14 @@ ${notaPedido.trim()}`
 
     socketRef.current
       .timeout(7000)
-      .emit("probar-suerte", { pedidoId: pedidoActual.id }, (err, resultado) => {
+      .emit("probar-suerte", { pedidoId: pedidoParaPromo.id }, (err, resultado) => {
         setSorteando(false);
         setOcultarPromoInicio(false);
 
         if (err) {
           setResultadoPromo({
             tipo: "error",
-            mensaje: "No se recibió respuesta del servidor. Verifica que el backend local esté encendido."
+            mensaje: "No se recibió respuesta del servidor. Revisa tu señal e intenta nuevamente."
           });
           return;
         }
@@ -5886,8 +6015,8 @@ ${notaPedido.trim()}`
             ))}
           </select>
 
-          <button className="btn" onClick={enviar}>
-            Enviar pedido
+          <button className="btn" onClick={enviar} disabled={enviandoPedido}>
+            {enviandoPedido ? "Enviando pedido..." : "Enviar pedido"}
           </button>
 
         </div>

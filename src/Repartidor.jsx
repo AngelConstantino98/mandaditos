@@ -38,6 +38,7 @@ export default function Repartidor() {
     return localStorage.getItem(SONIDO_PEDIDOS_STORAGE_KEY) === "true";
   });
   const [pedidoParaEntregar, setPedidoParaEntregar] = useState(null);
+  const [pedidosActualizando, setPedidosActualizando] = useState({});
 
   const [repartidor, setRepartidor] = useState(null);
   const [usuarioRepartidor, setUsuarioRepartidor] = useState("");
@@ -238,6 +239,48 @@ export default function Repartidor() {
 
   const obtenerEstadoPedido = (pedido) =>
     String(pedido?.estado || "").toLowerCase();
+
+  const pedidoEstaActualizando = (pedidoId) =>
+    Boolean(pedidosActualizando[String(pedidoId)]);
+
+  const marcarPedidoActualizando = (pedidoId, valor) => {
+    const id = String(pedidoId || "");
+
+    if (!id) return;
+
+    setPedidosActualizando((prev) => {
+      if (valor) {
+        return {
+          ...prev,
+          [id]: true,
+        };
+      }
+
+      const siguiente = { ...prev };
+      delete siguiente[id];
+      return siguiente;
+    });
+  };
+
+  const aplicarPedidoActualizadoLocal = (pedidoActualizado) => {
+    if (!pedidoActualizado?.id) return;
+
+    setPedidos((prev) => {
+      const existe = prev.find(
+        (p) => String(p.id) === String(pedidoActualizado.id)
+      );
+
+      if (existe) {
+        return prev.map((p) =>
+          String(p.id) === String(pedidoActualizado.id)
+            ? pedidoActualizado
+            : p
+        );
+      }
+
+      return [pedidoActualizado, ...prev];
+    });
+  };
 
   const pedidoEstaFinalizado = (pedido) => {
     const estado = obtenerEstadoPedido(pedido);
@@ -629,6 +672,10 @@ export default function Repartidor() {
       return;
     }
 
+    if (pedidoEstaActualizando(pedido.id)) {
+      return;
+    }
+
     const pedidoTieneRepartidor = Boolean(pedido.repartidorId);
     const pedidoEsDeOtroRepartidor =
       pedidoTieneRepartidor &&
@@ -662,6 +709,11 @@ export default function Repartidor() {
       }
     }
 
+    if (!socketRef.current?.connected) {
+      alert("No estás conectado al servidor. Revisa tu señal antes de intentarlo.");
+      return;
+    }
+
     if (["aceptado", "en camino"].includes(estado)) {
       // Si el GPS ya estaba activo, reenviamos una ubicación en ese momento.
       // Así el cliente puede ver al repartidor apenas se acepta el pedido.
@@ -669,20 +721,123 @@ export default function Repartidor() {
       solicitarUbicacionActual(`estado-${estado}`);
     }
 
-    socketRef.current.emit("cambiar-estado", {
-      ...pedido,
-      estado,
-      repartidorId: repartidorActivo.id,
-      repartidorNombre: repartidorActivo.nombre,
-    });
+    marcarPedidoActualizando(pedido.id, true);
 
-    if (estado === "aceptado" || estado === "en camino") {
-      setPestana("mis");
+    socketRef.current
+      ?.timeout(7000)
+      .emit(
+        "cambiar-estado",
+        {
+          ...pedido,
+          estado,
+          repartidorId: repartidorActivo.id,
+          repartidorNombre: repartidorActivo.nombre,
+        },
+        (err, respuesta) => {
+          marcarPedidoActualizando(pedido.id, false);
+
+          if (err || !respuesta?.ok) {
+            alert(
+              respuesta?.mensaje ||
+                "No se pudo confirmar el cambio con el servidor. Revisa tu señal antes de volver a intentarlo."
+            );
+            return;
+          }
+
+          if (respuesta.pedido) {
+            aplicarPedidoActualizadoLocal(respuesta.pedido);
+          }
+
+          if (estado === "aceptado" || estado === "en camino") {
+            setPestana("mis");
+          }
+
+          if (estado === "entregado") {
+            setPestana("entregados");
+          }
+        }
+      );
+  };
+
+  const cancelarPedidoRepartidor = (pedido) => {
+    const repartidorActivo = obtenerRepartidorActivo();
+
+    if (!repartidorActivo) {
+      alert("Primero inicia sesión como repartidor.");
+      return;
     }
+
+    if (pedidoEstaActualizando(pedido.id)) {
+      return;
+    }
+
+    const estado = obtenerEstadoPedido(pedido);
 
     if (estado === "entregado") {
-      setPestana("entregados");
+      alert("Este pedido ya está entregado y no se puede cancelar.");
+      return;
     }
+
+    if (estado === "cancelado") {
+      alert("Este pedido ya está cancelado.");
+      return;
+    }
+
+    const pedidoTieneRepartidor = Boolean(pedido.repartidorId);
+    const pedidoEsDeOtroRepartidor =
+      pedidoTieneRepartidor &&
+      String(pedido.repartidorId) !== String(repartidorActivo.id);
+
+    if (pedidoEsDeOtroRepartidor) {
+      alert(
+        `Solo ${pedido.repartidorNombre || "el repartidor asignado"} puede cancelar este pedido.`
+      );
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `¿Seguro que quieres cancelar el pedido de ${pedido.nombre || "este cliente"}?`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    if (!socketRef.current?.connected) {
+      alert("No estás conectado al servidor. Revisa tu señal antes de cancelar.");
+      return;
+    }
+
+    marcarPedidoActualizando(pedido.id, true);
+
+    socketRef.current
+      ?.timeout(7000)
+      .emit(
+        "cancelar-pedido",
+        {
+          id: pedido.id,
+          repartidorId: repartidorActivo.id,
+          repartidorNombre: repartidorActivo.nombre,
+          canceladoPor: "repartidor",
+        },
+        (err, respuesta) => {
+          marcarPedidoActualizando(pedido.id, false);
+
+          if (err || !respuesta?.ok) {
+            alert(
+              respuesta?.mensaje ||
+                "No se pudo confirmar la cancelación con el servidor. Revisa tu señal antes de volver a intentarlo."
+            );
+            return;
+          }
+
+          if (respuesta.pedido) {
+            aplicarPedidoActualizadoLocal(respuesta.pedido);
+          }
+
+          setPestana("cancelados");
+        }
+      );
   };
 
   const abrirMapa = (p) => {
@@ -967,6 +1122,7 @@ export default function Repartidor() {
                   setPedidoParaEntregar(null);
                   cambiarEstado(pedidoConfirmado, "entregado");
                 }}
+                disabled={pedidoEstaActualizando(pedidoParaEntregar.id) || !conectado}
                 style={{
                   flex: 1,
                   padding: "10px 12px",
@@ -1257,6 +1413,7 @@ export default function Repartidor() {
       {pedidosMostrados.map((p) => {
         const telefonoCliente = obtenerTelefonoPedido(p);
         const pedidoTieneRepartidor = Boolean(p.repartidorId);
+        const actualizandoPedido = pedidoEstaActualizando(p.id);
         const esMio = pedidoEsMio(p);
         const esDeOtro = pedidoEsDeOtro(p);
         const finalizado = pedidoEstaFinalizado(p);
@@ -1424,8 +1581,11 @@ export default function Repartidor() {
               )}
 
               {!finalizado && !pedidoTieneRepartidor && puedoAceptarPedido(p) && (
-                <button onClick={() => cambiarEstado(p, "aceptado")}>
-                  ✔ Aceptar
+                <button
+                  onClick={() => cambiarEstado(p, "aceptado")}
+                  disabled={actualizandoPedido || !conectado}
+                >
+                  {actualizandoPedido ? "Actualizando..." : "✔ Aceptar"}
                 </button>
               )}
 
@@ -1448,15 +1608,34 @@ export default function Repartidor() {
               {!finalizado && esMio && (
                 <>
                   {estado !== "en camino" && (
-                    <button onClick={() => cambiarEstado(p, "en camino")}>
-                      🚀 En camino
+                    <button
+                      onClick={() => cambiarEstado(p, "en camino")}
+                      disabled={actualizandoPedido || !conectado}
+                    >
+                      {actualizandoPedido ? "Actualizando..." : "🚀 En camino"}
                     </button>
                   )}
 
-                  <button onClick={() => setPedidoParaEntregar(p)}>
-                    ✅ Entregado
+                  <button
+                    onClick={() => setPedidoParaEntregar(p)}
+                    disabled={actualizandoPedido || !conectado}
+                  >
+                    {actualizandoPedido ? "Actualizando..." : "✅ Entregado"}
                   </button>
                 </>
+              )}
+
+              {!finalizado && (esMio || !pedidoTieneRepartidor) && (
+                <button
+                  onClick={() => cancelarPedidoRepartidor(p)}
+                  disabled={actualizandoPedido || !conectado}
+                  style={{
+                    background: "#dc2626",
+                    color: "white",
+                  }}
+                >
+                  {actualizandoPedido ? "Actualizando..." : "❌ Cancelar pedido"}
+                </button>
               )}
             </div>
 
