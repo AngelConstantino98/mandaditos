@@ -186,7 +186,206 @@ const ADEREZOS_HOTDOGS_CONSGALI = [
   },
 ];
 
+// Opciones para Cafetería Minni Delicias
+const TOPPINGS_MINNI_DELICIAS = [
+  "Mini Kisses",
+  "Galleta Oreo",
+  "Chocoretas",
+  "M&M's",
+  "Coco rayado",
+  "Almendras",
+  "Chispas de chocolate",
+  "Chispas de colores",
+];
+
+const JARABES_MINNI_DELICIAS = [
+  "Lechera",
+  "Nutella",
+  "Cajeta",
+  "Hershey's chocolate",
+  "Hershey's fresa",
+];
+
+const FRUTAS_MINNI_DELICIAS = [
+  "Plátano",
+  "Fresa",
+];
+
 const negocios = [
+
+  {
+    id: "cafeteria-minni-delicias",
+    nombre: "Cafetería Minni Delicias",
+    emoji: "☕",
+    descripcion: "Hot cakes, crepas, frappés, bebidas frías y fresas con crema",
+    imagen: "/negocios/cafeteria-minni-delicias.jpg",
+    productos: [
+      {
+        id: "hot-cakes-minni-delicias",
+        nombre: "Hot cakes",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Minni hot cakes con fruta, topping y jarabe",
+        imagen: "/productos/minni-delicias-hot-cakes.jpg",
+        textoSelector: "Elige tus hot cakes:",
+        opciones: [
+          {
+            id: "minni-hot-cakes",
+            nombre: "Minni hot cakes",
+            precio: 60,
+            descripcion: "Incluye 1 fruta, 1 topping y 1 jarabe.",
+            imagen: "/productos/minni-delicias-hot-cakes.jpg",
+            guisos: FRUTAS_MINNI_DELICIAS,
+            maxGuisos: 1,
+            cantidadExactaGuisosExtra: 1,
+            textoSelector: "Elige 1 fruta:",
+            toppings: TOPPINGS_MINNI_DELICIAS,
+            maxToppings: 1,
+            cantidadExactaToppings: 1,
+            textoToppings: "Elige 1 topping:",
+            jarabes: JARABES_MINNI_DELICIAS,
+            jarabeRequerido: true,
+            textoJarabes: "Elige 1 jarabe:",
+          },
+        ],
+      },
+      {
+        id: "crepas-minni-delicias",
+        nombre: "Crepas",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Crepas dulces y saladas",
+        imagen: "/productos/minni-delicias-crepa-dulce.jpg",
+        textoSelector: "Elige tu crepa:",
+        opciones: [
+          {
+            id: "crepa-dulce-minni-delicias",
+            nombre: "Crepa dulce",
+            precio: 70,
+            descripcion: "Crepa dulce.",
+            imagen: "/productos/minni-delicias-crepa-dulce.jpg",
+          },
+          {
+            id: "crepa-jamon-queso-philadelphia-minni-delicias",
+            nombre: "Crepa de jamón con queso Philadelphia",
+            precio: 70,
+            descripcion: "Crepa de jamón con queso Philadelphia.",
+            imagen: "/productos/minni-delicias-crepa-jamon-philadelphia.jpg",
+          },
+          {
+            id: "crepa-pepperoni-minni-delicias",
+            nombre: "Crepa de pepperoni",
+            precio: 85,
+            descripcion: "Crepa de pepperoni.",
+            imagen: "/productos/minni-delicias-crepa-pepperoni.jpg",
+          },
+          {
+            id: "crepa-hawaiana-minni-delicias",
+            nombre: "Crepa hawaiana",
+            precio: 85,
+            descripcion: "Crepa hawaiana.",
+            imagen: "/productos/minni-delicias-crepa-hawaiana.jpg",
+          },
+        ],
+      },
+      {
+        id: "frappes-minni-delicias",
+        nombre: "Frappés",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Oreo, Gansito, Nutella y capuchino",
+        imagen: "/productos/minni-delicias-frappe-oreo.jpg",
+        textoSelector: "Elige tu frappé:",
+        opciones: [
+          {
+            id: "frappe-oreo-minni-delicias",
+            nombre: "Frappé galleta Oreo",
+            precio: 70,
+            descripcion: "Frappé de galleta Oreo.",
+            imagen: "/productos/minni-delicias-frappe-oreo.jpg",
+          },
+          {
+            id: "frappe-gansito-minni-delicias",
+            nombre: "Frappé Gansito",
+            precio: 80,
+            descripcion: "Frappé Gansito.",
+            imagen: "/productos/minni-delicias-frappe-gansito.jpg",
+          },
+          {
+            id: "frappe-nutella-minni-delicias",
+            nombre: "Frappé Nutella",
+            precio: 80,
+            descripcion: "Frappé Nutella.",
+            imagen: "/productos/minni-delicias-frappe-nutella.jpg",
+          },
+          {
+            id: "frappe-capuchino-minni-delicias",
+            nombre: "Frappé capuchino",
+            precio: 70,
+            descripcion: "Frappé capuchino.",
+            imagen: "/productos/minni-delicias-frappe-capuchino.jpg",
+          },
+        ],
+      },
+      {
+        id: "bebidas-frias-minni-delicias",
+        nombre: "Bebidas frías",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Chamoyada de fresa y mangonada",
+        imagen: "/productos/minni-delicias-chamoyada-fresa.jpg",
+        textoSelector: "Elige tu bebida:",
+        opciones: [
+          {
+            id: "chamoyada-fresa-minni-delicias",
+            nombre: "Chamoyada de fresa",
+            precio: 70,
+            descripcion: "Chamoyada de fresa.",
+            imagen: "/productos/minni-delicias-chamoyada-fresa.jpg",
+          },
+          {
+            id: "mangonada-minni-delicias",
+            nombre: "Mangonada",
+            precio: 70,
+            descripcion: "Mangonada.",
+            imagen: "/productos/minni-delicias-mangonada.jpg",
+          },
+        ],
+      },
+      {
+        id: "fresas-con-crema-minni-delicias",
+        nombre: "Fresas con crema",
+        precio: null,
+        precioTexto: "Ver opciones",
+        descripcion: "Fresas con crema tradicionales o con galleta Lotus",
+        imagen: "/productos/minni-delicias-fresas-crema.jpg",
+        textoSelector: "Elige tus fresas con crema:",
+        opciones: [
+          {
+            id: "fresas-con-crema-clasicas-minni-delicias",
+            nombre: "Fresas con crema",
+            precio: 80,
+            descripcion: "Incluye 1 topping y 1 jarabe.",
+            imagen: "/productos/minni-delicias-fresas-crema.jpg",
+            toppings: TOPPINGS_MINNI_DELICIAS,
+            maxToppings: 1,
+            cantidadExactaToppings: 1,
+            textoToppings: "Elige 1 topping:",
+            jarabes: JARABES_MINNI_DELICIAS,
+            jarabeRequerido: true,
+            textoJarabes: "Elige 1 jarabe:",
+          },
+          {
+            id: "fresas-crema-lotus-minni-delicias",
+            nombre: "Fresas con crema de galleta Lotus",
+            precio: 100,
+            descripcion: "Fresas con crema de galleta Lotus.",
+            imagen: "/productos/minni-delicias-fresas-lotus.jpg",
+          },
+        ],
+      },
+    ],
+  },
   {
     id: "consgali",
     nombre: "CONSGALI",

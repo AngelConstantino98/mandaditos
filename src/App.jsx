@@ -2349,7 +2349,7 @@ ${notaPedido.trim()}`
       productoParaToppings.toppings.length > 0
     ) {
       if (cantidadExactaToppings > 0 && toppingsLimpios.length !== cantidadExactaToppings) {
-        mostrarAlerta(`Elige ${cantidadExactaToppings} dulce(s).`);
+        mostrarAlerta(`Elige ${cantidadExactaToppings} topping(s).`);
         return;
       }
 
@@ -2361,6 +2361,14 @@ ${notaPedido.trim()}`
         );
         return;
       }
+    }
+
+    if (
+      productoParaToppings.jarabeRequerido === true &&
+      jarabesLimpios.length === 0
+    ) {
+      mostrarAlerta(productoParaToppings.textoJarabes || "Elige 1 jarabe.");
+      return;
     }
 
     const detalles = [];
@@ -2443,6 +2451,12 @@ ${notaPedido.trim()}`
     const opcionTieneGuisos =
       Array.isArray(opcion.guisos) && opcion.guisos.length > 0;
 
+    const opcionTieneToppings =
+      Array.isArray(opcion.toppings) && opcion.toppings.length > 0;
+
+    const opcionTieneJarabes =
+      Array.isArray(opcion.jarabes) && opcion.jarabes.length > 0;
+
     const productoConOpcion = {
       ...productoBase,
       id: opcion.id,
@@ -2467,11 +2481,32 @@ ${notaPedido.trim()}`
       maxGuisos: opcion.maxGuisos,
       cantidadExactaGuisosExtra: opcion.cantidadExactaGuisosExtra,
       permitirSinGuisos: opcion.permitirSinGuisos,
+      toppings: opcionTieneToppings ? opcion.toppings : undefined,
+      maxToppings: opcion.maxToppings,
+      cantidadExactaToppings: opcion.cantidadExactaToppings,
+      textoToppings: opcion.textoToppings,
+      jarabes: opcionTieneJarabes ? opcion.jarabes : undefined,
+      jarabeRequerido: opcion.jarabeRequerido === true,
+      textoJarabes: opcion.textoJarabes,
       textoSelector:
         opcion.textoSelector ||
         productoBase.textoSelector ||
         "Elige una opción:",
     };
+
+    if (opcionTieneToppings || opcionTieneJarabes) {
+      setProductoParaToppings(productoConOpcion);
+      setToppingsSeleccionados([]);
+      setJarabesSeleccionados([]);
+      setGuisosSeleccionados(
+        opcionTieneGuisos && productoConOpcion.guisos.length === 1
+          ? productoConOpcion.guisos
+          : []
+      );
+      setCantidadProductoToppings(cantidadFinal);
+      setMostrarSelectorJarabes(false);
+      return;
+    }
 
     if (opcionTieneGuisos) {
       setProductoParaGuisos(productoConOpcion);
@@ -5071,7 +5106,7 @@ ${notaPedido.trim()}`
             alignItems: "center",
             justifyContent: "center",
             padding: 16,
-            zIndex: 9999
+            zIndex: 1000001
           }}
         >
           <div
@@ -5246,7 +5281,7 @@ ${notaPedido.trim()}`
                   {mostrarSelectorJarabes && (
                     <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
                       <p style={{ fontSize: 14, color: "#666" }}>
-                        Elige solo 1 jarabe:
+                        {productoParaToppings.textoJarabes || "Elige solo 1 jarabe:"}
                       </p>
 
                       {productoParaToppings.jarabes.map((jarabe) => {
@@ -5491,6 +5526,31 @@ ${notaPedido.trim()}`
                       borderRadius: 10
                     }}
                   >
+                    {opcion.imagen && (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: 180,
+                          marginBottom: 10,
+                          borderRadius: 10,
+                          overflow: "hidden",
+                          background: "#fff7ed",
+                          border: "1px solid #e5e7eb"
+                        }}
+                      >
+                        <img
+                          src={opcion.imagen}
+                          alt={opcion.nombre}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            display: "block"
+                          }}
+                        />
+                      </div>
+                    )}
+
                     <div
                       style={{
                         display: "flex",
