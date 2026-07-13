@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-MX">
   <head>
     <meta charset="UTF-8" />
 
@@ -8,10 +8,47 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>MandaPlus</title>
+    <title>MandaPlus | Mandados y comida a domicilio en Tuxtla Chico</title>
+
+    <meta
+      name="description"
+      content="MandaPlus es una app de mandados, comida y productos a domicilio en Tuxtla Chico, Chiapas. Pide en negocios locales y recibe hasta la puerta de tu hogar."
+    />
+    <meta name="robots" content="index, follow" id="robots-meta" />
+
+    <link rel="canonical" href="https://mandaditos-ruby.vercel.app/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MandaPlus | Mandados y comida a domicilio en Tuxtla Chico" />
+    <meta property="og:description" content="Pide comida, productos y mandados de negocios locales de Tuxtla Chico desde MandaPlus." />
+    <meta property="og:url" content="https://mandaditos-ruby.vercel.app/" />
+    <meta property="og:image" content="https://mandaditos-ruby.vercel.app/logo.png" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:site_name" content="MandaPlus" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="MandaPlus | Mandados en Tuxtla Chico" />
+    <meta name="twitter:description" content="Mandados, comida y productos a domicilio en Tuxtla Chico, Chiapas." />
+    <meta name="twitter:image" content="https://mandaditos-ruby.vercel.app/logo.png" />
 
     <meta name="theme-color" content="#25D366" id="theme-color" />
     <meta name="apple-mobile-web-app-title" content="MandaPlus" id="apple-title" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "MandaPlus",
+        "url": "https://mandaditos-ruby.vercel.app/",
+        "image": "https://mandaditos-ruby.vercel.app/logo.png",
+        "description": "Servicio de mandados, comida y productos a domicilio en Tuxtla Chico, Chiapas.",
+        "telephone": "+52 962 181 6603",
+        "areaServed": {
+          "@type": "City",
+          "name": "Tuxtla Chico, Chiapas"
+        }
+      }
+    </script>
 
     <script>
       const esRepartidor = window.location.pathname.startsWith("/repartidor");
@@ -32,6 +69,11 @@
 
       const themeColor = document.getElementById("theme-color");
       const appleTitle = document.getElementById("apple-title");
+      const robotsMeta = document.getElementById("robots-meta");
+
+      if (esDueno || esRepartidor) {
+        robotsMeta?.setAttribute("content", "noindex, nofollow");
+      }
 
       if (esDueno) {
         document.title = "MandaPlus Dueño";
@@ -46,7 +88,7 @@
       }
 
       if (esRepartidor) {
-        document.title = "Repartidor Mandaditos";
+        document.title = "Repartidor MandaPlus";
 
         if (themeColor) {
           themeColor.setAttribute("content", "#0f172a");
