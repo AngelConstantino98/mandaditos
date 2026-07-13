@@ -12,14 +12,12 @@ const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 // 💬 Contactos oficiales de MandaPlus
 const CONTACTOS_WHATSAPP = [
   {
-    id: "principal",
-    etiqueta: "Número principal",
+    id: "contacto-1",
     numeroVisible: "962 181 6603",
     numeroWhatsApp: "529621816603",
   },
   {
-    id: "secundario",
-    etiqueta: "Número secundario",
+    id: "contacto-2",
     numeroVisible: "962 480 6032",
     numeroWhatsApp: "529624806032",
   },
@@ -3161,7 +3159,7 @@ ${notaPedido.trim()}`
                   key={contacto.id}
                   type="button"
                   onClick={() => abrirWhatsAppContacto(contacto)}
-                  aria-label={`Abrir WhatsApp del ${contacto.etiqueta}: ${contacto.numeroVisible}`}
+                  aria-label={`Abrir WhatsApp al número ${contacto.numeroVisible}`}
                   style={{
                     width: "100%",
                     display: "flex",
@@ -3193,13 +3191,15 @@ ${notaPedido.trim()}`
                     ☎️
                   </span>
 
-                  <span style={{ flex: 1 }}>
-                    <strong style={{ display: "block", fontSize: 14 }}>
-                      {contacto.etiqueta}
-                    </strong>
-                    <span style={{ display: "block", marginTop: 3, fontSize: 17, fontWeight: 900 }}>
-                      {contacto.numeroVisible}
-                    </span>
+                  <span
+                    style={{
+                      flex: 1,
+                      display: "block",
+                      fontSize: 18,
+                      fontWeight: 900
+                    }}
+                  >
+                    {contacto.numeroVisible}
                   </span>
 
                   <span style={{ fontSize: 20 }}>›</span>
