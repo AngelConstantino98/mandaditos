@@ -9,6 +9,43 @@ const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 // Para producción después usaremos:
 // const SOCKET_URL = "https://mandaditos-backend.onrender.com";
 
+// 💬 Contactos oficiales de MandaPlus
+const CONTACTOS_WHATSAPP = [
+  {
+    id: "principal",
+    etiqueta: "Número principal",
+    numeroVisible: "962 181 6603",
+    numeroWhatsApp: "529621816603",
+  },
+  {
+    id: "secundario",
+    etiqueta: "Número secundario",
+    numeroVisible: "962 480 6032",
+    numeroWhatsApp: "529624806032",
+  },
+];
+
+
+// Ícono de WhatsApp usado en los botones de contacto.
+function IconoWhatsApp({ size = 17 }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      style={{ display: "block", flexShrink: 0 }}
+    >
+      <path
+        fill="#25D366"
+        d="M20.52 3.48A11.86 11.86 0 0 0 12.07 0C5.55 0 .24 5.3.24 11.82c0 2.08.54 4.1 1.57 5.88L0 24l6.47-1.69a11.8 11.8 0 0 0 5.6 1.43h.01c6.52 0 11.83-5.3 11.83-11.82 0-3.16-1.23-6.14-3.39-8.44ZM12.08 21.7h-.01a9.8 9.8 0 0 1-5-1.37l-.36-.22-3.84 1 1.03-3.74-.24-.38a9.77 9.77 0 0 1-1.5-5.17c0-5.43 4.42-9.85 9.86-9.85 2.63 0 5.1 1.02 6.96 2.9a9.77 9.77 0 0 1 2.87 6.95c0 5.43-4.43 9.85-9.86 9.85Zm5.4-7.37c-.3-.15-1.77-.88-2.04-.98-.27-.1-.47-.15-.67.15-.2.3-.77.98-.95 1.18-.17.2-.35.22-.65.08-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.8-1.68-2.1-.18-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.5h-.57c-.2 0-.53.08-.8.38-.28.3-1.06 1.03-1.06 2.52s1.08 2.92 1.23 3.12c.15.2 2.13 3.25 5.16 4.55.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35Z"
+      />
+    </svg>
+  );
+}
+
 const MENSAJE_GANADOR = `🎉 ¡Felicidades!
 
 Tu envío será totalmente GRATIS.
@@ -132,6 +169,8 @@ export default function App() {
   const modalSuperiorRef = useRef(null);
   const modalHistorialRef = useRef(null);
   const enviandoPedidoRef = useRef(false);
+  const recompensaCardRef = useRef(null);
+  const pedidoActualCardRef = useRef(null);
 
   const [screen, setScreenBase] = useState("splash");
 
@@ -141,6 +180,9 @@ export default function App() {
   // 📲 En iPhone/Safari a veces WhatsApp no se abre automático después de esperar al servidor.
   // Android se queda igual: abre WhatsApp directo como antes.
   const [whatsappPendiente, setWhatsappPendiente] = useState(null);
+
+  // 💬 Ventana pequeña con los dos números oficiales de WhatsApp.
+  const [mostrarContactos, setMostrarContactos] = useState(false);
 
   const mostrarAlerta = (mensaje, titulo = "MandaPlus") => {
     setAlertaApp({
@@ -161,6 +203,17 @@ export default function App() {
 
     // En iPhone conviene usar el mismo tab desde un botón tocado por el usuario.
     window.location.href = url;
+  };
+
+  const abrirWhatsAppContacto = (contacto) => {
+    if (!contacto?.numeroWhatsApp) return;
+
+    const mensaje = encodeURIComponent(
+      "Hola MandaPlus, necesito información sobre el servicio de mandados."
+    );
+
+    setMostrarContactos(false);
+    window.location.href = `https://wa.me/${contacto.numeroWhatsApp}?text=${mensaje}`;
   };
 
   const actualizarEstadoNegociosApp = (estado) => {
@@ -463,6 +516,11 @@ export default function App() {
       return true;
     }
 
+    if (modalActual === "contactos") {
+      setMostrarContactos(false);
+      return true;
+    }
+
     if (modalActual === "cancelar") {
       setShowCancel(null);
       return true;
@@ -508,8 +566,10 @@ export default function App() {
         ? "alerta"
         : whatsappPendiente
           ? "whatsapp"
-          : showCancel
-            ? "cancelar"
+          : mostrarContactos
+            ? "contactos"
+            : showCancel
+              ? "cancelar"
             : productoParaExtras
               ? "extras"
               : productoParaToppings
@@ -545,6 +605,7 @@ export default function App() {
   }, [
     alertaApp,
     whatsappPendiente,
+    mostrarContactos,
     showCancel,
     productoParaExtras,
     productoParaToppings,
@@ -2753,6 +2814,68 @@ ${notaPedido.trim()}`
 
   const pedidoDeNegocioLocal = negociosPedidoActual.length > 0;
 
+  // ⚡ Atajo inteligente de la cabecera:
+  // muestra el pedido activo o el progreso de recompensa y lleva a esa tarjeta.
+  const nombreCortoCliente = String(cliente?.nombre || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)[0] || "";
+
+  const estadoPedidoAtajo = String(pedidoActual?.estado || "")
+    .trim()
+    .toLowerCase();
+
+  const pedidoActivoEnAtajo = Boolean(
+    pedidoActual?.id &&
+      estadoPedidoAtajo !== "entregado" &&
+      estadoPedidoAtajo !== "cancelado"
+  );
+
+  const datosAtajoCabecera = (() => {
+    if (pedidoActivoEnAtajo) {
+      if (estadoPedidoAtajo === "pendiente") {
+        return { emoji: "⏳", titulo: "Buscando", detalle: "repartidor" };
+      }
+
+      if (estadoPedidoAtajo === "aceptado") {
+        return { emoji: "✅", titulo: "Aceptado", detalle: "Ver pedido" };
+      }
+
+      if (estadoPedidoAtajo === "en camino") {
+        return { emoji: "🏍️", titulo: "En camino", detalle: "Ver seguimiento" };
+      }
+
+      const estadoVisible = estadoPedidoAtajo
+        ? estadoPedidoAtajo.charAt(0).toUpperCase() + estadoPedidoAtajo.slice(1)
+        : "Pedido activo";
+
+      return { emoji: "📦", titulo: estadoVisible, detalle: "Ver pedido" };
+    }
+
+    if (recompensa.recompensaDisponible) {
+      return { emoji: "🎁", titulo: "Cupón listo", detalle: "Recompensa" };
+    }
+
+    return {
+      emoji: "🎁",
+      titulo: `${recompensa.pedidosCompletados}/${recompensa.meta}`,
+      detalle: "Recompensa",
+    };
+  })();
+
+  const abrirAtajoCabecera = () => {
+    const destino = pedidoActivoEnAtajo
+      ? pedidoActualCardRef.current
+      : recompensaCardRef.current;
+
+    if (!destino) return;
+
+    destino.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
   // 🟢 En la lista de clientes, los negocios abiertos van primero y los cerrados abajo.
   const negociosOrdenadosParaClientes = [...negocios]
     .map((negocio, indiceOriginal) => ({
@@ -2963,6 +3086,148 @@ ${notaPedido.trim()}`
         </div>
       )}
 
+      {mostrarContactos && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.58)",
+            zIndex: 1000000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16
+          }}
+          onClick={() => setMostrarContactos(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-contactos-mandaplus"
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: 390,
+              background: "white",
+              borderRadius: 20,
+              padding: 18,
+              boxShadow: "0 24px 55px rgba(0,0,0,0.30)",
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            <div
+              style={{
+                width: 58,
+                height: 58,
+                borderRadius: "50%",
+                background: "#dcfce7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 10px",
+                fontSize: 30
+              }}
+            >
+              💬
+            </div>
+
+            <h2
+              id="titulo-contactos-mandaplus"
+              style={{
+                margin: 0,
+                textAlign: "center",
+                fontSize: 21,
+                color: "#111827"
+              }}
+            >
+              WhatsApp de MandaPlus
+            </h2>
+
+            <p
+              style={{
+                margin: "7px 0 14px",
+                textAlign: "center",
+                color: "#64748b",
+                fontSize: 14,
+                lineHeight: 1.4
+              }}
+            >
+              Elige el número con el que deseas comunicarte.
+            </p>
+
+            <div style={{ display: "grid", gap: 10 }}>
+              {CONTACTOS_WHATSAPP.map((contacto) => (
+                <button
+                  key={contacto.id}
+                  type="button"
+                  onClick={() => abrirWhatsAppContacto(contacto)}
+                  aria-label={`Abrir WhatsApp del ${contacto.etiqueta}: ${contacto.numeroVisible}`}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "12px 14px",
+                    border: "1px solid #bbf7d0",
+                    borderRadius: 14,
+                    background: "#f0fdf4",
+                    color: "#14532d",
+                    cursor: "pointer",
+                    textAlign: "left"
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: "50%",
+                      background: "#25D366",
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 22,
+                      flexShrink: 0
+                    }}
+                  >
+                    ☎️
+                  </span>
+
+                  <span style={{ flex: 1 }}>
+                    <strong style={{ display: "block", fontSize: 14 }}>
+                      {contacto.etiqueta}
+                    </strong>
+                    <span style={{ display: "block", marginTop: 3, fontSize: 17, fontWeight: 900 }}>
+                      {contacto.numeroVisible}
+                    </span>
+                  </span>
+
+                  <span style={{ fontSize: 20 }}>›</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMostrarContactos(false)}
+              style={{
+                marginTop: 12,
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "none",
+                background: "#e5e7eb",
+                color: "#111827",
+                cursor: "pointer",
+                fontWeight: 800
+              }}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
       {screen === "splash" && (
         <div className="splash">
           <div className="box">
@@ -2990,6 +3255,29 @@ ${notaPedido.trim()}`
                 📲 Instalar app
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => setMostrarContactos(true)}
+              style={{
+                marginTop: 10,
+                padding: "8px 13px",
+                fontSize: 13,
+                fontWeight: 900,
+                border: "1px solid #bbf7d0",
+                borderRadius: 999,
+                background: "#ecfdf5",
+                color: "#166534",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6
+              }}
+            >
+              <IconoWhatsApp />
+              <span>WhatsApp</span>
+            </button>
           </div>
 
           <div
@@ -3210,10 +3498,13 @@ ${notaPedido.trim()}`
                   fontSize: 21,
                   lineHeight: 1.15,
                   color: "white",
-                  textShadow: "0 2px 8px rgba(0,0,0,0.25)"
+                  textShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
-                Hola{cliente?.nombre ? `, ${cliente.nombre.split(" ")[0]}` : ""} 👋
+                Hola{nombreCortoCliente ? `, ${nombreCortoCliente}` : ""} 👋
               </h2>
 
               {mostrarBotonInstalar && (
@@ -3236,6 +3527,109 @@ ${notaPedido.trim()}`
                   📲 Instalar app
                 </button>
               )}
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "flex",
+                  alignItems: "stretch",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  width: "100%"
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setMostrarContactos(true)}
+                  style={{
+                    minWidth: 0,
+                    flex: "0 1 auto",
+                    padding: "8px 12px",
+                    fontSize: 13,
+                    fontWeight: 900,
+                    border: "1px solid rgba(255,255,255,0.65)",
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.16)",
+                    color: "white",
+                    cursor: "pointer",
+                    boxShadow: "0 8px 18px rgba(0,0,0,0.18)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  <IconoWhatsApp />
+                  <span>WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={abrirAtajoCabecera}
+                  aria-label={
+                    pedidoActivoEnAtajo
+                      ? "Ir al pedido actual"
+                      : "Ir a mis recompensas"
+                  }
+                  style={{
+                    minWidth: 0,
+                    flex: "1 1 145px",
+                    maxWidth: 178,
+                    padding: "8px 10px",
+                    borderRadius: 16,
+                    border: recompensa.recompensaDisponible && !pedidoActivoEnAtajo
+                      ? "1px solid rgba(253, 230, 138, 0.95)"
+                      : "1px solid rgba(255,255,255,0.72)",
+                    background: recompensa.recompensaDisponible && !pedidoActivoEnAtajo
+                      ? "linear-gradient(135deg, rgba(255,247,237,0.98), rgba(254,243,199,0.98))"
+                      : "rgba(255,255,255,0.92)",
+                    color: "#0f172a",
+                    cursor: "pointer",
+                    boxShadow: "0 8px 18px rgba(0,0,0,0.18)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 7,
+                    textAlign: "left"
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}
+                  >
+                    {datosAtajoCabecera.emoji}
+                  </span>
+
+                  <span style={{ minWidth: 0, lineHeight: 1.05 }}>
+                    <strong
+                      style={{
+                        display: "block",
+                        fontSize: 13,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                    >
+                      {datosAtajoCabecera.titulo}
+                    </strong>
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: 3,
+                        fontSize: 10.5,
+                        fontWeight: 800,
+                        color: "#475569",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                    >
+                      {datosAtajoCabecera.detalle}
+                    </span>
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -3559,6 +3953,7 @@ ${notaPedido.trim()}`
           </div>
 
           <div
+            ref={recompensaCardRef}
             style={{
               padding: 14,
               background: recompensa.recompensaDisponible
@@ -3668,6 +4063,7 @@ ${notaPedido.trim()}`
 
           {pedidoActual && (
             <div
+              ref={pedidoActualCardRef}
               style={{
                 padding: 14,
                 background: "white",
