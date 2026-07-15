@@ -5119,12 +5119,14 @@ ${notaPedido.trim()}`
               const productoSoloEstablecimiento = esSoloEstablecimiento(producto);
               const productoTieneOpcionesParaVer =
                 Array.isArray(producto.opciones) && producto.opciones.length > 0;
+              const mostrarProductoGrande =
+                negocioSeleccionado.productosGrandes === true;
 
               return (
                 <div
                   key={producto.id}
                   style={{
-                    display: "flex",
+                    display: mostrarProductoGrande ? "block" : "flex",
                     gap: 10,
                     padding: 10,
                     marginBottom: 10,
@@ -5135,8 +5137,8 @@ ${notaPedido.trim()}`
                 >
                   <div
                     style={{
-                      width: 80,
-                      height: 80,
+                      width: mostrarProductoGrande ? "100%" : 80,
+                      height: mostrarProductoGrande ? 220 : 80,
                       borderRadius: 12,
                       background: "#f3f4f6",
                       display: "flex",
@@ -5144,7 +5146,8 @@ ${notaPedido.trim()}`
                       justifyContent: "center",
                       fontSize: 30,
                       flexShrink: 0,
-                      overflow: "hidden"
+                      overflow: "hidden",
+                      marginBottom: mostrarProductoGrande ? 10 : 0
                     }}
                   >
                     {producto.imagen ? (

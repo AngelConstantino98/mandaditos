@@ -219,6 +219,9 @@ const negocios = [
     emoji: "☕",
     descripcion: "Hot cakes, crepas, frappés, bebidas frías y fresas con crema",
     imagen: "/negocios/cafeteria-minni-delicias.jpg",
+    horarios: [
+      { dias: [0, 3, 4, 5, 6], abre: "18:30", cierra: "21:30" },
+    ],
     productos: [
       {
         id: "hot-cakes-minni-delicias",
@@ -792,6 +795,9 @@ const negocios = [
   emoji: "🌮",
   descripcion: "Tacos de cabeza de res",
   imagen: "/negocios/tacos-dona-lety.jpg",
+  horarios: [
+    { dias: [0, 1, 2, 3, 4, 5, 6], abre: "16:00", cierra: "22:30" },
+  ],
   productos: [
     {
       id: "tacos-cabeza-dona-lety",
@@ -813,6 +819,34 @@ const negocios = [
     },
   ],
 },
+
+  {
+    id: "tacos-de-la-central",
+    nombre: "Tacos de la Central",
+    emoji: "🌮",
+    descripcion: "Tacos de bistec y barbacoa",
+    imagen: "/negocios/tacos-de-la-central.png",
+    productosGrandes: true,
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "19:00", cierra: "00:00" },
+    ],
+    productos: [
+      {
+        id: "taco-bistec-tacos-de-la-central",
+        nombre: "Taco de bistec",
+        precio: 15,
+        descripcion: "Bistec picado, doble tortilla pequeña y cebolla asada al comal.",
+        imagen: "/productos/taco-bistec-tacos-de-la-central.png",
+      },
+      {
+        id: "taco-barbacoa-tacos-de-la-central",
+        nombre: "Taco de barbacoa",
+        precio: 15,
+        descripcion: "Barbacoa, doble tortilla pequeña y cebolla asada al comal.",
+        imagen: "/productos/taco-barbacoa-tacos-de-la-central.png",
+      },
+    ],
+  },
 
   {
     id: "el-carboncito",
