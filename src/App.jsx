@@ -327,6 +327,7 @@ export default function App() {
 
   // 🍽️ Negocios locales
   const [negocioSeleccionado, setNegocioSeleccionado] = useState(null);
+  const [plazaSeleccionada, setPlazaSeleccionada] = useState(null);
 
   // 🛒 Carrito visual de negocios locales
   const [carrito, setCarrito] = useState([]);
@@ -1815,6 +1816,7 @@ ${notaPedido.trim()}`
         setCoords(null);
         setCarrito([]);
         setNegocioSeleccionado(null);
+        setPlazaSeleccionada(null);
         setNegociosPedidoActual([]);
 
         setScreen("home", { reemplazar: true });
@@ -2875,16 +2877,18 @@ ${notaPedido.trim()}`
     });
   };
 
-  // 🟢 En la lista de clientes, los negocios abiertos van primero y los cerrados abajo.
+  // 🟢 En la lista principal solo aparecen negocios independientes y plazas.
+  // Los negocios que pertenecen a una plaza se muestran al entrar en ella.
   const negociosOrdenadosParaClientes = [...negocios]
+    .filter((negocio) => !negocio.plazaId)
     .map((negocio, indiceOriginal) => ({
       negocio,
       indiceOriginal,
       estadoNegocio: obtenerEstadoNegocio(negocio),
     }))
     .sort((a, b) => {
-      const abiertoA = a.estadoNegocio.abierto !== false;
-      const abiertoB = b.estadoNegocio.abierto !== false;
+      const abiertoA = a.negocio.esPlaza === true || a.estadoNegocio.abierto !== false;
+      const abiertoB = b.negocio.esPlaza === true || b.estadoNegocio.abierto !== false;
 
       if (abiertoA !== abiertoB) {
         return abiertoA ? -1 : 1;
@@ -2892,6 +2896,26 @@ ${notaPedido.trim()}`
 
       return a.indiceOriginal - b.indiceOriginal;
     });
+
+  const negociosOrdenadosDentroPlaza = plazaSeleccionada
+    ? negocios
+        .filter((negocio) => negocio.plazaId === plazaSeleccionada.id)
+        .map((negocio, indiceOriginal) => ({
+          negocio,
+          indiceOriginal,
+          estadoNegocio: obtenerEstadoNegocio(negocio),
+        }))
+        .sort((a, b) => {
+          const abiertoA = a.estadoNegocio.abierto !== false;
+          const abiertoB = b.estadoNegocio.abierto !== false;
+
+          if (abiertoA !== abiertoB) {
+            return abiertoA ? -1 : 1;
+          }
+
+          return a.indiceOriginal - b.indiceOriginal;
+        })
+    : [];
 
   // 👑 Si el dueño entra directo con #dueno y ya tiene sesión, cargamos el resumen.
   useEffect(() => {
@@ -3707,6 +3731,7 @@ ${notaPedido.trim()}`
                 }
 
                 setNegocioSeleccionado(null);
+                setPlazaSeleccionada(null);
                 setScreen("negocios-locales");
               }}
               style={{
@@ -3752,6 +3777,7 @@ ${notaPedido.trim()}`
                 setNotaPedido("");
                 setCarrito([]);
                 setNegocioSeleccionado(null);
+                setPlazaSeleccionada(null);
                 setScreen("form");
               }}
               style={{
@@ -4384,7 +4410,7 @@ ${notaPedido.trim()}`
               </div>
             )}
 
-            {negocios.map((negocio) => {
+            {negocios.filter((negocio) => !negocio.esPlaza).map((negocio) => {
               const estadoNegocio = obtenerEstadoNegocio(negocio);
               const abierto = estadoNegocio.abierto !== false;
               const automatico = estadoNegocio.modo !== "manual";
@@ -4829,6 +4855,7 @@ ${notaPedido.trim()}`
           <button
             onClick={() => {
               setNegocioSeleccionado(null);
+              setPlazaSeleccionada(null);
               setScreen("home", { reemplazar: true });
             }}
             style={{
@@ -4861,6 +4888,190 @@ ${notaPedido.trim()}`
             </p>
 
             {negociosOrdenadosParaClientes.map(({ negocio, estadoNegocio }) => {
+              const esPlaza = negocio.esPlaza === true;
+              const abierto = esPlaza ? true : estadoNegocio.abierto;
+
+              return (
+                <button
+                  key={negocio.id}
+                  onClick={() => {
+                    if (esPlaza) {
+                      setNegocioSeleccionado(null);
+                      setPlazaSeleccionada(negocio);
+                      setScreen("plaza-negocios");
+                      return;
+                    }
+
+                    if (!abierto) {
+                      mostrarAlerta(
+                        `${negocio.nombre} está cerrado por el momento. Intenta más tarde.`,
+                        "Negocio cerrado"
+                      );
+                      return;
+                    }
+
+                    setPlazaSeleccionada(null);
+                    setNegocioSeleccionado(negocio);
+                    setScreen("menu-negocio");
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: 10,
+                    marginBottom: 10,
+                    borderRadius: 12,
+                    border: abierto ? "1px solid #ddd" : "1px solid #fca5a5",
+                    background: abierto ? "#f9fafb" : "#fff1f2",
+                    textAlign: "left",
+                    cursor: abierto ? "pointer" : "not-allowed",
+                    display: esPlaza ? "block" : "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    opacity: abierto ? 1 : 0.75
+                  }}
+                >
+                  <div
+                    style={{
+                      width: esPlaza ? "100%" : 70,
+                      height: esPlaza ? 210 : 70,
+                      borderRadius: 12,
+                      background: "#f3f4f6",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 28,
+                      filter: abierto ? "none" : "grayscale(1)",
+                      marginBottom: esPlaza ? 10 : 0
+                    }}
+                  >
+                    {negocio.imagen ? (
+                      <img
+                        src={negocio.imagen}
+                        alt={negocio.nombre}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover"
+                        }}
+                      />
+                    ) : (
+                      negocio.emoji
+                    )}
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 8
+                      }}
+                    >
+                      <strong>
+                        {negocio.emoji} {negocio.nombre}
+                      </strong>
+
+                      <span
+                        style={{
+                          padding: "4px 8px",
+                          borderRadius: 999,
+                          background: esPlaza ? "#fef3c7" : abierto ? "#dcfce7" : "#fee2e2",
+                          color: esPlaza ? "#92400e" : abierto ? "#166534" : "#991b1b",
+                          fontSize: 11,
+                          fontWeight: 900,
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {esPlaza ? "Ver negocios" : abierto ? "Abierto" : "Cerrado"}
+                      </span>
+                    </div>
+
+                    <span style={{ fontSize: 13, color: "#666" }}>
+                      {negocio.descripcion}
+                    </span>
+
+                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>
+                      {esPlaza
+                        ? "Toca para ver los negocios que están dentro de la plaza."
+                        : `${estadoNegocio.textoEstado} · ${estadoNegocio.detalleHorario}`}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+        </div>
+      )}
+
+      {screen === "plaza-negocios" && plazaSeleccionada && (
+        <div key={`plaza-${plazaSeleccionada.id}`} className="card">
+          <button
+            onClick={() => {
+              setNegocioSeleccionado(null);
+              setPlazaSeleccionada(null);
+              setScreen("negocios-locales", { reemplazar: true });
+            }}
+            style={{
+              width: "fit-content",
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "none",
+              background: "#e5e7eb",
+              cursor: "pointer"
+            }}
+          >
+            ← Volver
+          </button>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
+            }}
+          >
+            {plazaSeleccionada.imagen && (
+              <img
+                src={plazaSeleccionada.imagen}
+                alt={plazaSeleccionada.nombre}
+                style={{
+                  width: "100%",
+                  height: 220,
+                  objectFit: "cover",
+                  borderRadius: 12,
+                  marginBottom: 10
+                }}
+              />
+            )}
+
+            <h1 style={{ fontSize: 22, marginBottom: 6 }}>
+              {plazaSeleccionada.emoji} {plazaSeleccionada.nombre}
+            </h1>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 12 }}>
+              Elige uno de los negocios que están dentro de la plaza.
+            </p>
+
+            {negociosOrdenadosDentroPlaza.length === 0 && (
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 12,
+                  background: "#f8fafc",
+                  color: "#475569",
+                  textAlign: "center"
+                }}
+              >
+                Próximamente habrá negocios disponibles dentro de esta plaza.
+              </div>
+            )}
+
+            {negociosOrdenadosDentroPlaza.map(({ negocio, estadoNegocio }) => {
               const abierto = estadoNegocio.abierto;
 
               return (
@@ -4895,8 +5106,8 @@ ${notaPedido.trim()}`
                 >
                   <div
                     style={{
-                      width: 70,
-                      height: 70,
+                      width: 82,
+                      height: 82,
                       borderRadius: 12,
                       background: "#f3f4f6",
                       overflow: "hidden",
@@ -4904,7 +5115,7 @@ ${notaPedido.trim()}`
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 28,
+                      fontSize: 30,
                       filter: abierto ? "none" : "grayscale(1)"
                     }}
                   >
@@ -4963,7 +5174,6 @@ ${notaPedido.trim()}`
               );
             })}
           </div>
-
         </div>
       )}
 
@@ -4972,7 +5182,15 @@ ${notaPedido.trim()}`
 
           <button
             onClick={() => {
-              setScreen("negocios-locales", { reemplazar: true });
+              const perteneceAPlaza =
+                negocioSeleccionado.plazaId &&
+                plazaSeleccionada?.id === negocioSeleccionado.plazaId;
+
+              setNegocioSeleccionado(null);
+              setScreen(
+                perteneceAPlaza ? "plaza-negocios" : "negocios-locales",
+                { reemplazar: true }
+              );
             }}
             style={{
               width: "fit-content",
