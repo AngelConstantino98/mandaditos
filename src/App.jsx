@@ -103,6 +103,7 @@ function textoDiasHorario(dias = []) {
 
   if (normalizados === "0,1,2,3,4,5,6") return "Todos los días";
   if (normalizados === "1,2,3,4,5") return "Lun a Vie";
+  if (normalizados === "1,2,3,4,5,6") return "Lun a Sáb";
   if (normalizados === "0,1,2,3,4,5") return "Dom a Vie";
   if (normalizados === "0,6") return "Sáb y Dom";
   if (normalizados === "0,1,3,4,5,6") return "Mié a Lun";
