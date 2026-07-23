@@ -39,6 +39,8 @@ export default function Repartidor() {
   });
   const [pedidoParaEntregar, setPedidoParaEntregar] = useState(null);
   const [pedidosActualizando, setPedidosActualizando] = useState({});
+  const [promocionesManuales, setPromocionesManuales] = useState({});
+  const [promocionesActualizando, setPromocionesActualizando] = useState({});
 
   const [repartidor, setRepartidor] = useState(null);
   const [usuarioRepartidor, setUsuarioRepartidor] = useState("");
@@ -328,6 +330,56 @@ export default function Repartidor() {
     return NaN;
   };
 
+  const formatearFechaHoraPedido = (fecha) => {
+    if (!fecha) return "Sin registro";
+
+    const valor = new Date(fecha);
+
+    if (Number.isNaN(valor.getTime())) return "Sin registro";
+
+    return new Intl.DateTimeFormat("es-MX", {
+      timeZone: "America/Mexico_City",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+      .format(valor)
+      .replace(",", " ·");
+  };
+
+  const obtenerFechaRecibidoPedido = (pedido) => {
+    const fecha =
+      pedido?.fechaRecibido ||
+      pedido?.fecha ||
+      pedido?.fechaCreacion ||
+      pedido?.createdAt ||
+      pedido?.fecha_creacion ||
+      null;
+
+    if (fecha) return fecha;
+
+    const tiempoPorId = Number(pedido?.id);
+    return Number.isFinite(tiempoPorId)
+      ? new Date(tiempoPorId).toISOString()
+      : null;
+  };
+
+  const obtenerFechaEntregadoPedido = (pedido) => {
+    const estado = obtenerEstadoPedido(pedido);
+
+    if (estado !== "entregado") return null;
+
+    return (
+      pedido?.fechaEntregado ||
+      pedido?.fechaEntrega ||
+      pedido?.fechaActualizacionEstado ||
+      null
+    );
+  };
+
   const pedidoLlegoAntesDeMiSalida = (pedido) => {
     if (disponible) {
       return true;
@@ -431,6 +483,96 @@ export default function Repartidor() {
       );
   };
 
+  const consultarPromocionesManuales = (repartidorActivo = obtenerRepartidorActivo()) => {
+    if (
+      !repartidorActivo?.puedeGestionarPromociones ||
+      !repartidorActivo?.tokenAcceso ||
+      !socketRef.current?.connected
+    ) {
+      setPromocionesManuales({});
+      return;
+    }
+
+    socketRef.current
+      .timeout(7000)
+      .emit(
+        "obtener-promociones-manuales",
+        {
+          repartidorId: repartidorActivo.id,
+          tokenAcceso: repartidorActivo.tokenAcceso,
+        },
+        (err, respuesta) => {
+          if (err || !respuesta?.ok) {
+            return;
+          }
+
+          const mapa = {};
+          (respuesta.pedidosIds || []).forEach((pedidoId) => {
+            mapa[String(pedidoId)] = true;
+          });
+          setPromocionesManuales(mapa);
+        }
+      );
+  };
+
+  const cambiarPromocionManual = (pedido, seleccionar) => {
+    const repartidorActivo = obtenerRepartidorActivo();
+    const pedidoId = String(pedido?.id || "");
+
+    if (
+      !repartidorActivo?.puedeGestionarPromociones ||
+      !repartidorActivo?.tokenAcceso
+    ) {
+      return;
+    }
+
+    if (!socketRef.current?.connected) {
+      alert("No estás conectado al servidor.");
+      return;
+    }
+
+    setPromocionesActualizando((prev) => ({ ...prev, [pedidoId]: true }));
+
+    socketRef.current
+      .timeout(7000)
+      .emit(
+        "gestionar-promocion-manual",
+        {
+          pedidoId,
+          accion: seleccionar ? "regalar" : "quitar",
+          repartidorId: repartidorActivo.id,
+          tokenAcceso: repartidorActivo.tokenAcceso,
+        },
+        (err, respuesta) => {
+          setPromocionesActualizando((prev) => {
+            const siguiente = { ...prev };
+            delete siguiente[pedidoId];
+            return siguiente;
+          });
+
+          if (err || !respuesta?.ok) {
+            alert(
+              respuesta?.mensaje ||
+                "No se pudo guardar el control privado de la promoción."
+            );
+            return;
+          }
+
+          setPromocionesManuales((prev) => {
+            const siguiente = { ...prev };
+
+            if (respuesta.seleccionado) {
+              siguiente[pedidoId] = true;
+            } else {
+              delete siguiente[pedidoId];
+            }
+
+            return siguiente;
+          });
+        }
+      );
+  };
+
   const iniciarSesionRepartidor = async (e) => {
     e.preventDefault();
 
@@ -473,6 +615,8 @@ export default function Repartidor() {
         actualizarServicioDesdeServidor(estado);
       });
 
+      consultarPromocionesManuales(data.repartidor);
+
       setUsuarioRepartidor("");
       setPinRepartidor("");
       setPestana("todos");
@@ -493,6 +637,8 @@ export default function Repartidor() {
     setPinRepartidor("");
     setErrorLogin("");
     setPestana("todos");
+    setPromocionesManuales({});
+    setPromocionesActualizando({});
   };
 
   // 🟢 GPS
@@ -572,6 +718,7 @@ export default function Repartidor() {
       setConectado(true);
 
       socketRef.current.emit("repartidor-conectar");
+      consultarPromocionesManuales(obtenerRepartidorActivo());
 
       socketRef.current.emit("obtener-servicio", (estado) => {
         actualizarServicioDesdeServidor(estado);
@@ -615,6 +762,14 @@ export default function Repartidor() {
 
     // 🔄 ACTUALIZACIÓN DE PEDIDOS
     socketRef.current.on("pedido-actualizado", (pedidoActualizado) => {
+      if (pedidoActualizado?.promocion?.participo) {
+        setPromocionesManuales((prev) => {
+          const siguiente = { ...prev };
+          delete siguiente[String(pedidoActualizado.id)];
+          return siguiente;
+        });
+      }
+
       setPedidos((prev) => {
         const existe = prev.find(
           (p) => String(p.id) === String(pedidoActualizado.id)
@@ -1418,6 +1573,14 @@ export default function Repartidor() {
         const esDeOtro = pedidoEsDeOtro(p);
         const finalizado = pedidoEstaFinalizado(p);
         const estado = obtenerEstadoPedido(p);
+        const fechaRecibido = obtenerFechaRecibidoPedido(p);
+        const fechaEntregado = obtenerFechaEntregadoPedido(p);
+        const promocionManualActiva = Boolean(
+          promocionesManuales[String(p.id)]
+        );
+        const promocionManualActualizando = Boolean(
+          promocionesActualizando[String(p.id)]
+        );
 
         return (
           <div
@@ -1548,6 +1711,29 @@ export default function Repartidor() {
               <b>📦 Estado:</b> {p.estado}
             </p>
 
+            <div
+              style={{
+                margin: "10px 0",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <p style={{ margin: "0 0 6px" }}>
+                <b>🕒 Pedido recibido:</b>{" "}
+                {formatearFechaHoraPedido(fechaRecibido)}
+              </p>
+              <p style={{ margin: 0 }}>
+                <b>✅ Pedido entregado:</b>{" "}
+                {fechaEntregado
+                  ? formatearFechaHoraPedido(fechaEntregado)
+                  : estado === "cancelado"
+                    ? "No entregado"
+                    : "Pendiente"}
+              </p>
+            </div>
+
             {p.repartidorNombre && (
               <p>
                 <b>🛵 Atendido por:</b> {p.repartidorNombre}
@@ -1563,6 +1749,53 @@ export default function Repartidor() {
                 🍀 Participó en la promoción, pero no ganó.
               </p>
             )}
+
+            {repartidor?.puedeGestionarPromociones === true &&
+              !p.promocion?.participo &&
+              estado !== "cancelado" && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    padding: 10,
+                    borderRadius: 10,
+                    background: promocionManualActiva ? "#ecfdf5" : "#f8fafc",
+                    border: promocionManualActiva
+                      ? "1px solid #10b981"
+                      : "1px dashed #94a3b8",
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: "0 0 8px",
+                      fontSize: 13,
+                      fontWeight: "bold",
+                      color: promocionManualActiva ? "#047857" : "#475569",
+                    }}
+                  >
+                    🔒 Control privado de promoción
+                  </p>
+                  <button
+                    onClick={() =>
+                      cambiarPromocionManual(p, !promocionManualActiva)
+                    }
+                    disabled={promocionManualActualizando || !conectado}
+                    style={{
+                      background: promocionManualActiva ? "#64748b" : "#059669",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "8px 10px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {promocionManualActualizando
+                      ? "Guardando..."
+                      : promocionManualActiva
+                        ? "↩ Dejar al 10 %"
+                        : "🎁 Asegurar envío gratis"}
+                  </button>
+                </div>
+              )}
 
             <div
               style={{
