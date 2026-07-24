@@ -3859,6 +3859,202 @@ const negocios = [
     ],
   },
 
+
+  {
+    id: "scar-aguachiles-micheladas",
+    nombre: "SCAR Aguachiles y Micheladas",
+    emoji: "🦐",
+    descripcion: "Aguachiles, mariscos, tostadas, cócteles, shots, micheladas y bebidas",
+    imagen: "/negocios/scar-aguachiles-micheladas.jpg",
+    horarios: [
+      { dias: [0, 1, 2, 3, 4, 5, 6], abre: "12:00", cierra: "18:00" },
+    ],
+    productos: [
+      {
+        id: "especialidades-scar",
+        nombre: "Especialidades",
+        precio: null,
+        precioTexto: "Desde $120",
+        descripcion: "Ensalada de mariscos, aguachiles y tostiaguachile",
+        imagen: "/productos/scar-especialidades.jpg",
+        textoSelector: "Elige una especialidad:",
+        opciones: [
+          {
+            id: "ensalada-mariscos-completa-con-ostion-scar",
+            nombre: "Ensalada de mariscos completa — con ostión",
+            precio: 280,
+            descripcion: "Camarón, pulpo, caracol y ostión.",
+          },
+          {
+            id: "ensalada-mariscos-completa-sin-ostion-scar",
+            nombre: "Ensalada de mariscos completa — sin ostión",
+            precio: 280,
+            descripcion: "Camarón, pulpo y caracol.",
+          },
+          {
+            id: "ensalada-mariscos-chica-con-ostion-scar",
+            nombre: "Ensalada de mariscos chica — con ostión",
+            precio: 220,
+            descripcion: "Camarón, pulpo, caracol y ostión.",
+          },
+          {
+            id: "ensalada-mariscos-chica-sin-ostion-scar",
+            nombre: "Ensalada de mariscos chica — sin ostión",
+            precio: 220,
+            descripcion: "Camarón, pulpo y caracol.",
+          },
+          {
+            id: "aguachile-mixto-completo-scar",
+            nombre: "Aguachile mixto completo",
+            precio: 250,
+            descripcion: "Camarón, pulpo y caracol.",
+          },
+          {
+            id: "aguachile-mixto-media-scar",
+            nombre: "Aguachile mixto — media orden",
+            precio: 150,
+            descripcion: "Camarón, pulpo y caracol.",
+          },
+          {
+            id: "aguachile-camaron-completo-scar",
+            nombre: "Aguachile de camarón completo",
+            precio: 240,
+            descripcion: "Aguachile de camarón.",
+          },
+          {
+            id: "aguachile-camaron-media-scar",
+            nombre: "Aguachile de camarón — media orden",
+            precio: 140,
+            descripcion: "Aguachile de camarón.",
+          },
+          {
+            id: "tostiaguachile-con-mango-scar",
+            nombre: "Tostiaguachile — con mango",
+            precio: 120,
+            descripcion: "Tostiaguachile de camarón con mango.",
+          },
+          {
+            id: "tostiaguachile-sin-mango-scar",
+            nombre: "Tostiaguachile — sin mango",
+            precio: 120,
+            descripcion: "Tostiaguachile de camarón sin mango.",
+          },
+        ],
+      },
+      {
+        id: "tostadas-scar",
+        nombre: "Tostadas",
+        precio: null,
+        precioTexto: "Desde $40",
+        descripcion: "Tostada individual y campechana",
+        imagen: "/productos/scar-tostadas.jpg",
+        textoSelector: "Elige tu tostada:",
+        opciones: [
+          {
+            id: "tostada-individual-scar",
+            nombre: "Tostada individual",
+            precio: 40,
+            descripcion: "Camarón, pulpo y caracol.",
+          },
+          {
+            id: "campechana-con-ostion-scar",
+            nombre: "Campechana — con ostión",
+            precio: 50,
+            descripcion: "Camarón, pulpo, caracol y ostión.",
+          },
+          {
+            id: "campechana-sin-ostion-scar",
+            nombre: "Campechana — sin ostión",
+            precio: 50,
+            descripcion: "Camarón, pulpo y caracol.",
+          },
+        ],
+      },
+      {
+        id: "cocteles-shots-scar",
+        nombre: "Cócteles y shots",
+        precio: null,
+        precioTexto: "Desde $35",
+        descripcion: "Cóctel de camarón, shot de ostión y camarón, y orden de tostadas",
+        imagen: "/productos/scar-cocteles-shots.jpg",
+        textoSelector: "Elige una opción:",
+        opciones: [
+          {
+            id: "coctel-mediano-camaron-scar",
+            nombre: "Cóctel mediano de camarón",
+            precio: 100,
+            descripcion: "Cóctel mediano de camarón.",
+          },
+          {
+            id: "shot-ostion-camaron-scar",
+            nombre: "Shot de ostión y camarón",
+            precio: 35,
+            descripcion: "Shot de ostión y camarón.",
+          },
+          {
+            id: "orden-tostadas-scar",
+            nombre: "Orden de tostadas",
+            precio: 100,
+            descripcion: "Orden de tostadas.",
+          },
+        ],
+      },
+      {
+        id: "micheladas-bebidas-scar",
+        nombre: "Micheladas y bebidas",
+        precio: null,
+        precioTexto: "Desde $30",
+        descripcion: "Chiquiadas, micheladas, cervezas y agua natural",
+        imagen: "/productos/scar-micheladas-bebidas.jpg",
+        textoSelector: "Elige tu bebida:",
+        opciones: [
+          {
+            id: "chiquiada-clasica-scar",
+            nombre: "Chiquiada clásica",
+            precio: 50,
+            descripcion: "Chiquiada clásica.",
+          },
+          {
+            id: "chiquiada-especial-scar",
+            nombre: "Chiquiada especial",
+            precio: 70,
+            descripcion: "Chiquiada especial.",
+          },
+          {
+            id: "michelada-clasica-scar",
+            nombre: "Michelada clásica",
+            precio: 90,
+            descripcion: "Michelada clásica.",
+          },
+          {
+            id: "michelada-camarones-scar",
+            nombre: "Michelada con camarones",
+            precio: 110,
+            descripcion: "Michelada con camarones.",
+          },
+          {
+            id: "corona-scar",
+            nombre: "Corona",
+            precio: 30,
+            descripcion: "Cerveza Corona.",
+          },
+          {
+            id: "victoria-scar",
+            nombre: "Victoria",
+            precio: 30,
+            descripcion: "Cerveza Victoria.",
+          },
+          {
+            id: "agua-natural-scar",
+            nombre: "Agua natural",
+            precio: 30,
+            descripcion: "Agua natural.",
+          },
+        ],
+      },
+    ],
+  },
+
 ];
 
 export default negocios;
