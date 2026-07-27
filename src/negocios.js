@@ -211,6 +211,77 @@ const FRUTAS_MINNI_DELICIAS = [
   "Fresa",
 ];
 
+// Opciones para Dulces Fresas
+const FRUTAS_Y_GALLETAS_DULCES_FRESAS = [
+  "Fruta: Fresa",
+  "Fruta: Mango",
+  "Fruta: Durazno",
+  "Galleta: Oreo",
+  "Galleta: María",
+  "Galleta: Emperador",
+];
+
+// Mini hotcakes y waffles: el menú solo permite fresa o durazno.
+// La fruta y la galleta triturada se eligen por separado.
+const FRUTAS_MINI_HOTCAKES_WAFFLES_DULCES_FRESAS = [
+  "Fresa",
+  "Durazno",
+];
+
+const GALLETAS_MINI_HOTCAKES_WAFFLES_DULCES_FRESAS = [
+  "Oreo",
+  "María",
+  "Emperador",
+];
+
+const UNTABLES_DULCES_FRESAS = [
+  "Lechera",
+  "Nutella",
+  "Biscoff",
+  "Cajeta",
+];
+
+const TOPPINGS_DULCES_FRESAS = [
+  "Bubulubu",
+  "Pingüino",
+  "Chocorrol",
+  "Gansito",
+  "Kranky",
+  "Pastelito Hershey's",
+  "Pastelito Bocadín",
+  "Carlos V",
+  "Kinder Delice",
+  "Kinder Chocolate",
+  "Raffaello",
+];
+
+const ADEREZOS_DULCES_FRESAS = [
+  { id: "catsup-dulces-fresas", nombre: "Catsup", precio: null, precioTexto: "Incluido" },
+  { id: "queso-nachos-dulces-fresas", nombre: "Queso para nachos", precio: null, precioTexto: "Incluido" },
+  { id: "chipotle-cremosa-dulces-fresas", nombre: "Chipotle cremosa", precio: null, precioTexto: "Incluido" },
+  { id: "habanero-cremosa-dulces-fresas", nombre: "Habanero cremosa", precio: null, precioTexto: "Incluido" },
+  { id: "guacamole-habanero-dulces-fresas", nombre: "Guacamole habanero", precio: null, precioTexto: "Incluido" },
+  { id: "guacamole-serrano-dulces-fresas", nombre: "Guacamole serrano", precio: null, precioTexto: "Incluido" },
+  { id: "queso-jalapeno-dulces-fresas", nombre: "Queso jalapeño", precio: null, precioTexto: "Incluido" },
+  { id: "ranch-jalapeno-dulces-fresas", nombre: "Ranch jalapeño", precio: null, precioTexto: "Incluido" },
+  { id: "ranch-dulces-fresas", nombre: "Ranch", precio: null, precioTexto: "Incluido" },
+];
+
+const EXTRA_CREMA_BATIDA_DULCES_FRESAS = [
+  {
+    id: "crema-batida-dulces-fresas",
+    nombre: "Crema batida con chispas de colores",
+    precio: 10,
+  },
+];
+
+const SABORES_REFRESCO_DULCES_FRESAS = [
+  "Pepsi",
+  "Manzanita Sol",
+  "Mirinda",
+  "7UP",
+];
+
 const negocios = [
 
   {
@@ -4054,6 +4125,826 @@ const negocios = [
       },
     ],
   },
+
+  {
+    "id": "dulces-fresas",
+    "nombre": "Dulces Fresas",
+    "emoji": "🍓",
+    "descripcion": "Fresas con crema, frappés, malteadas, paletas, hotcakes, waffles, freidora, combos y gomitas",
+    "imagen": "/negocios/dulces-fresas.jpg",
+    "productosGrandes": true,
+    "menuOriginales": [
+      {
+        "titulo": "Menú general",
+        "imagen": "/menus/dulces-fresas/menu-general.jpg"
+      },
+      {
+        "titulo": "Menú de freidora",
+        "imagen": "/menus/dulces-fresas/menu-freidora.jpg"
+      },
+      {
+        "titulo": "Combos",
+        "imagen": "/menus/dulces-fresas/menu-combos.jpg"
+      },
+      {
+        "titulo": "Bebidas",
+        "imagen": "/menus/dulces-fresas/menu-bebidas.jpg"
+      },
+      {
+        "titulo": "Gomitas ahogadas",
+        "imagen": "/menus/dulces-fresas/menu-gomitas.jpg"
+      }
+    ],
+    "horarios": [
+      {
+        "dias": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "abre": "18:00",
+        "cierra": "23:00"
+      }
+    ],
+    "productos": [
+      {
+        "id": "fresas-con-crema-dulces-fresas",
+        "nombre": "Fresas con crema",
+        "precio": null,
+        "precioTexto": "Desde $50",
+        "descripcion": "Elige tamaño, fruta, untable, galleta triturada y toppings. También puedes agregar chocolates extra.",
+        "imagen": "/productos/dulces-fresas-fresas-con-crema.jpg",
+        "textoSelector": "Elige el tamaño:",
+        "opciones": [
+          {
+            "id": "fresas-kids-7oz-dulces-fresas",
+            "nombre": "Kids (7 oz)",
+            "precio": 50,
+            "descripcion": "Incluye 1 fruta, 1 untable, 1 galleta triturada y 1 topping.",
+            "guisos": FRUTAS_Y_GALLETAS_DULCES_FRESAS,
+            "maxGuisos": 2,
+            "cantidadExactaGuisosExtra": 2,
+            "textoSelector": "Elige exactamente 1 fruta y 1 galleta triturada (2 selecciones):",
+            "toppings": TOPPINGS_DULCES_FRESAS,
+            "maxToppings": 1,
+            "cantidadExactaToppings": 1,
+            "textoToppings": "Elige exactamente 1 topping:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          },
+          {
+            "id": "fresas-chico-12oz-dulces-fresas",
+            "nombre": "Chico (12 oz)",
+            "precio": 70,
+            "descripcion": "Incluye 1 fruta, 1 untable, 1 galleta triturada y 1 topping.",
+            "guisos": FRUTAS_Y_GALLETAS_DULCES_FRESAS,
+            "maxGuisos": 2,
+            "cantidadExactaGuisosExtra": 2,
+            "textoSelector": "Elige exactamente 1 fruta y 1 galleta triturada (2 selecciones):",
+            "toppings": TOPPINGS_DULCES_FRESAS,
+            "maxToppings": 1,
+            "cantidadExactaToppings": 1,
+            "textoToppings": "Elige exactamente 1 topping:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          },
+          {
+            "id": "fresas-mediano-14oz-dulces-fresas",
+            "nombre": "Mediano (14 oz)",
+            "precio": 80,
+            "descripcion": "Incluye 1 fruta, 1 untable, 1 galleta triturada y 1 topping.",
+            "guisos": FRUTAS_Y_GALLETAS_DULCES_FRESAS,
+            "maxGuisos": 2,
+            "cantidadExactaGuisosExtra": 2,
+            "textoSelector": "Elige exactamente 1 fruta y 1 galleta triturada (2 selecciones):",
+            "toppings": TOPPINGS_DULCES_FRESAS,
+            "maxToppings": 1,
+            "cantidadExactaToppings": 1,
+            "textoToppings": "Elige exactamente 1 topping:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          },
+          {
+            "id": "fresas-grande-medio-litro-dulces-fresas",
+            "nombre": "Grande (½ litro)",
+            "precio": 95,
+            "descripcion": "Incluye 1 fruta, 1 untable, 1 galleta triturada y 2 toppings.",
+            "guisos": FRUTAS_Y_GALLETAS_DULCES_FRESAS,
+            "maxGuisos": 2,
+            "cantidadExactaGuisosExtra": 2,
+            "textoSelector": "Elige exactamente 1 fruta y 1 galleta triturada (2 selecciones):",
+            "toppings": TOPPINGS_DULCES_FRESAS,
+            "maxToppings": 2,
+            "cantidadExactaToppings": 2,
+            "textoToppings": "Elige exactamente 2 toppings:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          },
+          {
+            "id": "fresas-extra-grande-litro-dulces-fresas",
+            "nombre": "Extra grande (1 litro)",
+            "precio": 190,
+            "descripcion": "Incluye 1 fruta, 1 untable, 1 galleta triturada y 4 toppings.",
+            "guisos": FRUTAS_Y_GALLETAS_DULCES_FRESAS,
+            "maxGuisos": 2,
+            "cantidadExactaGuisosExtra": 2,
+            "textoSelector": "Elige exactamente 1 fruta y 1 galleta triturada (2 selecciones):",
+            "toppings": TOPPINGS_DULCES_FRESAS,
+            "maxToppings": 4,
+            "cantidadExactaToppings": 4,
+            "textoToppings": "Elige exactamente 4 toppings:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          },
+          {
+            "id": "chocolate-extra-bubulubu-dulces-fresas",
+            "nombre": "Chocolate extra sencillo — Bubulubu",
+            "precio": 5,
+            "descripcion": "Chocolate extra sencillo."
+          },
+          {
+            "id": "chocolate-extra-kranky-dulces-fresas",
+            "nombre": "Chocolate extra sencillo — Kranky",
+            "precio": 5,
+            "descripcion": "Chocolate extra sencillo."
+          },
+          {
+            "id": "chocolate-extra-pastelito-hershey-s-dulces-fresas",
+            "nombre": "Chocolate extra sencillo — Pastelito Hershey's",
+            "precio": 5,
+            "descripcion": "Chocolate extra sencillo."
+          },
+          {
+            "id": "chocolate-extra-pastelito-bocad-n-dulces-fresas",
+            "nombre": "Chocolate extra sencillo — Pastelito Bocadín",
+            "precio": 5,
+            "descripcion": "Chocolate extra sencillo."
+          },
+          {
+            "id": "chocolate-extra-carlos-v-dulces-fresas",
+            "nombre": "Chocolate extra sencillo — Carlos V",
+            "precio": 5,
+            "descripcion": "Chocolate extra sencillo."
+          },
+          {
+            "id": "chocolate-extra-ping-ino-dulces-fresas",
+            "nombre": "Chocolate extra premium — Pingüino",
+            "precio": 10,
+            "descripcion": "Chocolate extra premium."
+          },
+          {
+            "id": "chocolate-extra-chocorrol-dulces-fresas",
+            "nombre": "Chocolate extra premium — Chocorrol",
+            "precio": 10,
+            "descripcion": "Chocolate extra premium."
+          },
+          {
+            "id": "chocolate-extra-gansito-dulces-fresas",
+            "nombre": "Chocolate extra premium — Gansito",
+            "precio": 10,
+            "descripcion": "Chocolate extra premium."
+          },
+          {
+            "id": "chocolate-extra-kinder-delice-dulces-fresas",
+            "nombre": "Chocolate extra premium — Kinder Delice",
+            "precio": 10,
+            "descripcion": "Chocolate extra premium."
+          },
+          {
+            "id": "chocolate-extra-kinder-chocolate-dulces-fresas",
+            "nombre": "Chocolate extra premium — Kinder Chocolate",
+            "precio": 10,
+            "descripcion": "Chocolate extra premium."
+          },
+          {
+            "id": "chocolate-extra-raffaello-dulces-fresas",
+            "nombre": "Chocolate extra premium — Raffaello",
+            "precio": 10,
+            "descripcion": "Chocolate extra premium."
+          }
+        ]
+      },
+      {
+        "id": "frappes-dulces-fresas",
+        "nombre": "Frappés",
+        "precio": null,
+        "precioTexto": "Desde $45",
+        "descripcion": "Frappés clásicos, especiales y premium en tamaños de 12 oz y 16 oz.",
+        "imagen": "/productos/dulces-fresas-frappe-clasico.jpg",
+        "textoSelector": "Elige tipo, sabor y tamaño:",
+        "opciones": [
+          {
+            "id": "frappe-frappuccino-12oz-dulces-fresas",
+            "nombre": "Clásico — Frappuccino — 12 oz",
+            "precio": 45,
+            "descripcion": "Frappé de Frappuccino, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-frappuccino-16oz-dulces-fresas",
+            "nombre": "Clásico — Frappuccino — 16 oz",
+            "precio": 60,
+            "descripcion": "Frappé de Frappuccino, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-oreo-12oz-dulces-fresas",
+            "nombre": "Clásico — Oreo — 12 oz",
+            "precio": 45,
+            "descripcion": "Frappé de Oreo, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-oreo-16oz-dulces-fresas",
+            "nombre": "Clásico — Oreo — 16 oz",
+            "precio": 60,
+            "descripcion": "Frappé de Oreo, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-moka-12oz-dulces-fresas",
+            "nombre": "Clásico — Moka — 12 oz",
+            "precio": 45,
+            "descripcion": "Frappé de Moka, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-moka-16oz-dulces-fresas",
+            "nombre": "Clásico — Moka — 16 oz",
+            "precio": 60,
+            "descripcion": "Frappé de Moka, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-cheesecake-de-dulces-fresas-12oz-dulces-fresas",
+            "nombre": "Especial — Cheesecake de Dulces Fresas — 12 oz",
+            "precio": 50,
+            "descripcion": "Frappé de Cheesecake de Dulces Fresas, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-cheesecake-de-dulces-fresas-16oz-dulces-fresas",
+            "nombre": "Especial — Cheesecake de Dulces Fresas — 16 oz",
+            "precio": 65,
+            "descripcion": "Frappé de Cheesecake de Dulces Fresas, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-nutella-12oz-dulces-fresas",
+            "nombre": "Especial — Nutella — 12 oz",
+            "precio": 50,
+            "descripcion": "Frappé de Nutella, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-nutella-16oz-dulces-fresas",
+            "nombre": "Especial — Nutella — 16 oz",
+            "precio": 65,
+            "descripcion": "Frappé de Nutella, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-mazap-n-12oz-dulces-fresas",
+            "nombre": "Especial — Mazapán — 12 oz",
+            "precio": 50,
+            "descripcion": "Frappé de Mazapán, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-mazap-n-16oz-dulces-fresas",
+            "nombre": "Especial — Mazapán — 16 oz",
+            "precio": 65,
+            "descripcion": "Frappé de Mazapán, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-carlos-v-12oz-dulces-fresas",
+            "nombre": "Especial — Carlos V — 12 oz",
+            "precio": 50,
+            "descripcion": "Frappé de Carlos V, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-carlos-v-16oz-dulces-fresas",
+            "nombre": "Especial — Carlos V — 16 oz",
+            "precio": 65,
+            "descripcion": "Frappé de Carlos V, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-gansito-12oz-dulces-fresas",
+            "nombre": "Premium — Gansito — 12 oz",
+            "precio": 55,
+            "descripcion": "Frappé de Gansito, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-gansito-16oz-dulces-fresas",
+            "nombre": "Premium — Gansito — 16 oz",
+            "precio": 70,
+            "descripcion": "Frappé de Gansito, tamaño 16 oz."
+          },
+          {
+            "id": "frappe-ping-ino-12oz-dulces-fresas",
+            "nombre": "Premium — Pingüino — 12 oz",
+            "precio": 55,
+            "descripcion": "Frappé de Pingüino, tamaño 12 oz."
+          },
+          {
+            "id": "frappe-ping-ino-16oz-dulces-fresas",
+            "nombre": "Premium — Pingüino — 16 oz",
+            "precio": 70,
+            "descripcion": "Frappé de Pingüino, tamaño 16 oz."
+          }
+        ]
+      },
+      {
+        "id": "malteadas-dulces-fresas",
+        "nombre": "Malteadas",
+        "precio": null,
+        "precioTexto": "Desde $25",
+        "descripcion": "Malteadas de Chocomilk o fresa.",
+        "imagen": "/productos/dulces-fresas-malteadas.jpg",
+        "textoSelector": "Elige sabor y tamaño:",
+        "opciones": [
+          {
+            "id": "malteada-chocomilk-12oz-dulces-fresas",
+            "nombre": "Chocomilk — 12 oz",
+            "precio": 25,
+            "descripcion": "Puedes agregar crema batida con chispas por $10.",
+            "extras": EXTRA_CREMA_BATIDA_DULCES_FRESAS,
+            "textoExtras": "Agrega crema batida:"
+          },
+          {
+            "id": "malteada-chocomilk-16oz-dulces-fresas",
+            "nombre": "Chocomilk — 16 oz",
+            "precio": 35,
+            "descripcion": "Puedes agregar crema batida con chispas por $10.",
+            "extras": EXTRA_CREMA_BATIDA_DULCES_FRESAS,
+            "textoExtras": "Agrega crema batida:"
+          },
+          {
+            "id": "malteada-fresa-12oz-dulces-fresas",
+            "nombre": "Fresa — 12 oz",
+            "precio": 25,
+            "descripcion": "Puedes agregar crema batida con chispas por $10.",
+            "extras": EXTRA_CREMA_BATIDA_DULCES_FRESAS,
+            "textoExtras": "Agrega crema batida:"
+          },
+          {
+            "id": "malteada-fresa-16oz-dulces-fresas",
+            "nombre": "Fresa — 16 oz",
+            "precio": 35,
+            "descripcion": "Puedes agregar crema batida con chispas por $10.",
+            "extras": EXTRA_CREMA_BATIDA_DULCES_FRESAS,
+            "textoExtras": "Agrega crema batida:"
+          }
+        ]
+      },
+      {
+        "id": "paletas-dulces-fresas",
+        "nombre": "Paletas",
+        "precio": null,
+        "precioTexto": "Desde $6",
+        "descripcion": "Paletas de hielo, preparadas y cremosas.",
+        "imagen": "/productos/dulces-fresas-paletas-hielo.jpg",
+        "textoSelector": "Elige tu paleta:",
+        "opciones": [
+          {
+            "id": "paleta-agua-dulces-fresas",
+            "nombre": "Paleta de hielo — Agua",
+            "precio": 6,
+            "descripcion": "Paleta de hielo de agua."
+          },
+          {
+            "id": "paleta-chamoy-dulces-fresas",
+            "nombre": "Paleta de hielo — Chamoy",
+            "precio": 8,
+            "descripcion": "Paleta de hielo de chamoy."
+          },
+          {
+            "id": "paleta-leche-dulces-fresas",
+            "nombre": "Paleta de hielo — Leche",
+            "precio": 8,
+            "descripcion": "Paleta de hielo de leche."
+          },
+          {
+            "id": "paletas-preparadas-dulces-fresas",
+            "nombre": "Paleta preparada",
+            "precio": 10,
+            "descripcion": "Solo sabores de agua. Incluye gomitas, Tajín, Miguelito y chamoy."
+          },
+          {
+            "id": "paleta-cremosa-oreo-dulces-fresas",
+            "nombre": "Paleta cremosa — Oreo",
+            "precio": 25
+          },
+          {
+            "id": "paleta-cremosa-fresa-dulces-fresas",
+            "nombre": "Paleta cremosa — Fresa",
+            "precio": 25
+          },
+          {
+            "id": "paleta-cremosa-durazno-dulces-fresas",
+            "nombre": "Paleta cremosa — Durazno",
+            "precio": 25
+          },
+          {
+            "id": "paleta-cremosa-queso-zarzamora-dulces-fresas",
+            "nombre": "Paleta cremosa — Queso con zarzamora",
+            "precio": 25
+          }
+        ]
+      },
+      {
+        "id": "mini-hotcakes-waffles-dulces-fresas",
+        "nombre": "Mini hotcakes y waffles",
+        "precio": null,
+        "precioTexto": "$55",
+        "descripcion": "Elige mini hotcakes o waffles con fruta, untable y galleta triturada.",
+        "imagen": "/productos/dulces-fresas-mini-hotcakes.jpg",
+        "textoSelector": "Elige una opción:",
+        "opciones": [
+          {
+            "id": "mini-hotcakes-dulces-fresas",
+            "nombre": "Mini hotcakes (20 piezas)",
+            "precio": 55,
+            "descripcion": "Incluyen fruta, untable y galleta triturada.",
+            "guisos": FRUTAS_MINI_HOTCAKES_WAFFLES_DULCES_FRESAS,
+            "maxGuisos": 1,
+            "cantidadExactaGuisosExtra": 1,
+            "textoSelector": "Elige 1 fruta:",
+            "toppings": GALLETAS_MINI_HOTCAKES_WAFFLES_DULCES_FRESAS,
+            "maxToppings": 1,
+            "cantidadExactaToppings": 1,
+            "textoToppings": "Elige 1 galleta triturada:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          },
+          {
+            "id": "waffles-dulces-fresas",
+            "nombre": "Waffles (2 piezas)",
+            "precio": 55,
+            "descripcion": "Incluyen fruta, untable y galleta triturada.",
+            "guisos": FRUTAS_MINI_HOTCAKES_WAFFLES_DULCES_FRESAS,
+            "maxGuisos": 1,
+            "cantidadExactaGuisosExtra": 1,
+            "textoSelector": "Elige 1 fruta:",
+            "toppings": GALLETAS_MINI_HOTCAKES_WAFFLES_DULCES_FRESAS,
+            "maxToppings": 1,
+            "cantidadExactaToppings": 1,
+            "textoToppings": "Elige 1 galleta triturada:",
+            "jarabes": UNTABLES_DULCES_FRESAS,
+            "jarabeRequerido": true,
+            "textoJarabes": "Elige 1 untable:"
+          }
+        ]
+      },
+      {
+        "id": "menu-freidora-dulces-fresas",
+        "nombre": "Menú de freidora",
+        "precio": null,
+        "precioTexto": "Desde $40",
+        "descripcion": "Salchipulpos, salchi tacos, papas, especiales, boneless, dedos de queso y aderezos.",
+        "imagen": "/productos/dulces-fresas-salchipulpos.jpg",
+        "textoSelector": "Elige producto y tamaño:",
+        "opciones": [
+          {
+            "id": "salchipulpos-dulces-fresas-chico",
+            "nombre": "Salchipulpos — Chico — 8 piezas",
+            "precio": 40,
+            "descripcion": "8 salchipulpos. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "salchipulpos-dulces-fresas-mediano",
+            "nombre": "Salchipulpos — Mediano — 15 piezas",
+            "precio": 60,
+            "descripcion": "15 salchipulpos. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "salchipulpos-dulces-fresas-grande",
+            "nombre": "Salchipulpos — Grande — 20 piezas",
+            "precio": 80,
+            "descripcion": "20 salchipulpos. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "salchi-tacos-dulces-fresas-chico",
+            "nombre": "Salchi tacos — Chico — 12 piezas",
+            "precio": 50,
+            "descripcion": "12 salchi tacos. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "salchi-tacos-dulces-fresas-mediano",
+            "nombre": "Salchi tacos — Mediano — 18 piezas",
+            "precio": 70,
+            "descripcion": "18 salchi tacos. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "salchi-tacos-dulces-fresas-grande",
+            "nombre": "Salchi tacos — Grande — 24 piezas",
+            "precio": 90,
+            "descripcion": "24 salchi tacos. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "salchipulpos-papas-dulces-fresas-chico",
+            "nombre": "Salchipulpos + papas — Chico",
+            "precio": 65,
+            "descripcion": "6 pulpos + 200 g de papas. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "salchipulpos-papas-dulces-fresas-mediano",
+            "nombre": "Salchipulpos + papas — Mediano",
+            "precio": 80,
+            "descripcion": "6 pulpos + 350 g de papas. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "salchipulpos-papas-dulces-fresas-grande",
+            "nombre": "Salchipulpos + papas — Grande",
+            "precio": 95,
+            "descripcion": "10 pulpos + 500 g de papas. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "salchi-tacos-papas-dulces-fresas-chico",
+            "nombre": "Salchi tacos + papas — Chico",
+            "precio": 65,
+            "descripcion": "6 tacos + 200 g de papas. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "salchi-tacos-papas-dulces-fresas-mediano",
+            "nombre": "Salchi tacos + papas — Mediano",
+            "precio": 80,
+            "descripcion": "6 tacos + 350 g de papas. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "salchi-tacos-papas-dulces-fresas-grande",
+            "nombre": "Salchi tacos + papas — Grande",
+            "precio": 95,
+            "descripcion": "12 tacos + 500 g de papas. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "salchipulpos-salchi-tacos-dulces-fresas-chico",
+            "nombre": "Salchipulpos + salchi tacos — Chico",
+            "precio": 50,
+            "descripcion": "4 pulpos + 6 tacos. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "salchipulpos-salchi-tacos-dulces-fresas-mediano",
+            "nombre": "Salchipulpos + salchi tacos — Mediano",
+            "precio": 70,
+            "descripcion": "10 pulpos + 6 tacos. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "salchipulpos-salchi-tacos-dulces-fresas-grande",
+            "nombre": "Salchipulpos + salchi tacos — Grande",
+            "precio": 90,
+            "descripcion": "10 pulpos + 12 tacos. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "especial-freidora-dulces-fresas-chico",
+            "nombre": "Especial — Chico",
+            "precio": 70,
+            "descripcion": "4 pulpos + 3 tacos + 200 g de papas. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "especial-freidora-dulces-fresas-mediano",
+            "nombre": "Especial — Mediano",
+            "precio": 85,
+            "descripcion": "6 pulpos + 3 tacos + 350 g de papas. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "especial-freidora-dulces-fresas-grande",
+            "nombre": "Especial — Grande",
+            "precio": 100,
+            "descripcion": "6 pulpos + 6 tacos + 500 g de papas. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "papas-con-pollo-dulces-fresas-chico",
+            "nombre": "Papas con pollo (boneless) — Chico",
+            "precio": 80,
+            "descripcion": "250 g de pollo + 200 g de papas. Incluye catsup y elige 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "papas-con-pollo-dulces-fresas-mediano",
+            "nombre": "Papas con pollo (boneless) — Mediano",
+            "precio": 110,
+            "descripcion": "350 g de pollo + 350 g de papas. Incluye catsup y elige 2 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 2 aderezos incluidos:"
+          },
+          {
+            "id": "papas-con-pollo-dulces-fresas-grande",
+            "nombre": "Papas con pollo (boneless) — Grande",
+            "precio": 140,
+            "descripcion": "500 g de pollo + 500 g de papas. Incluye catsup y elige 4 aderezos.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 4 aderezos incluidos:"
+          },
+          {
+            "id": "dedos-de-queso-5p-dulces-fresas",
+            "nombre": "Dedos de queso — 5 piezas",
+            "precio": 55,
+            "descripcion": "Incluye catsup y 1 aderezo.",
+            "extras": ADEREZOS_DULCES_FRESAS,
+            "extrasRequeridos": true,
+            "textoExtras": "Selecciona 1 aderezo incluido:"
+          },
+          {
+            "id": "aderezo-extra-catsup-dulces-fresas",
+            "nombre": "Aderezo extra — Catsup",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-queso-nachos-dulces-fresas",
+            "nombre": "Aderezo extra — Queso para nachos",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-chipotle-dulces-fresas",
+            "nombre": "Aderezo extra — Chipotle cremosa",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-habanero-dulces-fresas",
+            "nombre": "Aderezo extra — Habanero cremosa",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-guacamole-habanero-dulces-fresas",
+            "nombre": "Aderezo extra — Guacamole habanero",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-guacamole-serrano-dulces-fresas",
+            "nombre": "Aderezo extra — Guacamole serrano",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-queso-jalapeno-dulces-fresas",
+            "nombre": "Aderezo extra — Queso jalapeño",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-ranch-jalapeno-dulces-fresas",
+            "nombre": "Aderezo extra — Ranch jalapeño",
+            "precio": 10
+          },
+          {
+            "id": "aderezo-extra-ranch-dulces-fresas",
+            "nombre": "Aderezo extra — Ranch",
+            "precio": 10
+          }
+        ]
+      },
+      {
+        "id": "combos-dulces-fresas",
+        "nombre": "Combos",
+        "precio": null,
+        "precioTexto": "Desde $75",
+        "descripcion": "Combos individual, pareja, amigos y familiar.",
+        "imagen": "/productos/dulces-fresas-combo-individual.jpg",
+        "textoSelector": "Elige tu combo:",
+        "opciones": [
+          {
+            "id": "combo-individual-dulces-fresas",
+            "nombre": "Combo individual",
+            "precio": 75,
+            "descripcion": "Salchipulpos + papas chico y 1 refresco de 355 ml. Si quieres repetir sabor, escríbelo en notas.",
+            "guisos": SABORES_REFRESCO_DULCES_FRESAS,
+            "maxGuisos": 1,
+            "cantidadExactaGuisosExtra": 1,
+            "textoSelector": "Elige 1 sabor de refresco:"
+          },
+          {
+            "id": "combo-pareja-dulces-fresas",
+            "nombre": "Combo pareja",
+            "precio": 180,
+            "descripcion": "Salchipulpos + papas mediano, salchi tacos + papas mediano y 2 refrescos de 355 ml. Si quieres repetir sabor, escríbelo en notas.",
+            "guisos": SABORES_REFRESCO_DULCES_FRESAS,
+            "maxGuisos": 2,
+            "cantidadExactaGuisosExtra": 2,
+            "textoSelector": "Elige 2 sabores de refresco:"
+          },
+          {
+            "id": "combo-amigos-dulces-fresas",
+            "nombre": "Combo amigos",
+            "precio": 170,
+            "descripcion": "Especial mediano, dedos de queso y 3 refrescos de 355 ml. Si quieres repetir sabor, escríbelo en notas.",
+            "guisos": SABORES_REFRESCO_DULCES_FRESAS,
+            "maxGuisos": 3,
+            "cantidadExactaGuisosExtra": 3,
+            "textoSelector": "Elige 3 sabores de refresco:"
+          },
+          {
+            "id": "combo-familiar-dulces-fresas",
+            "nombre": "Combo familiar",
+            "precio": 335,
+            "descripcion": "Especial grande, papas con pollo grande, dedos de queso y 4 refrescos de 355 ml. Si quieres repetir sabor, escríbelo en notas.",
+            "guisos": SABORES_REFRESCO_DULCES_FRESAS,
+            "maxGuisos": 4,
+            "cantidadExactaGuisosExtra": 4,
+            "textoSelector": "Elige 4 sabores de refresco:"
+          }
+        ]
+      },
+      {
+        "id": "refrescos-dulces-fresas",
+        "nombre": "Refrescos",
+        "precio": null,
+        "precioTexto": "Desde $15",
+        "descripcion": "Refrescos en lata de 355 ml y Coca-Cola de 600 ml.",
+        "imagen": "/productos/dulces-fresas-refrescos.jpg",
+        "textoSelector": "Elige tu refresco:",
+        "opciones": [
+          {
+            "id": "pepsi-355-dulces-fresas",
+            "nombre": "Pepsi 355 ml",
+            "precio": 15
+          },
+          {
+            "id": "manzanita-355-dulces-fresas",
+            "nombre": "Manzanita Sol 355 ml",
+            "precio": 15
+          },
+          {
+            "id": "mirinda-355-dulces-fresas",
+            "nombre": "Mirinda 355 ml",
+            "precio": 15
+          },
+          {
+            "id": "sevenup-355-dulces-fresas",
+            "nombre": "7UP 355 ml",
+            "precio": 15
+          },
+          {
+            "id": "coca-cola-600-dulces-fresas",
+            "nombre": "Coca-Cola 600 ml",
+            "precio": 24
+          }
+        ]
+      },
+      {
+        "id": "gomitas-ahogadas-dulces-fresas",
+        "nombre": "Gomitas ahogadas",
+        "precio": 15,
+        "descripcion": "100 g de gusanitos y delfines de gomita bañados en chamoy casero.",
+        "imagen": "/productos/dulces-fresas-gomitas-ahogadas.jpg"
+      }
+    ]
+  }
 
 ];
 

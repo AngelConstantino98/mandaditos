@@ -330,6 +330,9 @@ export default function App() {
   const [negocioSeleccionado, setNegocioSeleccionado] = useState(null);
   const [plazaSeleccionada, setPlazaSeleccionada] = useState(null);
 
+  // 📋 Galería de menús originales del negocio (solo para consultar).
+  const [mostrarMenusOriginales, setMostrarMenusOriginales] = useState(false);
+
   // 🛒 Carrito visual de negocios locales
   const [carrito, setCarrito] = useState([]);
 
@@ -529,6 +532,11 @@ export default function App() {
       return true;
     }
 
+    if (modalActual === "menus-originales") {
+      setMostrarMenusOriginales(false);
+      return true;
+    }
+
     if (modalActual === "cancelar") {
       setShowCancel(null);
       return true;
@@ -576,8 +584,10 @@ export default function App() {
           ? "whatsapp"
           : mostrarContactos
             ? "contactos"
-            : showCancel
-              ? "cancelar"
+            : mostrarMenusOriginales
+              ? "menus-originales"
+              : showCancel
+                ? "cancelar"
             : productoParaExtras
               ? "extras"
               : productoParaToppings
@@ -614,6 +624,7 @@ export default function App() {
     alertaApp,
     whatsappPendiente,
     mostrarContactos,
+    mostrarMenusOriginales,
     showCancel,
     productoParaExtras,
     productoParaToppings,
@@ -5368,6 +5379,7 @@ ${notaPedido.trim()}`
                 negocioSeleccionado.plazaId &&
                 plazaSeleccionada?.id === negocioSeleccionado.plazaId;
 
+              setMostrarMenusOriginales(false);
               setNegocioSeleccionado(null);
               setScreen(
                 perteneceAPlaza ? "plaza-negocios" : "negocios-locales",
@@ -5407,6 +5419,47 @@ ${notaPedido.trim()}`
               {obtenerEstadoNegocio(negocioSeleccionado).textoEstado} · {obtenerEstadoNegocio(negocioSeleccionado).detalleHorario}
             </p>
           </div>
+
+          {Array.isArray(negocioSeleccionado.menuOriginales) &&
+            negocioSeleccionado.menuOriginales.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMostrarMenusOriginales(true)}
+                style={{
+                  width: "100%",
+                  marginTop: 10,
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  border: "1px solid #ec4899",
+                  background: "#fce7f3",
+                  color: "#9d174d",
+                  cursor: "pointer",
+                  fontWeight: 900,
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10
+                }}
+              >
+                <span>📋 Ver menús originales</span>
+                <span
+                  style={{
+                    minWidth: 28,
+                    height: 28,
+                    borderRadius: 999,
+                    background: "#ec4899",
+                    color: "white",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 13
+                  }}
+                >
+                  {negocioSeleccionado.menuOriginales.length}
+                </span>
+              </button>
+            )}
 
           {!negocioEstaAbierto(negocioSeleccionado.id) && (
             <div
@@ -5675,6 +5728,118 @@ ${notaPedido.trim()}`
 
         </div>
       )}
+
+      {mostrarMenusOriginales &&
+        negocioSeleccionado &&
+        Array.isArray(negocioSeleccionado.menuOriginales) && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Menús originales de ${negocioSeleccionado.nombre}`}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 1100000,
+              background: "rgba(15, 23, 42, 0.88)",
+              padding: "10px",
+              overflowY: "auto",
+              WebkitOverflowScrolling: "touch"
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 720,
+                margin: "0 auto",
+                background: "white",
+                borderRadius: 16,
+                overflow: "hidden",
+                boxShadow: "0 18px 50px rgba(0,0,0,0.35)"
+              }}
+            >
+              <div
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  padding: 12,
+                  background: "#fdf2f8",
+                  borderBottom: "1px solid #f9a8d4"
+                }}
+              >
+                <div>
+                  <strong style={{ display: "block", color: "#9d174d" }}>
+                    📋 Menús originales
+                  </strong>
+                  <span style={{ fontSize: 12, color: "#64748b" }}>
+                    Solo para consultar; realiza tu pedido desde las secciones del menú.
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMostrarMenusOriginales(false)}
+                  aria-label="Cerrar menús originales"
+                  style={{
+                    minWidth: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    border: "none",
+                    background: "#be123c",
+                    color: "white",
+                    fontSize: 22,
+                    fontWeight: 900,
+                    cursor: "pointer"
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div style={{ padding: 10, display: "grid", gap: 14 }}>
+                {negocioSeleccionado.menuOriginales.map((menu, indice) => (
+                  <figure
+                    key={`${menu.imagen}-${indice}`}
+                    style={{
+                      margin: 0,
+                      padding: 8,
+                      borderRadius: 14,
+                      background: "#fff7fb",
+                      border: "1px solid #fbcfe8"
+                    }}
+                  >
+                    <figcaption
+                      style={{
+                        marginBottom: 8,
+                        color: "#9d174d",
+                        fontWeight: 900,
+                        textAlign: "center"
+                      }}
+                    >
+                      {menu.titulo || `Menú ${indice + 1}`}
+                    </figcaption>
+
+                    <img
+                      src={menu.imagen}
+                      alt={menu.titulo || `Menú original ${indice + 1}`}
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        display: "block",
+                        borderRadius: 10,
+                        background: "white"
+                      }}
+                    />
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
       {productoParaGuisos && (
         <div
