@@ -444,6 +444,13 @@ export default function App() {
   const [duenoMensaje, setDuenoMensaje] = useState("");
   const [duenoCargando, setDuenoCargando] = useState(false);
   const [duenoResumen, setDuenoResumen] = useState(null);
+
+  // 🔐 Restablecimiento privado del NIP de clientes desde el Panel Dueño.
+  const [duenoClienteTelefono, setDuenoClienteTelefono] = useState("");
+  const [duenoClienteNuevoPin, setDuenoClienteNuevoPin] = useState("");
+  const [duenoClienteConfirmarPin, setDuenoClienteConfirmarPin] = useState("");
+  const [duenoClienteNipCargando, setDuenoClienteNipCargando] = useState(false);
+  const [duenoClienteNipResultado, setDuenoClienteNipResultado] = useState(null);
   const [duenoFecha, setDuenoFecha] = useState(() => {
     try {
       return new Intl.DateTimeFormat("en-CA", {
@@ -1577,6 +1584,86 @@ export default function App() {
     }
   };
 
+  // 🔐 Restablecer NIP de un cliente sin cambiar su cuenta, puntos ni pedidos.
+  const restablecerNipClienteDueno = async () => {
+    try {
+      setDuenoClienteNipCargando(true);
+      setDuenoClienteNipResultado(null);
+
+      if (!dueno?.usuario || !dueno?.pin) {
+        setScreen("dueno-login", { reemplazar: true });
+        return;
+      }
+
+      const telefono = String(duenoClienteTelefono || "").replace(/\D/g, "");
+      const nuevoPin = String(duenoClienteNuevoPin || "").trim();
+      const confirmarPin = String(duenoClienteConfirmarPin || "").trim();
+
+      if (telefono.length < 10) {
+        setDuenoClienteNipResultado({
+          ok: false,
+          mensaje: "Escribe el teléfono completo con el que se registró el cliente."
+        });
+        return;
+      }
+
+      if (!/^\d{4,6}$/.test(nuevoPin)) {
+        setDuenoClienteNipResultado({
+          ok: false,
+          mensaje: "El NIP nuevo debe tener de 4 a 6 números."
+        });
+        return;
+      }
+
+      if (nuevoPin !== confirmarPin) {
+        setDuenoClienteNipResultado({
+          ok: false,
+          mensaje: "La confirmación no coincide con el NIP nuevo."
+        });
+        return;
+      }
+
+      const res = await fetch(`${SOCKET_URL}/dueno/restablecer-pin-cliente`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          usuario: dueno.usuario,
+          pin: dueno.pin,
+          telefono,
+          nuevoPin
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setDuenoClienteNipResultado({
+          ok: false,
+          mensaje: data.mensaje || "No se pudo restablecer el NIP."
+        });
+        return;
+      }
+
+      setDuenoClienteNipResultado({
+        ok: true,
+        mensaje: `NIP actualizado correctamente para ${data.cliente?.nombre || "el cliente"}.`
+      });
+      setDuenoClienteTelefono("");
+      setDuenoClienteNuevoPin("");
+      setDuenoClienteConfirmarPin("");
+    } catch (error) {
+      console.log("Error restableciendo NIP del cliente:", error);
+      setDuenoClienteNipResultado({
+        ok: false,
+        mensaje: "No se pudo conectar con el servidor."
+      });
+    } finally {
+      setDuenoClienteNipCargando(false);
+    }
+  };
+
   // 👑 Cerrar sesión del dueño
   const cerrarSesionDueno = () => {
     localStorage.removeItem("duenoActivo");
@@ -1585,6 +1672,10 @@ export default function App() {
     setDuenoUsuario("");
     setDuenoPin("");
     setDuenoMensaje("");
+    setDuenoClienteTelefono("");
+    setDuenoClienteNuevoPin("");
+    setDuenoClienteConfirmarPin("");
+    setDuenoClienteNipResultado(null);
     setScreen("home", { reemplazar: true });
   };
 
@@ -4376,6 +4467,96 @@ ${notaPedido.trim()}`
             >
               Cerrar sesión dueño
             </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              border: "1px solid #c4b5fd"
+            }}
+          >
+            <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+              🔐 Restablecer NIP de cliente
+            </h2>
+
+            <p style={{ fontSize: 14, color: "#666", marginBottom: 10 }}>
+              Verifica primero que el teléfono pertenezca al cliente. Este cambio conserva su misma cuenta, pedidos, puntos, cupones y recompensas.
+            </p>
+
+            <input
+              value={duenoClienteTelefono}
+              onChange={(e) => {
+                setDuenoClienteTelefono(e.target.value);
+                setDuenoClienteNipResultado(null);
+              }}
+              placeholder="Teléfono registrado"
+              inputMode="tel"
+              autoComplete="off"
+              maxLength={15}
+            />
+
+            <input
+              value={duenoClienteNuevoPin}
+              onChange={(e) => {
+                setDuenoClienteNuevoPin(e.target.value.replace(/\D/g, "").slice(0, 6));
+                setDuenoClienteNipResultado(null);
+              }}
+              placeholder="NIP nuevo (4 a 6 números)"
+              inputMode="numeric"
+              type="password"
+              autoComplete="new-password"
+              maxLength={6}
+            />
+
+            <input
+              value={duenoClienteConfirmarPin}
+              onChange={(e) => {
+                setDuenoClienteConfirmarPin(e.target.value.replace(/\D/g, "").slice(0, 6));
+                setDuenoClienteNipResultado(null);
+              }}
+              placeholder="Confirmar NIP nuevo"
+              inputMode="numeric"
+              type="password"
+              autoComplete="new-password"
+              maxLength={6}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !duenoClienteNipCargando) {
+                  restablecerNipClienteDueno();
+                }
+              }}
+            />
+
+            <button
+              className="btn"
+              onClick={restablecerNipClienteDueno}
+              disabled={duenoClienteNipCargando}
+              style={{ marginTop: 8, background: "#7c3aed" }}
+            >
+              {duenoClienteNipCargando ? "Restableciendo..." : "🔐 Restablecer NIP"}
+            </button>
+
+            {duenoClienteNipResultado && (
+              <div
+                style={{
+                  marginTop: 10,
+                  padding: 10,
+                  background: duenoClienteNipResultado.ok ? "#ecfdf5" : "#fee2e2",
+                  border: duenoClienteNipResultado.ok
+                    ? "1px solid #22c55e"
+                    : "1px solid #ef4444",
+                  borderRadius: 10,
+                  color: duenoClienteNipResultado.ok ? "#166534" : "#991b1b",
+                  fontSize: 14,
+                  fontWeight: "bold"
+                }}
+              >
+                {duenoClienteNipResultado.ok ? "✅ " : "⚠️ "}
+                {duenoClienteNipResultado.mensaje}
+              </div>
+            )}
           </div>
 
           <div
