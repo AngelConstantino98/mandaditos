@@ -4945,6 +4945,269 @@ const negocios = [
       }
     ]
   }
+,
+
+  {
+    id: "la-creperia-3-hermanos",
+    nombre: "La Crepería 3 Hermanos",
+    emoji: "🧇",
+    descripcion: "Crepas, waffles, mini hotcakes, frappés, malteadas, alitas, boneless, micheladas y Korean Dog",
+    imagen: "/negocios/la-creperia-3-hermanos.jpg",
+    productosGrandes: true,
+    menuOriginales: [
+      {
+        titulo: "Desayuno sorpresa",
+        imagen: "/menus/la-creperia-3-hermanos/menu-desayuno-sorpresa.jpg"
+      },
+      {
+        titulo: "Nuestro menú",
+        imagen: "/menus/la-creperia-3-hermanos/menu-general.jpg"
+      },
+      {
+        titulo: "Korean Dog",
+        imagen: "/menus/la-creperia-3-hermanos/menu-korean-dog.jpg"
+      }
+    ],
+    horarios: [
+      { dias: [1, 2, 3, 4, 5], abre: "16:00", cierra: "22:00" },
+      { dias: [0, 6], abre: "15:00", cierra: "22:00" },
+    ],
+    productos: [
+      {
+        id: "desayuno-sorpresa-creperia-3-hermanos",
+        nombre: "Desayuno sorpresa",
+        precio: null,
+        precioTexto: "Precio a consultar",
+        descripcion: "Arma tu propia charola, plato o caja Crepizza. Puedes incluir waffle, hotcake, crepa, minipastel, boneless, alitas, papas, salchipapa, club sandwich, fruta y bebidas.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige una presentación:",
+        opciones: [
+          {
+            id: "charola-sorpresa-creperia-3-hermanos",
+            nombre: "Charola sorpresa",
+            precio: null,
+            precioTexto: "Precio a consultar",
+            descripcion: "Personalizable con alimentos, bebidas y detalles decorativos."
+          },
+          {
+            id: "plato-sorpresa-creperia-3-hermanos",
+            nombre: "Plato sorpresa",
+            precio: null,
+            precioTexto: "Precio a consultar",
+            descripcion: "Personalizable con alimentos, bebidas y detalles decorativos."
+          },
+          {
+            id: "caja-crepizza-creperia-3-hermanos",
+            nombre: "Caja Crepizza",
+            precio: null,
+            precioTexto: "Precio a consultar",
+            descripcion: "Personalizable con alimentos, bebidas y detalles decorativos."
+          }
+        ]
+      },
+      {
+        id: "mini-hotcake-creperia-3-hermanos",
+        nombre: "Mini hotcake (10)",
+        precio: null,
+        precioTexto: "$70",
+        descripcion: "Mini hotcakes con el topping de tu elección.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige el sabor:",
+        opciones: [
+          { id: "mini-hotcake-fresa-creperia-3-hermanos", nombre: "Mermelada de fresa", precio: 70, descripcion: "Mini hotcake con mermelada de fresa." },
+          { id: "mini-hotcake-zarzamora-creperia-3-hermanos", nombre: "Mermelada de zarzamora", precio: 70, descripcion: "Mini hotcake con mermelada de zarzamora." },
+          { id: "mini-hotcake-cajeta-creperia-3-hermanos", nombre: "Cajeta", precio: 70, descripcion: "Mini hotcake con cajeta." },
+          { id: "mini-hotcake-nutella-creperia-3-hermanos", nombre: "Nutella", precio: 70, descripcion: "Mini hotcake con Nutella." }
+        ]
+      },
+      {
+        id: "crepa-o-wafle-dulce-creperia-3-hermanos",
+        nombre: "Crepa o waffle dulce",
+        precio: null,
+        precioTexto: "Desde $50",
+        descripcion: "Crepa o waffle dulce con diferentes rellenos.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu opción:",
+        opciones: [
+          { id: "crepa-waffle-dulce-fresa-creperia-3-hermanos", nombre: "Dulce — Mermelada de fresa", precio: 50, descripcion: "Crepa o waffle dulce." },
+          { id: "crepa-waffle-dulce-zarzamora-creperia-3-hermanos", nombre: "Dulce — Mermelada de zarzamora", precio: 50, descripcion: "Crepa o waffle dulce." },
+          { id: "crepa-waffle-dulce-cajeta-creperia-3-hermanos", nombre: "Dulce — Cajeta", precio: 50, descripcion: "Crepa o waffle dulce." },
+          { id: "crepa-waffle-dulce-philadelphia-creperia-3-hermanos", nombre: "Dulce — Philadelphia", precio: 50, descripcion: "Crepa o waffle dulce." },
+          { id: "crepa-waffle-dulce-lechera-creperia-3-hermanos", nombre: "Dulce — Lechera", precio: 50, descripcion: "Crepa o waffle dulce." },
+          { id: "crepa-waffle-dulce-miel-creperia-3-hermanos", nombre: "Dulce — Miel", precio: 50, descripcion: "Crepa o waffle dulce." },
+          { id: "crepa-waffle-dulce-nutella-creperia-3-hermanos", nombre: "Dulce — Nutella", precio: 55, descripcion: "Crepa o waffle dulce con Nutella." }
+        ]
+      },
+      {
+        id: "crepa-o-waffle-salada-creperia-3-hermanos",
+        nombre: "Crepa o waffle salada",
+        precio: null,
+        precioTexto: "$50",
+        descripcion: "Crepa o waffle salada.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu relleno:",
+        opciones: [
+          { id: "crepa-waffle-salada-jamon-creperia-3-hermanos", nombre: "Jamón", precio: 50, descripcion: "Crepa o waffle salada de jamón." },
+          { id: "crepa-waffle-salada-philadelphia-creperia-3-hermanos", nombre: "Philadelphia", precio: 50, descripcion: "Crepa o waffle salada con Philadelphia." },
+          { id: "crepa-waffle-salada-manchego-creperia-3-hermanos", nombre: "Manchego", precio: 50, descripcion: "Crepa o waffle salada con manchego." }
+        ]
+      },
+      {
+        id: "especialidades-creperia-3-hermanos",
+        nombre: "Especialidad",
+        precio: null,
+        precioTexto: "$70",
+        descripcion: "Especialidades de crepa o waffle.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige una especialidad:",
+        opciones: [
+          { id: "especialidad-extrema-creperia-3-hermanos", nombre: "Extrema", precio: 70, descripcion: "Especialidad Extrema." },
+          { id: "especialidad-arcoiris-creperia-3-hermanos", nombre: "Arcoíris", precio: 70, descripcion: "Especialidad Arcoíris." },
+          { id: "especialidad-hawaiana-creperia-3-hermanos", nombre: "Hawaiana", precio: 70, descripcion: "Especialidad Hawaiana." },
+          { id: "especialidad-pizza-peperoni-creperia-3-hermanos", nombre: "Pizza (peperoni)", precio: 70, descripcion: "Especialidad estilo pizza de peperoni." }
+        ]
+      },
+      {
+        id: "toppings-extras-creperia-3-hermanos",
+        nombre: "Topping y extras",
+        precio: null,
+        precioTexto: "Desde $5",
+        descripcion: "Toppings y extras para crepas o waffles.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige una opción:",
+        opciones: [
+          { id: "topping-luneta-creperia-3-hermanos", nombre: "Topping — Luneta", precio: 10, descripcion: "Topping extra." },
+          { id: "topping-fresa-natural-creperia-3-hermanos", nombre: "Topping — Fresa natural", precio: 10, descripcion: "Topping extra." },
+          { id: "topping-guineo-creperia-3-hermanos", nombre: "Topping — Guineo", precio: 10, descripcion: "Topping extra." },
+          { id: "topping-nuez-creperia-3-hermanos", nombre: "Topping — Nuez", precio: 10, descripcion: "Topping extra." },
+          { id: "topping-oreo-creperia-3-hermanos", nombre: "Topping — Oreo", precio: 10, descripcion: "Topping extra." },
+          { id: "topping-kranki-creperia-3-hermanos", nombre: "Topping — Kranki", precio: 10, descripcion: "Topping extra." },
+          { id: "topping-bombom-creperia-3-hermanos", nombre: "Topping — Bombom", precio: 10, descripcion: "Topping extra." },
+          { id: "ingrediente-extra-creperia-3-hermanos", nombre: "Ingrediente extra para crepa o waffle", precio: 5, descripcion: "Ingrediente extra." }
+        ]
+      },
+      {
+        id: "alitas-y-boneless-creperia-3-hermanos",
+        nombre: "Alitas y boneless",
+        precio: null,
+        precioTexto: "Desde $90",
+        descripcion: "Alitas y boneless con salsa a elegir.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige cantidad y salsa:",
+        opciones: [
+          {
+            id: "alitas-boneless-5-piezas-creperia-3-hermanos",
+            nombre: "5 piezas",
+            precio: 90,
+            descripcion: "Elige 1 salsa.",
+            guisos: ["BBQ", "Tamarindo", "Mango habanero", "Buffalo"],
+            maxGuisos: 1,
+            cantidadExactaGuisosExtra: 1,
+            textoSelector: "Elige 1 salsa:"
+          },
+          {
+            id: "alitas-boneless-10-piezas-creperia-3-hermanos",
+            nombre: "10 piezas",
+            precio: 150,
+            descripcion: "Elige 1 salsa.",
+            guisos: ["BBQ", "Tamarindo", "Mango habanero", "Buffalo"],
+            maxGuisos: 1,
+            cantidadExactaGuisosExtra: 1,
+            textoSelector: "Elige 1 salsa:"
+          }
+        ]
+      },
+      {
+        id: "papas-y-salchipapas-creperia-3-hermanos",
+        nombre: "Papas y salchipapas",
+        precio: null,
+        precioTexto: "Desde $50",
+        descripcion: "Papas a la francesa y salchipapas.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu opción:",
+        opciones: [
+          { id: "papas-francesa-creperia-3-hermanos", nombre: "Papas a la francesa", precio: 50, descripcion: "Orden de papas a la francesa." },
+          { id: "salchipapas-creperia-3-hermanos", nombre: "Salchipapas", precio: 60, descripcion: "Orden de salchipapas." }
+        ]
+      },
+      {
+        id: "frappes-creperia-3-hermanos",
+        nombre: "Frappé",
+        precio: null,
+        precioTexto: "Desde $55",
+        descripcion: "Frappés tradicionales y especiales.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu frappé:",
+        opciones: [
+          { id: "frappe-tradicional-creperia-3-hermanos", nombre: "Tradicional", precio: 55, descripcion: "Frappé tradicional." },
+          { id: "frappe-oreo-creperia-3-hermanos", nombre: "Oreo", precio: 60, descripcion: "Frappé de Oreo." },
+          { id: "frappe-cajeta-creperia-3-hermanos", nombre: "Cajeta", precio: 60, descripcion: "Frappé de cajeta." },
+          { id: "frappe-gansito-creperia-3-hermanos", nombre: "Gansito", precio: 60, descripcion: "Frappé de Gansito." },
+          { id: "frappe-nutella-creperia-3-hermanos", nombre: "Nutella", precio: 60, descripcion: "Frappé de Nutella." },
+          { id: "frappe-rompope-creperia-3-hermanos", nombre: "Rompope", precio: 80, descripcion: "Frappé de rompope." },
+          { id: "frappe-licor-cafe-creperia-3-hermanos", nombre: "Licor de café", precio: 80, descripcion: "Frappé de licor de café." },
+          { id: "frappe-magnum-creperia-3-hermanos", nombre: "Magnum", precio: 80, descripcion: "Frappé sabor Magnum." }
+        ]
+      },
+      {
+        id: "malteadas-creperia-3-hermanos",
+        nombre: "Malteada",
+        precio: null,
+        precioTexto: "$60",
+        descripcion: "Malteadas de fresa o guineo.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu malteada:",
+        opciones: [
+          { id: "malteada-fresa-creperia-3-hermanos", nombre: "Fresa", precio: 60, descripcion: "Malteada de fresa." },
+          { id: "malteada-guineo-creperia-3-hermanos", nombre: "Guineo", precio: 60, descripcion: "Malteada de guineo." }
+        ]
+      },
+      {
+        id: "cafes-y-chocolate-creperia-3-hermanos",
+        nombre: "Capuchino y chocolate",
+        precio: null,
+        precioTexto: "$50",
+        descripcion: "Bebidas calientes.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu bebida:",
+        opciones: [
+          { id: "capuchino-creperia-3-hermanos", nombre: "Capuchino", precio: 50, descripcion: "Capuchino." },
+          { id: "chocolate-creperia-3-hermanos", nombre: "Chocolate", precio: 50, descripcion: "Chocolate." }
+        ]
+      },
+      {
+        id: "micheladas-creperia-3-hermanos",
+        nombre: "Michelada",
+        precio: null,
+        precioTexto: "Desde $80",
+        descripcion: "Micheladas de varios sabores.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu michelada:",
+        opciones: [
+          { id: "michelada-tradicional-creperia-3-hermanos", nombre: "Tradicional", precio: 80, descripcion: "Michelada tradicional." },
+          { id: "michelada-tamarindo-creperia-3-hermanos", nombre: "Tamarindo", precio: 90, descripcion: "Michelada de tamarindo." },
+          { id: "michelada-mango-creperia-3-hermanos", nombre: "Mango", precio: 90, descripcion: "Michelada de mango." }
+        ]
+      },
+      {
+        id: "korean-dog-creperia-3-hermanos",
+        nombre: "Korean Dog",
+        precio: null,
+        precioTexto: "$40",
+        descripcion: "Korean dog con diferentes coberturas.",
+        imagen: "/negocios/la-creperia-3-hermanos.jpg",
+            textoSelector: "Elige tu Korean Dog:",
+        opciones: [
+          { id: "korean-dog-flaming-hot-creperia-3-hermanos", nombre: "Flaming Hot", precio: 40, descripcion: "Korean dog Flaming Hot." },
+          { id: "korean-dog-ramen-creperia-3-hermanos", nombre: "Ramen", precio: 40, descripcion: "Korean dog con ramen." },
+          { id: "korean-dog-cheetos-queso-creperia-3-hermanos", nombre: "Cheetos queso", precio: 40, descripcion: "Korean dog con Cheetos queso." },
+          { id: "korean-dog-papa-creperia-3-hermanos", nombre: "Papa", precio: 40, descripcion: "Korean dog con papa." },
+          { id: "korean-dog-crunch-creperia-3-hermanos", nombre: "Crunch", precio: 40, descripcion: "Korean dog Crunch." }
+        ]
+      }
+    ]
+  }
+
 
 ];
 
