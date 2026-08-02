@@ -5208,6 +5208,81 @@ const negocios = [
     ]
   }
 
+,
+
+  {
+    id: "sushi-lc",
+    nombre: "SUSHI L&C",
+    emoji: "🍣",
+    descripcion: "Makis especiales y packs de charolas",
+    imagen: "/negocios/sushi-lc.jpg",
+    productosGrandes: true,
+    menuOriginales: [
+      {
+        titulo: "Packs de charolas",
+        imagen: "/menus/sushi-lc/menu-charolas.jpg"
+      },
+      {
+        titulo: "Rollos especiales",
+        imagen: "/menus/sushi-lc/menu-rollos.jpg"
+      }
+    ],
+    horarios: [
+      { dias: [0, 4, 5, 6], abre: "15:00", cierra: "21:00" },
+    ],
+    productos: [
+      {
+        id: "cream-cheese-sushi-lc",
+        nombre: "Cream Cheese",
+        precio: 100,
+        descripcion: "Rollo envuelto en queso Philadelphia.",
+        imagen: "/productos/sushi-lc-cream-cheese.jpg",
+      },
+      {
+        id: "red-crumb-sushi-lc",
+        nombre: "Red Crumb",
+        precio: 120,
+        descripcion: "Rollo envuelto en Takis Fuego.",
+        imagen: "/productos/sushi-lc-red-crumb.jpg",
+      },
+      {
+        id: "sesame-california-sushi-lc",
+        nombre: "Sesame California",
+        precio: 100,
+        descripcion: "Rollo Sesame California.",
+        imagen: "/productos/sushi-lc-sesame-california.jpg",
+      },
+      {
+        id: "charola-1-sushi-lc",
+        nombre: "Charola 1",
+        precio: 200,
+        descripcion: "25 piezas de makis: arrachera empanizada, camarón en plátano y surimi California, más 2 balls.",
+        imagen: "/productos/sushi-lc-charola-1.jpg",
+      },
+      {
+        id: "charola-2-sushi-lc",
+        nombre: "Charola 2",
+        precio: 280,
+        descripcion: "20 piezas de makis: arrachera empanizada y surimi California, más 8 alitas y papas.",
+        imagen: "/productos/sushi-lc-charola-2.jpg",
+      },
+      {
+        id: "charola-3-sushi-lc",
+        nombre: "Charola 3",
+        precio: 280,
+        descripcion: "30 piezas de makis a elegir del menú, más 2 balls. Indica tu elección en las notas del pedido.",
+        imagen: "/productos/sushi-lc-charola-3.jpg",
+      },
+      {
+        id: "charola-4-sushi-lc",
+        nombre: "Charola 4",
+        precio: 320,
+        descripcion: "40 piezas: 10 de arrachera empanizada, 10 de surimi California, 10 de camarón en plátano y 10 de surimi picoso en alga nori.",
+        imagen: "/productos/sushi-lc-charola-4.jpg",
+      },
+    ],
+  }
+
 
 ];
 
